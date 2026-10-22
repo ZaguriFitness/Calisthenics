@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>סולמות קליסטניקס וטבעות</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="theme-color" content="#1E6B78">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="סולמות">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&display=swap">
+<style>
+/* Layout: one track → one ladder → a vertical rail of step cards; one card open at a time */
+:root{
+  --bg:#EEF2F1; --surface:#FFFFFF; --ink:#18211F; --muted:#5B6866; --line:#D3DCDA;
+  --accent:#1E6B78; --accent-soft:#D6E8EA; --chalk:#F7F9F9;
+  --display:"Secular One","Assistant",system-ui,sans-serif;
+  --body:"Assistant",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121817; --surface:#1B2321; --ink:#E7EEEC; --muted:#9AA8A5; --line:#2E3A38;
+  --accent:#6FB8C4; --accent-soft:#1F3639; --chalk:#18201E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121817; --surface:#1B2321; --ink:#E7EEEC; --muted:#9AA8A5; --line:#2E3A38;
+  --accent:#6FB8C4; --accent-soft:#1F3639; --chalk:#18201E; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+h1{font-family:var(--display);font-weight:400;font-size:1.7rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 18px}
+.label{font-size:.8rem;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:0 0 8px}
+.tracks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:18px}
+@media (max-width:480px){.tracks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin-bottom:20px;border:1.5px solid var(--line);border-radius:12px;padding:4px;background:var(--surface)}
+.cat{font:inherit;font-family:var(--display);font-size:1.1rem;padding:10px;border:0;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer}
+.cat[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.track{font:inherit;font-weight:700;font-size:1rem;padding:12px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:center}
+.track small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+.track[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.track[aria-pressed="true"] small{color:var(--surface);opacity:.85}
+.ladders{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.lad{font:inherit;font-size:.95rem;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.lad[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:700}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ladhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ladhead h2{font-family:var(--display);font-weight:400;font-size:1.35rem;margin:0}
+.ladhead span{color:var(--muted);font-size:.9rem}
+.rail{list-style:none;margin:0;padding:0;display:grid;gap:10px;position:relative}
+.rail::before{content:"";position:absolute;top:24px;bottom:24px;inset-inline-start:23px;width:2px;background:var(--line)}
+.step{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:start}
+.num{width:48px;height:48px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--display);font-size:1.2rem;position:relative;z-index:1;font-variant-numeric:tabular-nums;color:var(--ink);padding:0;cursor:pointer}
+.step.open .num{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;min-width:0;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.card *{-webkit-user-select:text;user-select:text}
+.step.open .card{border-color:var(--accent)}
+.head{all:unset;box-sizing:border-box;display:block;width:100%;padding:12px 14px;cursor:pointer}
+.head:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.name{font-weight:700;font-size:1.05rem;direction:ltr;text-align:right;unicode-bidi:plaintext;min-width:0}
+.lvl{flex:none;display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.dots{display:flex;gap:2px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.one{color:var(--muted);margin:4px 0 0;font-size:.95rem}
+.step.open .one{display:none}
+.body{padding:0 14px 14px;display:grid;gap:12px}
+.td{background:var(--chalk);border-radius:10px;overflow:hidden}
+.tdcv{display:block;width:100%;touch-action:pan-y;cursor:grab}
+.tdbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;font-size:.85rem;color:var(--muted)}
+.tdplay{font:inherit;font-size:.85rem;padding:4px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.ill{background:var(--chalk);border-radius:10px;padding:10px 8px 6px}
+.ill svg{display:block;width:100%;max-width:300px;max-height:190px;height:auto;margin:0 auto}
+.ill .fg{fill:none;stroke:var(--ink);stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+.ill .hd{fill:var(--ink)}
+.ill .fg2{fill:none;stroke:var(--muted);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.ill .wl{stroke:var(--muted);stroke-width:3}
+.ill .st{stroke:var(--muted);stroke-width:2}
+.ill .rg{fill:none;stroke:var(--muted);stroke-width:3}
+.ill .gr{stroke:var(--line);stroke-width:2.5;stroke-linecap:round}
+.ill .eqf{fill:var(--muted);opacity:.35}
+.ill .br{stroke:var(--muted);stroke-width:5;stroke-linecap:round}
+.ill .eqb{fill:none;stroke:var(--muted);stroke-width:2}
+.ill .bd{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round}
+.ill .wt{fill:none;stroke:var(--accent);stroke-width:4}
+.ill .ar{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ill .lb{fill:var(--muted);font-family:var(--body);font-size:13px}
+.how{margin:0;font-size:1rem}
+.box{background:var(--chalk);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.box b{font-size:.78rem;color:var(--muted);letter-spacing:.04em}
+.box.pass{background:var(--accent-soft)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:480px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.nav .mv{font:inherit;font-size:.9rem;padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.nav .mv:disabled{opacity:.35;cursor:default}
+.nav a{color:var(--accent);font-weight:700;text-decoration:none}
+.nav a:hover{text-decoration:underline}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}}
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl">
+  <h1>סולמות קליסטניקס וטבעות</h1>
+  <p class="sub">בוחרים קטגוריה, מסלול וסולם, ולוחצים על שלב כדי לראות את הפרטים.</p>
+
+  <div class="cats" id="cats"></div>
+
+  <p class="label">מסלול</p>
+  <div class="tracks" id="tracks"></div>
+
+  <p class="label">סולם</p>
+  <div class="ladders" id="ladders"></div>
+
+  <div class="ladhead"><h2 id="ladname"></h2><span id="ladcount"></span></div>
+  <ol class="rail" id="rail"></ol>
+</div>
+
+<script>
+// ===== Simple figure illustrations =====
+// Side view: angles in degrees, 0 = right, 90 = down, -90 = up. Ground at y = 200.
+// Front view: used for hanging/pulling on a bar or rings.
+const ILLV = (()=>{
+const GY=200;
+const f=n=>Math.round(n*10)/10;
+const add=(p,len,a)=>{a=a*Math.PI/180;return [p[0]+Math.cos(a)*len,p[1]+Math.sin(a)*len]};
+const line=(pts,cls)=>`<polyline class="${cls}" points="${pts.map(q=>f(q[0])+","+f(q[1])).join(" ")}"/>`;
+const ang=(a,b)=>Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+
+// two-link IK. pref: [x,y] direction the middle joint should bend toward
+function ik(a0,b0,la,lb,pref){
+  const dx=b0[0]-a0[0], dy=b0[1]-a0[1], d=Math.hypot(dx,dy)||0.001;
+  if(d>=la+lb-0.3){const ux=dx/d,uy=dy/d;return [[a0[0]+ux*la,a0[1]+uy*la],[a0[0]+ux*(la+lb),a0[1]+uy*(la+lb)]];}
+  const ux=dx/d, uy=dy/d, along=(la*la-lb*lb+d*d)/(2*d), h=Math.sqrt(Math.max(0,la*la-along*along));
+  const m=[a0[0]+ux*along,a0[1]+uy*along];
+  const c1=[m[0]-uy*h,m[1]+ux*h], c2=[m[0]+uy*h,m[1]-ux*h];
+  const s1=(c1[0]-m[0])*pref[0]+(c1[1]-m[1])*pref[1];
+  return [s1>=0?c1:c2, b0];
+}
+// ---------- side view ----------
+function sideJ(p){
+  const H=p.H, t=p.t, S=add(H,50,t);
+  const C=add(add(S,15,t),4*(p.face||1),t+90);
+  const arm=(A,ua,fa,pref)=>{
+    if(A) return ik(S,A,28,26,pref||[-1,0]);
+    const E=add(S,28,ua); return [E,add(E,26,fa)];
+  };
+  const leg=(L,th,sh,pref)=>{
+    if(L) return ik(H,L,37,36,pref||[1,0]);
+    const K=add(H,37,th); return [K,add(K,36,sh)];
+  };
+  const J={H,S,C};
+  [J.E,J.W]=arm(p.A,p.ua,p.fa,p.eb);
+  [J.K,J.F]=leg(p.L,p.th,p.sh,p.kb);
+  if(p.A2||p.ua2!=null) [J.E2,J.W2]=arm(p.A2,p.ua2,p.fa2,p.eb2||p.eb);
+  if(p.L2||p.th2!=null) [J.K2,J.F2]=leg(p.L2,p.th2,p.sh2,p.kb2||p.kb);
+  return J;
+}
+function pt(J,r){return typeof r==="string"?J[r]:r}
+function props(list,J,out,pts){
+  for(const q of list||[]){
+    if(q.k==="bar"){const b=pt(J,q.at);out.back+=`<circle class="eq" cx="${f(b[0])}" cy="${f(b[1])}" r="5.5"/>`;pts.push(b);}
+    else if(q.k==="hbar"){out.back+=`<line class="br" x1="${f(q.x1)}" y1="${f(q.y)}" x2="${f(q.x2)}" y2="${f(q.y)}"/>`;pts.push([q.x1,q.y],[q.x2,q.y]);}
+    else if(q.k==="box"){const y=q.y, h=(q.h!=null?q.h:GY+3.5-y);out.back+=`<rect class="eqb" x="${f(q.x)}" y="${f(y)}" width="${f(q.w)}" height="${f(h)}" rx="3"/>`;pts.push([q.x,y],[q.x+q.w,y+h]);}
+    else if(q.k==="wall"){out.back+=`<line class="wl" x1="${f(q.x)}" y1="${f(q.y1)}" x2="${f(q.x)}" y2="${GY+3.5}"/>`;pts.push([q.x,q.y1],[q.x,GY]);}
+    else if(q.k==="pole"){out.back+=`<line class="br" x1="${f(q.x)}" y1="${f(q.y1)}" x2="${f(q.x)}" y2="${f(q.y2)}"/>`;pts.push([q.x,q.y1],[q.x,q.y2]);}
+    else if(q.k==="ring"){const r=pt(J,q.at), top=r[1]-(q.len||55);
+      out.back+=`<line class="st" x1="${f(r[0])}" y1="${f(top)}" x2="${f(r[0])}" y2="${f(r[1]-6)}"/>`;
+      out.front+=`<circle class="rg" cx="${f(r[0])}" cy="${f(r[1])}" r="6"/>`;pts.push([r[0],top],r);}
+    else if(q.k==="pad"){const a=pt(J,q.at);out.back+=`<rect class="eqf" x="${f(a[0]-9)}" y="${f(a[1]+3)}" width="18" height="${f(GY+3.5-a[1]-3)}" rx="2"/>`;pts.push([a[0]-9,a[1]]);}
+    else if(q.k==="band"){const a=pt(J,q.from), b=pt(J,q.to), c=q.via?pt(J,q.via):null;
+      out.front+=c?`<path class="bd" d="M${f(a[0])},${f(a[1])} Q${f(c[0])},${f(c[1]+14)} ${f(b[0])},${f(b[1])}"/>`
+                  :`<line class="bd" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}"/>`;pts.push(a,b);}
+    else if(q.k==="wt"){const a=pt(J,q.at);out.front+=`<circle class="wt" cx="${f(a[0]+(q.dx||0))}" cy="${f(a[1]+(q.dy||0))}" r="9"/>`;pts.push([a[0]+(q.dx||0),a[1]+(q.dy||0)+9]);}
+    else if(q.k==="mark"){const a=pt(J,q.at),d=q.dir||90,s=add(a,-16,d),e=add(a,-4,d),l=add(e,-6,d-35),r=add(e,-6,d+35);
+      out.front+=`<path class="ar" d="M${f(s[0])},${f(s[1])} L${f(e[0])},${f(e[1])} M${f(l[0])},${f(l[1])} L${f(e[0])},${f(e[1])} L${f(r[0])},${f(r[1])}"/>`;}
+  }
+}
+function sideFrame(fr){
+  const J=sideJ(fr), out={back:"",body:"",front:""}, pts=[];
+  props(fr.pr,J,out,pts);
+  if(J.W2) out.body+=line([J.S,J.E2,J.W2],"fg2");
+  if(J.F2) out.body+=line([J.H,J.K2,J.F2],"fg2");
+  out.body+=line([J.H,J.K,J.F],"fg")+line([J.H,J.S],"fg")+line([J.S,J.E,J.W],"fg")
+    +`<circle class="hd" cx="${f(J.C[0])}" cy="${f(J.C[1])}" r="10"/>`;
+  if(fr.toe){const a=J.F;out.body+=line([a,[a[0]+9,GY]],"fg");}
+  for(const k in J) pts.push(J[k]);
+  pts.push([J.C[0]-10,J.C[1]-10],[J.C[0]+10,J.C[1]+10]);
+  return {svg:out.back+out.body+out.front,pts,ground:!!fr.g};
+}
+// ---------- front view ----------
+function ik2(s,h,down,cx){
+  const pref = down ? [0,1] : [s[0]<cx?-1:1, 0];
+  return ik(s,h,28,26,pref)[0];
+}
+function frontFrame(fr){
+  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||30, pts=[], out={back:"",body:"",front:""};
+  const sL=[bx-14,by+sy], sR=[bx+14,by+sy];
+  const hL=fr.hL||[-grip,by], hR=fr.hR||[grip,by];
+  const eL=(fr.stL||fr.straight)?null:ik2(sL,hL,fr.dnL!=null?fr.dnL:fr.down,bx);
+  const eR=(fr.stR||fr.straight)?null:ik2(sR,hR,fr.dnR!=null?fr.dnR:fr.down,bx);
+  const neck=[bx,by+sy-4], head=[bx+(fr.hx||0),by+sy-17];
+  const pL=[bx-9,by+sy+50], pR=[bx+9,by+sy+50], waist=[bx,by+sy+44];
+  let kL,kR,fL,fR;
+  if(fr.legs==="box"){kL=[bx-11,pL[1]+28];kR=[bx+11,pR[1]+28];fL=[bx-10,kL[1]+22];fR=[bx+10,kR[1]+22];}
+  else if(fr.legs==="tuck"){kL=[bx-12,pL[1]-6];kR=[bx+12,pR[1]-6];fL=[bx-9,pL[1]+14];fR=[bx+9,pR[1]+14];}
+  else if(fr.legs==="wide"){kL=[bx-24,pL[1]+33];kR=[bx+24,pR[1]+33];fL=[bx-40,kL[1]+32];fR=[bx+40,kR[1]+32];}
+  else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
+  const eq=fr.eq||"bar";
+  if(eq==="bar"){const x1=Math.min(-58,hL[0]-12), x2=Math.max(58,hR[0]+12);
+    out.back+=`<line class="br" x1="${x1}" y1="${by}" x2="${x2}" y2="${by}"/>`;pts.push([x1,by],[x2,by]);}
+  else { for(const h of [hL,hR]) if(!fr.freeR||h!==hR){const top=Math.min(by,h[1])-60;
+      out.back+=`<line class="st" x1="${f(h[0])}" y1="${f(top)}" x2="${f(h[0])}" y2="${f(h[1]-6)}"/>`;
+      out.front+=`<circle class="rg" cx="${f(h[0])}" cy="${f(h[1])}" r="6"/>`;pts.push([h[0],top]);}}
+  if(fr.towel){out.front+=`<line class="bd" x1="${f(hR[0])}" y1="${by}" x2="${f(hR[0])}" y2="${f(hR[1]+6)}"/>`;}
+  if(fr.box){const y=Math.max(fL[1],fR[1])+4;out.back+=`<rect class="eqb" x="${bx-26}" y="${f(y)}" width="52" height="26" rx="3"/>`;pts.push([bx,y+26]);}
+  if(fr.band){const y=Math.max(fL[1],fR[1])+5;
+    out.front+=`<path class="bd" d="M${bx-6},${by} L${bx-12},${f(y)} Q${bx},${f(y+8)} ${bx+12},${f(y)} L${bx+6},${by}"/>`;pts.push([bx,y+8]);}
+  if(fr.w){out.front+=`<circle class="wt" cx="${bx}" cy="${f(pL[1]+14)}" r="10"/>`;pts.push([bx,pL[1]+24]);}
+  const arm=(s,e,h)=>line(e?[s,e,h]:[s,h],"fg");
+  out.body+=line([sL,sR],"fg")+line([neck,waist],"fg")+line([waist,pL],"fg")+line([waist,pR],"fg")
+    +arm(sL,eL,hL)+arm(sR,eR,hR)+line([pL,kL,fL],"fg")+line([pR,kR,fR],"fg")
+    +`<circle class="hd" cx="${f(head[0])}" cy="${f(head[1])}" r="10"/>`;
+  if(fr.mark){for(const s of [sL,sR]){const x=s[0]+(s[0]<bx?-9:9),y=s[1]-14;
+    out.front+=`<path class="ar" d="M${x},${y} V${y+12} M${x-4},${y+8} L${x},${y+12} L${x+4},${y+8}"/>`;}}
+  pts.push([head[0],head[1]-11],fL,fR,hL,hR,sL,sR,pL,pR,kL,kR);
+  if(eL) pts.push(eL); if(eR) pts.push(eR);
+  return {svg:out.back+out.body+out.front,pts,ground:false};
+}
+// ---------- layout ----------
+const DEF={1:["החזקה"],2:["התחלה","סיום"],3:["התחלה","מעבר","סיום"]};
+function draw(frames){
+  const parts=frames.map(fr=>fr.v==="front"?frontFrame(fr):sideFrame(fr));
+  const n=parts.length, GAP=30;
+  const bb=parts.map((p,i)=>{const xs=p.pts.map(q=>q[0]);let a=Math.min(...xs)-6,z=Math.max(...xs)+6;
+    const lw=((frames[i].label||DEF[n][i]).length*6.6)+6;
+    if(z-a<lw){const c=(a+z)/2;a=c-lw/2;z=c+lw/2;}return [a,z]});
+  const ys=parts.flatMap(p=>p.pts.map(q=>q[1]));
+  const anyG=parts.some(p=>p.ground);
+  let minY=Math.min(...ys)-8, maxY=Math.max(...ys,anyG?GY+4:-1e9)+8;
+  // place frames right-to-left
+  const offs=[]; let x=0;
+  for(let i=n-1;i>=0;i--){offs[i]=x-bb[i][0]; x+= (bb[i][1]-bb[i][0]) + (i>0?GAP:0);}
+  const totalW=x;
+  let s="";
+  parts.forEach((p,i)=>{
+    const o=offs[i], cx=o+(bb[i][0]+bb[i][1])/2;
+    s+=`<g transform="translate(${f(o)},0)">`;
+    if(p.ground) s+=`<line class="gr" x1="${f(bb[i][0]-4)}" y1="${GY+4}" x2="${f(bb[i][1]+4)}" y2="${GY+4}"/>`;
+    s+=p.svg+`</g>`;
+    s+=`<text class="lb" x="${f(cx)}" y="${f(maxY+16)}" text-anchor="middle">${frames[i].label||DEF[n][i]}</text>`;
+  });
+  for(let i=0;i<n-1;i++){const xr=offs[i]+bb[i][0], xm=xr-GAP/2, y=(minY+maxY)/2;
+    s+=`<path class="ar" d="M${f(xm+8)},${f(y)} H${f(xm-8)} M${f(xm-2)},${f(y-6)} L${f(xm-8)},${f(y)} L${f(xm-2)},${f(y+6)}"/>`;}
+  return `<svg viewBox="0 ${f(minY)} ${f(totalW)} ${f(maxY-minY+26)}" role="img" aria-label="איור התרגיל">${s}</svg>`;
+}
+// ================= poses =================
+const X=(...a)=>Object.assign({},...a.filter(Boolean));
+const onC=(F,R,y)=>[F[0]+Math.sqrt(Math.max(0,R*R-(F[1]-y)**2)),y];
+function tri(F,W,l1,l2){const dx=W[0]-F[0],dy=W[1]-F[1],d=Math.hypot(dx,dy);
+  const a=(l1*l1-l2*l2+d*d)/(2*d),h=Math.sqrt(Math.max(0,l1*l1-a*a)),m=[F[0]+dx*a/d,F[1]+dy*a/d];
+  const c1=[m[0]+dy*h/d,m[1]-dx*h/d],c2=[m[0]-dy*h/d,m[1]+dx*h/d];return c1[1]<c2[1]?c1:c2;}
+const box=(x,y,w,h)=>({k:"box",x,y,w,h});
+const ring=(at,len)=>({k:"ring",at,len});
+const bar=at=>({k:"bar",at});
+
+// ---------- FRONT (bar / rings) ----------
+const FP={
+  hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true},
+  feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
+  top:{v:"front",sy:6,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
+  high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
+};
+const R=o=>X(o,{eq:"rings"});
+// one-arm / archer helpers (front)
+const archTop=s=>({v:"front",sy:8,dx:22*s,hL:[-48*s,90],hR:[45*s,90],stL:s>0,stR:s<0,down:true,
+  ...(s<0?{hL:[-45,90],hR:[48,90]}:{})});
+const oneHang={v:"front",sy:54,straight:true,dx:-4,hL:[-10,90],hR:[24,152],stR:false};
+const oneTop={v:"front",sy:8,dx:-4,hL:[-10,90],hR:[24,104],down:true};
+
+// ---------- SIDE: push-ups ----------
+function pushups(F,handY,drop,opt){opt=opt||{};
+  const S1=onC(F,123,handY-54), hand=[S1[0]+(opt.hx||0),handY], S2=onC(F,123,handY-drop);
+  const pr=[...(opt.pr||[])];
+  if(opt.hbox) pr.push(box(hand[0]-20,handY+3.5,40));
+  if(opt.fbox) pr.push(box(F[0]-20,F[1]+3.5,40));
+  if(opt.ring) pr.push(ring("W",opt.rlen||55));
+  if(opt.fring) pr.push(ring("F",55));
+  const fr=S=>{const a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;
+    return X({H:add(F,73,a),t:a,L:F,A:hand,eb:[-0.4,-1],g:1,pr},opt.extra);};
+  return [fr(S1),fr(S2)];
+}
+const PU=pushups([20,200],200,22);
+const DECL=pushups([20,172],200,22,{fbox:true});
+const INC_HI=pushups([20,200],145,18,{hbox:true});
+const INC_LO=pushups([20,200],172,20,{hbox:true});
+const PPL=(()=>{const F=[20,200],S1=onC(F,123,150),hand=[S1[0]-24,200],S2=onC(F,123,180);
+  const fr=S=>{const a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:hand,eb:[-0.4,-1],g:1};};
+  return [fr(S1),fr(S2)];})();
+const WALL=(()=>{const F=[20,200],S1=add(F,123,-68),hand=[S1[0]+50,S1[1]+4],wx=hand[0]+3;
+  const fr=a=>({H:add(F,73,a),t:a,L:F,A:hand,eb:[0.2,1],g:1,pr:[{k:"wall",x:wx,y1:35}]});
+  return [fr(-68),fr(-58)];})();
+
+// ---------- SIDE: dips ----------
+const DIPBAR={k:"hbar",y:110,x1:45,x2:140};
+const dipTop=(pr,e)=>X({H:[86.3,105.2],t:-80,A:[95,110],L:[78,177],kb:[1,0],pr:[DIPBAR,...(pr||[])]},e);
+const dipBot=(pr,e)=>X({H:[80,158],t:-62,A:[95,110],eb:[-1,-1],L:[62,214],kb:[1,0.3],pr:[DIPBAR,...(pr||[])]},e);
+const ringTop=(pr,e)=>X({H:[86.3,105.2],t:-80,A:[95,110],L:[78,177],pr:[ring("W",60),...(pr||[])]},e);
+const ringBot=(pr,e)=>X({H:[80,158],t:-62,A:[93,112],eb:[-1,-1],L:[62,214],kb:[1,0.3],pr:[ring("W",60),...(pr||[])]},e);
+const sbTop={H:[90,108],t:-80,A:[98,110],L:[100,180],pr:[bar([98,110])]};
+const sbBot={H:[84,152],t:-55,A:[98,110],eb:[-1,-1],L:[86,224],kb:[1,0.3],pr:[bar([98,110])]};
+
+// ---------- SIDE: pike & handstand ----------
+function pike(F,W,pr){const H=tri(F,W,73,104), t=Math.atan2(W[1]-H[1],W[0]-H[0])*180/Math.PI;
+  const H2=[H[0]+14,H[1]+6], St=[W[0]-6,W[1]-30], t2=Math.atan2(St[1]-H2[1],St[0]-H2[0])*180/Math.PI;
+  return [{H,t,A:W,L:F,g:1,pr:pr||[],face:-1},{H:H2,t:t2,A:W,eb:[-1,-0.4],L:F,g:1,pr:pr||[],face:-1}];}
+const PIKE=pike([30,200],[130,200]);
+const PIKE_EL=pike([28,165],[118,200],[box(8,168.5,40)]);
+const PIKE_DEF=pike([28,165],[118,186],[box(8,168.5,40),box(108,189.5,20)]);
+const HS=(W,e)=>X({H:[W[0],W[1]-104],t:90,A:W,L:[W[0],W[1]-177],g:1},e);
+const HSB=(W,low,e)=>X({H:[W[0]+2,low-50],t:88,A:W,eb:[-1,0],L:[W[0]+3,low-123],g:1},e);
+const WALLR={k:"wall",x:114,y1:10};
+const HLINE=(W,a)=>{const S=add(W,54,a),H=add(S,50,a);return {H,t:a+180,A:W,L:add(H,73,a),g:1};};
+const CUSH=box(84,193,26,10.5);
+const PAR=(x,y)=>box(x-10,(y==null?186:y)+3.5,20);
+
+// ---------- SIDE: standing / legs ----------
+const STAND={H:[80,127],t:-90,L:[80,200],A:[83,131],g:1};
+const SQUAT={H:[52,165],t:-62,L:[80,200],kb:[1,-0.3],ua:0,fa:0,g:1};
+const POLE={k:"pole",x:130,y1:55,y2:200};
+const LUNGE_B={H:[62,150],t:-90,L:[96,200],kb:[1,-0.2],L2:[22,199],kb2:[0.2,1],A:[64,154],g:1};
+const SPLIT_T={H:[60,132],t:-90,L:[96,200],L2:[22,199],kb2:[0.2,1],A:[62,136],g:1};
+const BENCH=box(2,163.5,40);
+const PIS_T={H:[80,127],t:-90,L:[80,200],L2:[110,180],kb2:[1,0],ua:0,fa:0,g:1};
+const PIS_B={H:[60,176],t:-55,L:[82,200],kb:[1,-0.6],ua:-5,fa:-5,g:1};
+PIS_B.L2=add(PIS_B.H,73,-8);
+const GB_D={H:[78,192],t:180,L:[120,200],kb:[0.2,-1],A:[96,199],eb:[0,-1],g:1};
+const GB_U={H:[82,163],t:144.5,L:[120,200],kb:[0.2,-1],A:[92,199],eb:[0,-1],g:1};
+const NORD=a=>{const K=[80,198],H=add(K,37,a),th=Math.atan2(K[1]-H[1],K[0]-H[0])*180/Math.PI;
+  const S=add(H,50,a);return {H,t:a,th,sh:180,A:add(S,54,a+80),g:1,pr:[box(36,186,16,12)]};};
+const CALF=(dy,e)=>X({H:[80,127-dy],t:-90,L:[80,200-dy],A:[83,131-dy],g:1,toe:dy>0},e);
+
+// ---------- SIDE: core ----------
+const FPL=(()=>{const F=[20,199],S=onC(F,123,172),a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;
+  return {H:add(F,73,a),t:a,L:F,A:[S[0]+26,199],eb:[0,1],g:1};})();
+const KPL={H:[90,188],t:Math.atan2(172-188,137-90)*180/Math.PI,th:Math.atan2(199-188,55-90)*180/Math.PI,sh:-160,A:[163,199],eb:[0,1],g:1};
+const LIE={H:[95,192],t:180,g:1};
+const DBUG1=X(LIE,{A:[45,138],th:-90,sh:0});
+const DBUG2=X(LIE,{A:[-4,182],A2:[45,138],L:[166,186],th2:-90,sh2:0});
+const HOL=(t,la,e)=>X({H:[85,192],t,L:add([85,192],73,la),ua:t,fa:t,g:1},e);
+
+// ---------- Roman chair (45°) — feet on the footplate, figure faces left ----------
+const RC_F=[140,176];
+const RC=(t,o)=>{o=o||{};const H=add(RC_F,73,-140),pad=o.pad==="high"?add(H,7,-140):add(H,9,40);
+  return X({H,t,L:RC_F,A:o.head?add(add(H,50,t),16,t):add(H,36,t),eb:o.head?[0,-1]:[0,1],g:1,
+    pr:[box(RC_F[0]-6,RC_F[1]+1,22,null),box(pad[0]-9,pad[1]+3,18,8),{k:"pole",x:pad[0]+4,y1:pad[1]+11,y2:200}]},o.x);};
+const DF=(dir)=>{const S=[45,170],H=add(S,50,dir);return {H,t:dir+180,L:add(H,73,dir),A:[8,176],eb:[0.3,-1],g:1,pr:[box(0,176.5,72)]};};
+const RC1=X(LIE,{th:-90,sh:0,A:[90,199],eb:[0,-1]});
+const RC2={H:[100,182],t:165,th:-125,sh:-25,A:[92,199],eb:[0,-1],g:1};
+const HANGB=[100,40];
+const HG=(e)=>X({H:[90,142],t:-90,A:HANGB,pr:[bar(HANGB)]},e);
+const CHAIR=(e)=>X({H:[80,145],t:-90,ua:90,fa:0,pr:[{k:"hbar",y:127,x1:72,x2:114},{k:"pole",x:70,y1:80,y2:200}],g:1},e);
+const SIT=(e)=>X({H:[70,194],t:-88,L:[143,199],A:[66,199],g:1},e);
+const LS=(e)=>X({H:[78,170],t:-88,A:[80,176],g:1,pr:[PAR(80,176)]},e);
+const TUCKL=[102,150];
+
+// ---------- SIDE: statics ----------
+const BEAR={H:[85,148],t:-3.4,A:[135,199],L:[50,199],kb:[0.6,1],g:1};
+const FLB=[110,40];
+const FL=(legs,e)=>X({H:[50,92],t:0,face:-1,A:FLB,pr:[bar(FLB)]},legs,e);
+const FLROW=(legs,e)=>X({H:[74,60],t:0,face:-1,A:FLB,eb:[0,1],pr:[bar(FLB)]},legs,e);
+const LEG_FULL=H=>({L:add(H,73,180)});
+const L_T={th:-45,sh:150}, L_AT={th:-90,sh:180};
+const BLB=[100,45];
+const BL=(legs,e)=>X({H:[95,72],t:0,A:BLB,pr:[bar(BLB)]},legs,e);
+const BL_T={th:45,sh:210}, BL_AT={th:90,sh:180};
+const INVT=(e)=>X({H:[108,44],t:94.6,A:[100,40],th:-120,sh:-20,pr:[bar([100,40])]},e);
+const INV=(e)=>X({H:[108,44],t:94.6,A:[100,40],th:-90,sh:-90,pr:[bar([100,40])]},e);
+const GER=(e)=>X({H:[119.4,137.8],t:-95,A:[100,40],th:95,sh:95,pr:[bar([100,40])]},e);
+const PLW=[100,184];
+const PLS=add(PLW,54,-70);
+const PLAN=(t,legs)=>X({H:add(PLS,-50,t),t,A:PLW,g:1,pr:[PAR(100,184)]},legs);
+const FLAG=(e)=>X({H:[91.7,122.9],t:-15,A:[165,62],A2:[165,140],eb2:[-1,0],L:add([91.7,122.9],73,175),g:1,pr:[{k:"pole",x:165,y1:25,y2:200}]},e);
+
+// ---------- SIDE: rows ----------
+function rowPair(base,len,legLen,R0,opt){opt=opt||{};let R=R0;
+  const best=(d,near)=>{let bA=-150,bS=1e9;for(let a=-179;a<=-91;a+=0.5){const S=add(base,len,a);
+      const e=Math.abs(Math.hypot(S[0]-R[0],S[1]-R[1])-d);
+      const score=near==null? e*4 - S[1]*0.05 : e*4 + Math.abs(a-near)*0.6;
+      if(score<bS){bS=score;bA=a;}}return bA;};
+  // finish (like a real ring row): ring/bar just in front of the upper chest, elbow bent behind the body, forearm up to the ring
+  // upper arm goes back-and-down behind the body, forearm comes forward-up to the ring in front of the chest
+  const UA=a=>a+210, FA=a=>a+80;
+  const handAt=a=>{const S=add(base,len,a),E=add(S,28,UA(a));return add(E,26,FA(a));};
+  const chestA=()=>{let bA=-150,bE=1e9;for(let a=-179;a<=-91;a+=0.5){
+      const w=handAt(a),e=Math.hypot(w[0]-R[0],w[1]-R[1]);if(e<bE){bE=e;bA=a;}}return bA;};
+  const fr=(a,end)=>{const H=add(base,legLen,a);
+    const o=end?{H,t:a,ua:UA(a),fa:FA(a),g:1,pr:[...(opt.pr||[])]}:{H,t:a,A:R,eb:[0,1],g:1,pr:[...(opt.pr||[])]};
+    if(legLen===73) o.L=base; else {o.th=Math.atan2(base[1]-H[1],base[0]-H[0])*180/Math.PI;o.sh=90;}
+    if(opt.ring) o.pr.push(ring("W",60)); else o.pr.push(bar(end?"W":R));
+    return X(o,opt.extra);};
+  const aF=chestA(); R=handAt(aF);            // the bar sits exactly where the hand is at the finish
+  const a0=best(54);return [fr(a0),fr(aF,true)];
+}
+const ROW_UP=rowPair([150,200],123,73,[133,66]);
+const ROW_BK=rowPair([135,163],87,37,[118,112],{extra:{}});
+const ROW_ST=rowPair([165,200],123,73,[105,132]);
+const ROW_FE=rowPair([170,165],123,73,[100,118],{pr:[box(150,168.5,40)]});
+const RROW=(base,R,opt)=>rowPair(base,123,73,R,X(opt,{ring:true}));
+
+// ---------- core with rings / misc ----------
+const RPL=pushups([20,186],200,22,{fring:true})[0];
+const RKT=(()=>{const W0=RPL.A[0],H=[W0-49,138];
+  return X(RPL,{H,t:Math.atan2(146-138,49)*180/Math.PI,L:[W0-30,182],kb:[1,0.6]});})();
+const RPK=(()=>{const W=[RPL.A[0],200],F=[96,182],H=tri(F,W,73,104);
+  return X(RPL,{H,t:Math.atan2(W[1]-H[1],W[0]-H[0])*180/Math.PI,L:F,face:-1});})();
+const RO=(a,ringPt)=>{const K=[60,198],H=add(K,37,a),S=add(H,50,a);
+  return {H,t:a,th:Math.atan2(K[1]-H[1],K[0]-H[0])*180/Math.PI,sh:180,A:ringPt,g:1,pr:[ring("W",55)]};};
+const SRO=(a,ringPt)=>{const F=[40,200];return {H:add(F,73,a),t:a,L:F,A:ringPt,g:1,pr:[ring("W",55)]};};
+const RHG=(e)=>X({H:[90,142],t:-90,A:HANGB,pr:[ring("W",55)]},e);
+
+// ================= exercise → frames =================
+const ILL={
+ // ----- PULL: vertical (front) -----
+ "Assisted Hang — תלייה עם תמיכת רגליים":[X(FP.feetBox,{label:"החזקה, רגליים על ארגז"})],
+ "Active Hang":[X(FP.active,{label:"החזקה, שכמות למטה"})],
+ "Scapular Pull-Up":[X(FP.hang,{label:"תלייה רפויה"}),X(FP.active,{label:"שכמות למטה"})],
+ "Negative Pull-Up":[X(FP.top,{label:"התחלה למעלה"}),X(FP.hang,{label:"ירידה איטית"})],
+ "Band-Assisted Pull-Up — מתח עם גומייה":[X(FP.hang,{band:true}),X(FP.top,{band:true})],
+ "Pull-Up":[FP.hang,FP.top],
+ "Chest-to-Bar Pull-Up":[FP.hang,X(FP.c2b,{label:"חזה למוט"})],
+ "Explosive / High Pull-Up":[FP.hang,X(FP.high,{label:"מוט לבטן"})],
+ "Muscle-Up Progression — Negative / עם גומייה":[X(FP.support,{label:"מעל המוט"}),FP.high,X(FP.hang,{label:"ירידה איטית"})],
+ "Strict Bar Muscle-Up":[FP.hang,FP.high,FP.support],
+ "Weighted Muscle-Up":[X(FP.hang,{w:true}),X(FP.high,{w:true}),X(FP.support,{w:true})],
+ // ----- PULL: one arm (front) -----
+ "Archer Pull-Up":[X(FP.hang,{grip:46}),X(archTop(1),{label:"משיכה לצד אחד"})],
+ "Typewriter Pull-Up":[X(archTop(1),{label:"צד אחד"}),X(archTop(-1),{label:"מעבר לצד השני"})],
+ "Assisted One-Arm Pull-Up":[X(oneHang,{hR:[16,125],towel:true}),X(oneTop,{hR:[16,104],towel:true})],
+ "One-Arm Negative":[X(oneTop,{label:"התחלה למעלה"}),X(oneHang,{label:"ירידה איטית"})],
+ "One-Arm Pull-Up":[oneHang,oneTop],
+ // ----- PULL: rows (side) -----
+ "Australian Row — מנח זקוף":ROW_UP,
+ "Ring Row":RROW([165,200],[105,132]),
+ "Australian Row — ברכיים כפופות":ROW_BK,
+ "Australian Row — רגליים ישרות":ROW_ST,
+ "Feet-Elevated Australian Row":ROW_FE,
+ "Archer Row":[ROW_ST[0],X(ROW_ST[1],{label:"משיכה ביד אחת"})],
+ "Tuck Front Lever Row":[FL(L_T),FLROW(L_T)],
+ "Advanced Tuck Front Lever Row":[FL(L_AT),FLROW(L_AT)],
+ "Front Lever Row":[FL(LEG_FULL([50,92])),FLROW(LEG_FULL([74,60]))],
+ // ----- PUSH horizontal -----
+ "Wall Push-Up":WALL,
+ "High-Incline Push-Up":INC_HI,
+ "Low-Incline Push-Up":INC_LO,
+ "Negative Push-Up":[X(PU[0],{label:"התחלה למעלה"}),X(PU[1],{label:"ירידה איטית"})],
+ "Push-Up":PU,
+ "Diamond Push-Up":[X(PU[0],{label:"ידיים צמודות"}),PU[1]],
+ "Decline Push-Up":DECL,
+ "Archer Push-Up":[PU[0],X(PU[1],{label:"ירידה לצד אחד"})],
+ "Ring Push-Up":pushups([20,200],186,20,{ring:true}),
+ "Pseudo Planche Push-Up":PPL,
+ "Assisted One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:[150,176],eb2:[0,-1]},pr:[box(140,179.5,30)]}),
+ "One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:"x"}}).map(fr=>{const J=fr;J.A2=add(J.H,4,J.t);return J;}),
+ // ----- PUSH vertical: dips -----
+ "Support Hold — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,pr:[{k:"hbar",y:134,x1:55,x2:135}],label:"החזקה, רגליים על הקרקע"}],
+ "Parallel Bar Support Hold":[dipTop()],
+ "Negative Dip":[X(dipTop(),{label:"התחלה למעלה"}),X(dipBot(),{label:"ירידה איטית"})],
+ "Band-Assisted Dip":[dipTop([{k:"band",from:[50,110],to:[138,110],via:"K"}]),dipBot([{k:"band",from:[50,110],to:[138,110],via:"K"}])],
+ "Parallel Bar Dip":[dipTop(),dipBot()],
+ "Straight Bar Dip":[sbTop,sbBot],
+ "Ring Support Hold":[X(ringTop(),{label:"החזקה"})],
+ "Ring Dip":[ringTop(),ringBot()],
+ "Weighted Dip":[dipTop([{k:"wt",at:"H",dy:12}]),dipBot([{k:"wt",at:"H",dy:12}])],
+ // ----- PUSH vertical: overhead -----
+ "Pike Hold":[X(PIKE[0],{label:"החזקה"})],
+ "Pike Push-Up":PIKE,
+ "Elevated Pike Push-Up":PIKE_EL,
+ "Deficit Pike Push-Up":PIKE_DEF,
+ "Wall HSPU Negative":[HS([100,200],{pr:[WALLR,CUSH],label:"התחלה למעלה"}),HSB([100,200],166,{pr:[WALLR,CUSH],label:"ירידה איטית"})],
+ "Partial-Range Wall HSPU":[HS([100,200],{pr:[WALLR,CUSH]}),HSB([100,200],166,{pr:[WALLR,CUSH],label:"עד הכרית"})],
+ "Wall Handstand Push-Up":[HS([100,200],{pr:[WALLR]}),HSB([100,200],175,{pr:[WALLR]})],
+ "Deficit Handstand Push-Up":[HS([100,186],{pr:[WALLR,PAR(100)]}),HSB([100,186],175,{pr:[WALLR,PAR(100)],label:"ראש מתחת לידיים"})],
+ "Freestanding Handstand Push-Up":[HS([100,200]),HSB([100,200],175)],
+ // ----- LEGS -----
+ "Supported Squat":[X(STAND,{A:[130,108],pr:[POLE]}),X(SQUAT,{A:[130,128],ua:null,fa:null,pr:[POLE]})],
+ "Box Squat":[X(STAND,{pr:[box(22,168,46)]}),X(SQUAT,{H:[48,163],pr:[box(22,168,46)]})],
+ "Bodyweight Squat":[STAND,SQUAT],
+ "Reverse Lunge":[STAND,LUNGE_B],
+ "Split Squat":[SPLIT_T,LUNGE_B],
+ "Bulgarian Split Squat":[{H:[66,130],t:-90,L:[96,200],L2:[22,160],kb2:[0.3,1],A:[68,134],g:1,pr:[BENCH]},{H:[64,160],t:-82,L:[96,200],kb:[1,-0.3],L2:[22,160],kb2:[0,1],A:[70,164],g:1,pr:[BENCH]}],
+ "Assisted Pistol Squat":[X(PIS_T,{A:[130,108],ua:null,fa:null,pr:[POLE]}),X(PIS_B,{A:[130,140],ua:null,fa:null,pr:[POLE]})],
+ "Shrimp Squat":[X(STAND,{L2:[58,158],kb2:[0,1],A2:[58,158]}),{H:[72,166],t:-65,L:[86,200],kb:[1,-0.3],L2:[38,176],kb2:[0.2,1],A2:[38,176],ua:-10,fa:-10,g:1}],
+ "Pistol Squat":[PIS_T,PIS_B],
+ "Weighted Pistol Squat":[X(PIS_T,{pr:[{k:"wt",at:"W",dx:4}]}),X(PIS_B,{pr:[{k:"wt",at:"W",dx:4}]})],
+ "Glute Bridge":[GB_D,GB_U],
+ "Single-Leg Glute Bridge":[X(GB_D,{L2:add(GB_D.H,73,-40)}),X(GB_U,{L2:add(GB_U.H,73,-35.5)})],
+ "Single-Leg RDL":[X(STAND,{L2:[70,190],kb2:[0,1]}),{H:[80,128],t:0,L:[80,200],L2:add([80,128],73,180),A:[130,182],g:1}],
+ "Assisted Nordic Curl":[X(NORD(-90),{pr:[box(36,186,16,12),{k:"band",from:[10,90],to:"S"}]}),X(NORD(-35),{pr:[box(36,186,16,12),{k:"band",from:[10,90],to:"S"}]})],
+ "Nordic Curl Negative":[X(NORD(-90),{label:"התחלה זקופה"}),X(NORD(-12),{label:"ירידה איטית"})],
+ "Roman Chair Hip Extension":[X(RC(100),{label:"למטה: ציר בירך, גב ישר"}),X(RC(-140),{label:"למעלה: קו ישר"})],
+ "Roman Chair Back Extension":[X(RC(105,{pad:"high"}),{label:"למטה: כרית מתחת לאגן"}),X(RC(-140,{pad:"high"}),{label:"למעלה: הגב מתיישר"})],
+ "Roman Chair Side Bend":[X(RC(95,{head:true}),{lie:true,label:"על הצד: ירידה לצד"}),X(RC(-140,{head:true}),{lie:true,label:"עלייה לקו ישר"})],
+ "Nordic Curl":[NORD(-90),X(NORD(-12),{label:"למטה"}),X(NORD(-90),{label:"חזרה למעלה"})],
+ "Standing Calf Raise":[CALF(0),CALF(9)],
+ "Single-Leg Calf Raise — עם תמיכה":[X(CALF(25),{toe:false,A:[128,100],L2:[62,135],kb2:[0,1],pr:[box(50,178.5,60),{k:"wall",x:132,y1:40}]}),X(CALF(34),{A:[128,92],L2:[62,126],kb2:[0,1],pr:[box(50,178.5,60),{k:"wall",x:132,y1:40}]})],
+ "Single-Leg Calf Raise":[X(CALF(25),{toe:false,L2:[62,135],kb2:[0,1],pr:[box(50,178.5,60)]}),X(CALF(34),{L2:[62,126],kb2:[0,1],pr:[box(50,178.5,60)]})],
+ // ----- CORE -----
+ "Dead Bug":[DBUG1,X(DBUG2,{label:"יד ורגל נגדיות"})],
+ "Knee Plank":[KPL],
+ "Hollow Body Tuck Hold":[{H:[85,193],t:198,L:[96,160],kb:[-0.6,-0.8],A:[98,170],g:1}],
+ "Forearm Plank":[FPL],
+ "Hollow Hold":[HOL(195,-15)],
+ "Hollow Rocks":[X(HOL(207,-5),{label:"נדנוד אחורה"}),X(HOL(185,-26),{label:"נדנוד קדימה"})],
+ "Dragon Flag Negative":[X(DF(-72),{label:"התחלה למעלה"}),X(DF(-12),{label:"ירידה איטית"})],
+ "Dragon Flag":[DF(-72),X(DF(-12),{label:"למטה"}),X(DF(-72),{label:"חזרה למעלה"})],
+ "Reverse Crunch":[RC1,RC2],
+ "Hanging Knee Raise — עם תמיכה":[CHAIR({L:add([80,145],73,92)}),CHAIR({L:[112,140],kb:[1,-1]})],
+ "Hanging Knee Raise":[HG({L:add([90,142],73,92)}),HG({L:[118,150],kb:[1,-1]})],
+ "Hanging Leg Raise":[HG({L:add([90,142],73,92)}),HG({L:add([90,142],73,-2)})],
+ "Toes-to-Bar":[HG({L:add([90,142],73,92)}),HG({H:[80,128],t:-76,L:[102,48]})],
+ "Hanging Windshield Wipers":[HG({H:[80,128],t:-76,L:[104,52],label:"רגליים למעלה, סיבוב מצד לצד"})],
+ "Seated Leg Lift — Compression Lift":[SIT(),SIT({L:add([70,194],73,-12)})],
+ "Tuck L-Sit":[LS({L:TUCKL,kb:[1,-1]})],
+ "One-Leg L-Sit":[LS({L:add([78,170],73,0),L2:TUCKL,kb2:[1,-1]})],
+ "L-Sit":[LS({L:add([78,170],73,0)})],
+ "V-Sit Progression":[LS({H:[84,168],t:-100,A:[72,176],L:add([84,168],73,-30),pr:[PAR(72,176)]})],
+ "V-Sit":[LS({H:[88,166],t:-112,A:[66,176],L:add([88,166],73,-60),pr:[PAR(66,176)]})],
+ "Manna Progression":[LS({H:[95,160],t:-130,A:[52,176],L:add([95,160],73,-78),pr:[PAR(52,176)]})],
+ "Side Plank — ברכיים כפופות":[X(KPL,{A2:add(add(KPL.H,50,KPL.t),54,-90),label:"החזקה על הצד"})],
+ "Side Plank":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),label:"החזקה על הצד"})],
+ "Side Plank + הרמת רגל":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90)}),X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),L2:add(FPL.H,73,FPL.t-28),label:"הרמת רגל"})],
+ // ----- STATICS: handstand -----
+ "Bear Hold":[BEAR],
+ "Wall Handstand Lean":[{H:[100,96],t:90,A:[100,200],L:[27,96],kb:[0,-1],g:1,pr:[{k:"wall",x:24,y1:40}],label:"אגן מעל הידיים, רגליים על הקיר"}],
+ "Wall Walk חלקי":[X(PU[0],{pr:[{k:"wall",x:12,y1:20}],label:"שכיבת סמיכה, רגליים בקיר"}),
+   X(HLINE([96,200],-128),{pr:[{k:"wall",x:12,y1:20}],label:"הליכה במעלה הקיר"}),
+   X(HLINE([58,200],-108),{pr:[{k:"wall",x:12,y1:20}],label:"ידיים קרוב לקיר"})],
+ "Chest-to-Wall Handstand":[X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"החזקה, בטן לקיר"})],
+ "Bail — יציאה מבוקרת מעמידת ידיים":[
+   HS([100,200],{label:"מאבדים איזון"}),
+   {H:[106,98],t:Math.atan2(146-98,101-106)*180/Math.PI,A:[100,200],L:add([106,98],73,-62),L2:add([106,98],73,-25),kb2:[1,0],g:1,rotY:45,pivot:[100,0],label:"סיבוב על יד אחת"},
+   {H:[132,128],t:-78,A:[150,118],eb:[0,1],L:[148,200],kb:[1,-0.3],L2:[112,200],kb2:[0.3,1],g:1,rotY:90,pivot:[100,0],label:"נחיתה על הרגליים"}],
+ "Handstand Kick-Up":[
+   {H:[78,128],t:-90,L:[104,200],kb:[1,-0.2],L2:[42,200],kb2:[0.2,1],ua:-90,fa:-90,g:1,label:"מכרע, ידיים למעלה"},
+   {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,label:"ידיים לרצפה, בעיטה"},
+   HS([128,200],{label:"עמידת ידיים"})],
+ "Freestanding Handstand":[HS([100,200],{label:"החזקה"})],
+ "Wrist Prep — חימום שורש כף היד":[
+   {H:[83,163],t:Math.atan2(146-163,130-83)*180/Math.PI,A:[130,200],th:90,sh:180,g:1,label:"על ארבע"},
+   {H:[95,165],t:Math.atan2(150-165,142-95)*180/Math.PI,A:[130,200],th:108.9,sh:180,g:1,label:"העברת משקל קדימה"}],
+ "Box Pike Hold — רגליים על ארגז":[{H:[120,96],t:90,A:[120,200],L:[47,96],g:1,pr:[box(22,99.5,40)],label:"החזקה, אגן מעל הכתפיים"}],
+ "Back-to-Wall Handstand — גב לקיר":[
+   {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"בעיטה עדינה"},
+   X(HLINE([128,200],-84),{pr:[{k:"wall",x:142,y1:10}],label:"עקבים נשענים על הקיר"})],
+ "Wall Toe Pulls — שחרור רגליים מהקיר":[
+   X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"בטן לקיר"}),
+   X(HLINE([104,200],-90),{pr:[{k:"wall",x:85,y1:10}],label:"רגליים משתחררות מהקיר"})],
+ "Handstand Shoulder Taps":[HS([100,200],{label:"עמידת ידיים"}),HS([100,200],{H:[103,96],A2:[90,146],eb2:[-1,0.3],label:"העברת משקל ונגיעה בכתף"})],
+ "Press to Handstand Progression":(()=>{const W=[118,200];
+   return [{H:[76,127],t:Math.atan2(148-127,118-76)*180/Math.PI,A:W,L:[74,200],g:1,face:-1,label:"קיפול, ידיים לרצפה"},
+     {H:[112,98],t:Math.atan2(146-98,118-112)*180/Math.PI,A:W,L:add([112,98],73,150),kb:[1,0],g:1,label:"אגן מעל הידיים"},
+     {H:[117,96],t:90,A:W,L:add([117,96],73,-140),g:1,label:"הרמת הרגליים"},HS(W,{label:"עמידת ידיים"})];})(),
+ // ----- STATICS: front lever -----
+ "Tuck Front Lever Drill — עם גומייה":[FL(L_T,{pr:[bar(FLB),{k:"band",from:FLB,to:"H"}],label:"החזקה עם גומייה"})],
+ "Tuck Front Lever":[FL(L_T,{label:"החזקה"})],
+ "Advanced Tuck Front Lever":[FL(L_AT,{label:"החזקה"})],
+ "One-Leg Front Lever":[FL(X(LEG_FULL([50,92]),{th2:-90,sh2:180}),{label:"החזקה"})],
+ "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{label:"החזקה, רגליים פתוחות"})],
+ "Full Front Lever":[FL(LEG_FULL([50,92]),{label:"החזקה"})],
+ // ----- STATICS: back lever -----
+ "Skin-the-Cat — טווח מותאם":[INVT({label:"היפוך מקופל"}),GER({label:"המשך סיבוב לאחור"})],
+ "Tuck Back Lever":[BL(BL_T,{label:"החזקה"})],
+ "Advanced Tuck Back Lever":[BL(BL_AT,{label:"החזקה"})],
+ "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{label:"החזקה, רגליים פתוחות"})],
+ "Full Back Lever":[BL(LEG_FULL([95,72]),{label:"החזקה"})],
+ // ----- STATICS: planche -----
+ "Frog Stand":[{H:[80,135],t:Math.atan2(165-135,118-80)*180/Math.PI,A:[110,200],eb:[-1,-0.2],th:53.7,sh:189,g:1,label:"ברכיים על המרפקים"}],
+ "Planche Lean":[(()=>{const F=[20,200],S=onC(F,123,148),a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:[S[0]-24,200],g:1,label:"החזקה, כתפיים לפני הידיים"};})()],
+ "Tuck Planche":[PLAN(15,{th:60,sh:200,label:"החזקה"})],
+ "Advanced Tuck Planche":[PLAN(5,{th:90,sh:180,label:"החזקה"})],
+ "Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,185),L2:add(add(PLS,-50,5),73,178),label:"החזקה, רגליים פתוחות"})],
+ "Full Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),label:"החזקה"})],
+ // ----- STATICS: human flag -----
+ "Human Flag Progression — Tuck":[FLAG({L:[118,152],kb:[1,0.6],label:"החזקה, ברכיים כפופות"})],
+ "Human Flag":[FLAG({label:"החזקה"})],
+
+ // ================= RINGS =================
+ "Ring Row — גוף זקוף":RROW([150,200],[133,66]),
+ "Ring Row — 45°":RROW([160,200],[118,100]),
+ "Ring Row — גוף מקביל":RROW([170,200],[100,150]),
+ "Feet-Elevated Ring Row":RROW([170,165],[100,118],{pr:[box(150,168.5,40)]}),
+ "Archer Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה לצד אחד"})];})(),
+ "One-Arm Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה ביד אחת"})];})(),
+ "Ring Active Hang":[R(X(FP.active,{label:"החזקה, שכמות למטה"}))],
+ "Ring Scapular Pull-Up":[R(X(FP.hang,{label:"תלייה רפויה"})),R(X(FP.active,{label:"שכמות למטה"}))],
+ "False Grip Hang":[R(X(FP.hang,{label:"החזקה, אחיזת פולס גריפ"}))],
+ "Ring Pull-Up":[R(FP.hang),R(FP.top)],
+ "False Grip Pull-Up":[R(FP.hang),R(X(FP.top,{label:"טבעות לחזה"}))],
+ "High False Grip Pull-Up":[R(FP.hang),R(X(FP.c2b,{grip:22,label:"טבעות לעצם החזה"}))],
+ "Archer Ring Pull-Up":[R(X(FP.hang,{grip:46})),R(X(archTop(1),{label:"משיכה לצד אחד"}))],
+ "Low Ring Transition":[X(ROW_BK[0],{pr:[ring("W",55)]}),{H:[92,150],t:-88,A:[96,154],L:[118,200],kb:[1,-0.4],g:1,pr:[ring("W",55)],label:"מעל הטבעות"}],
+ "Ring Muscle-Up Negative":[R(X(FP.support,{label:"מעל הטבעות"})),R(FP.high),R(X(FP.hang,{label:"ירידה איטית"}))],
+ "Band-Assisted Ring Muscle-Up":[R(X(FP.hang,{band:true})),R(X(FP.high,{band:true})),R(FP.support)],
+ "Strict Ring Muscle-Up":[R(FP.hang),R(FP.high),R(FP.support)],
+ "Weighted Ring Muscle-Up":[R(X(FP.hang,{w:true})),R(X(FP.high,{w:true})),R(X(FP.support,{w:true}))],
+ "Incline Ring Push-Up":pushups([20,200],145,18,{ring:true}),
+ "Feet-Elevated Ring Push-Up":pushups([20,172],186,20,{ring:true,fbox:true}),
+ "Archer Ring Push-Up":(()=>{const p=pushups([20,200],186,20,{ring:true});return [p[0],X(p[1],{label:"טבעת אחת נפתחת לצד"})];})(),
+ "Ring Pseudo Planche Push-Up":PPL.map(fr=>X(fr,{A:[fr.A[0],188],pr:[ring("W",55)]})),
+ "Ring Dip Negative":[X(ringTop(),{label:"התחלה למעלה"}),X(ringBot(),{label:"ירידה איטית"})],
+ "Band-Assisted Ring Dip":[ringTop([{k:"band",from:[60,100],to:[130,100],via:"K"}]),ringBot([{k:"band",from:[60,100],to:[130,100],via:"K"}])],
+ "RTO Ring Dip":[ringTop(),ringBot(),X(ringTop(),{label:"נעילה + סיבוב החוצה"})],
+ "Weighted Ring Dip":[ringTop([{k:"wt",at:"H",dy:12}]),ringBot([{k:"wt",at:"H",dy:12}])],
+ "Low Ring Support — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,pr:[ring("W",55)],label:"החזקה, רגליים על הקרקע"}],
+ "RTO Support Hold":[X(ringTop(),{label:"החזקה, טבעות מסובבות החוצה"})],
+ "Ring Tuck L-Sit":[X(ringTop(),{L:[118,92],kb:[1,-1],label:"החזקה"})],
+ "Ring L-Sit":[X(ringTop(),{H:[94,108],L:add([94,108],73,0),label:"החזקה"})],
+ "Ring Plank — רגליים בטבעות":[X(RPL,{label:"החזקה"})],
+ "Ring Knee Tuck":[RPL,RKT],
+ "Ring Rollout — מברכיים":[RO(-78,[98,160]),RO(-22,[188,128])],
+ "Ring Pike":[RPL,RPK],
+ "Ring Body Saw":(()=>{const a=FPL,b=X(FPL,{H:[FPL.H[0]-18,FPL.H[1]-1],L:[FPL.L[0]-18,FPL.L[1]],t:FPL.t+4});
+   return [X(a,{pr:[ring("F",50)]}),X(b,{pr:[ring("F",50)],label:"דחיפה לאחור"})];})(),
+ "Standing Ring Rollout":[SRO(-78,[66,150]),SRO(-25,[200,98])],
+ "Ring Hanging Knee Raise":[RHG({L:add([90,142],73,92)}),RHG({L:[118,150],kb:[1,-1]})],
+ "Ring Hanging Leg Raise":[RHG({L:add([90,142],73,92)}),RHG({L:add([90,142],73,-2)})],
+ "Ring Toes-to-Rings":[RHG({L:add([90,142],73,92)}),RHG({H:[80,128],t:-76,L:[102,48]})],
+ "Skin-the-Cat — רגליים על הקרקע":[INVT({pr:[ring("W",55)],label:"היפוך מקופל"}),GER({pr:[ring("W",55)],L:[132,206],th:null,sh:null,label:"רגליים לקרקע מאחור"})],
+ "Inverted Tuck Hang":[INVT({pr:[ring("W",55)],label:"החזקה"})],
+ "Inverted Hang":[INV({pr:[ring("W",55)],label:"החזקה"})],
+ "German Hang":[GER({pr:[ring("W",55)],label:"החזקה"})],
+ "Skin-the-Cat":[RHG({L:add([90,142],73,92)}),INVT({pr:[ring("W",55)],label:"היפוך"}),GER({pr:[ring("W",55)],label:"תלייה גרמנית"})],
+ "Ring Shoulder Stand — עם הרצועות":[{H:[106,116],t:90,A:[96,185],eb:[1,0],L:[98,46],g:1,pr:[ring("W",130)],label:"החזקה, רגליים על הרצועות"}],
+ "Ring Shoulder Stand":[{H:[106,116],t:90,A:[96,185],eb:[1,0],L:[106,43],g:1,pr:[ring("W",70)],label:"החזקה"}],
+ "Ring Handstand — עם הרצועות":[{H:[100,46],t:90,A:[100,150],L:[94,-25],pr:[ring("W",170)],label:"החזקה, רגליים על הרצועות"}],
+ "Freestanding Ring Handstand":[{H:[100,46],t:90,A:[100,150],L:[100,-27],pr:[ring("W",60)],label:"החזקה"}],
+ "Wide Ring Support":[R({v:"front",sy:-46,grip:34,straight:true,label:"החזקה, ידיים מעט פתוחות"})],
+ "Band-Assisted Iron Cross":[R({v:"front",sy:0,grip:68,straight:true,label:"החזקה עם גומייה"})],
+ "Iron Cross Negative":[R(X(FP.support,{label:"התחלה בתמיכה"})),R({v:"front",sy:0,grip:68,straight:true,label:"פתיחה איטית לצלב"})],
+ "Iron Cross":[R({v:"front",sy:0,grip:68,straight:true,label:"החזקה"})],
+};
+// ring versions that share a calisthenics name get rings automatically when the exercise is in the rings category
+const RING_SAME={
+ "Ring Push-Up":pushups([20,200],186,20,{ring:true}),
+ "Ring Dip":[ringTop(),ringBot()],
+ "Ring Support Hold":[X(ringTop(),{label:"החזקה"})],
+ "Tuck Front Lever":[FL(L_T,{pr:[ring("W",55)],label:"החזקה"})],
+ "Advanced Tuck Front Lever":[FL(L_AT,{pr:[ring("W",55)],label:"החזקה"})],
+ "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{pr:[ring("W",55)],label:"החזקה, רגליים פתוחות"})],
+ "Full Front Lever":[FL(LEG_FULL([50,92]),{pr:[ring("W",55)],label:"החזקה"})],
+ "Tuck Back Lever":[BL(BL_T,{pr:[ring("W",55)],label:"החזקה"})],
+ "Advanced Tuck Back Lever":[BL(BL_AT,{pr:[ring("W",55)],label:"החזקה"})],
+ "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{pr:[ring("W",55)],label:"החזקה, רגליים פתוחות"})],
+ "Full Back Lever":[BL(LEG_FULL([95,72]),{pr:[ring("W",55)],label:"החזקה"})],
+};
+
+// 3D-only poses (points already in 3D: x, y up, z toward the viewer). Used by the 3D viewer only.
+const FLAG3=(tuck)=>{const y=-100;const k={neck:[-10,y,0],pelv:[-60,y,0],head:[7,y,0],
+  shL:[-10,y+14,0],shR:[-10,y-14,0],elL:[7,y+32,0],elR:[4,y-36,0],wrL:[25,y+50,0],wrR:[25,y-40,0],
+  hpL:[-60,y+9,0],hpR:[-60,y-9,0]};
+  if(tuck){Object.assign(k,{knL:[-46,y+9,34],knR:[-46,y-9,34],ftL:[-81,y+9,30],ftR:[-81,y-9,30]});}
+  else Object.assign(k,{knL:[-97,y+9,0],knR:[-97,y-9,0],ftL:[-133,y+9,0],ftR:[-133,y-9,0]});
+  return {kind:"raw",K:k,g:true,props3d:[{pole:[25,-200,40]}]};};
+const RAW3D={
+ "Human Flag Progression — Tuck":[FLAG3(true)],
+ "Human Flag":[FLAG3(false)],
+};
+const pick=(ex,ringCat)=>(ringCat&&RING_SAME[ex])||ILL[ex];
+// ---------- joint data for the 3D viewer ----------
+function frontJ(fr){
+  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||30;
+  const sL=[bx-14,by+sy], sR=[bx+14,by+sy], hL=fr.hL||[-grip,by], hR=fr.hR||[grip,by];
+  const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+  const eL=(fr.stL||fr.straight)?mid(sL,hL):ik2(sL,hL,fr.dnL!=null?fr.dnL:fr.down,bx);
+  const eR=(fr.stR||fr.straight)?mid(sR,hR):ik2(sR,hR,fr.dnR!=null?fr.dnR:fr.down,bx);
+  const pL=[bx-9,by+sy+50], pR=[bx+9,by+sy+50];
+  let kL,kR,fL,fR;
+  if(fr.legs==="box"){kL=[bx-11,pL[1]+28];kR=[bx+11,pR[1]+28];fL=[bx-10,kL[1]+22];fR=[bx+10,kR[1]+22];}
+  else if(fr.legs==="tuck"){kL=[bx-12,pL[1]-6];kR=[bx+12,pR[1]-6];fL=[bx-9,pL[1]+14];fR=[bx+9,pR[1]+14];}
+  else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
+  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel};
+}
+function frames3d(ex,r){
+  if(RAW3D[ex]) return RAW3D[ex];
+  return (pick(ex,r)||[]).map(fr=>{
+    if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
+    const J=sideJ(fr);
+    const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie};
+  });
+}
+return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), frames3d, GY};
+})();
+
+// ===== 3D mannequin viewer =====
+const TD=(()=>{
+let loading=null, cur=null;
+const HGT=190;
+function load(){
+  if(window.THREE) return Promise.resolve();
+  if(loading) return loading;
+  loading=new Promise((res,rej)=>{const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    s.onload=res;s.onerror=()=>{loading=null;rej();};document.head.appendChild(s);});
+  return loading;
+}
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim()||"#888";
+function stop(){if(cur){cur.stop();cur=null;}}
+const JMAP={W:"wr",F:"ft",K:"kn",E:"el",H:"pelv",S:"neck",C:"head"};
+
+// 2D frame → named 3D points (Y up, 1 unit = 1 drawing px). Side view: left/right limbs split along Z.
+function to3d(fr){
+  if(fr.kind==="raw") return Object.assign({},fr.K);
+  const P0=(p,z)=>[p[0],-p[1],z||0];
+  // optional turn around the vertical axis (e.g. a pirouette out of a handstand)
+  const rot=fr.rotY?fr.rotY*Math.PI/180:0, px=fr.pivot?fr.pivot[0]:0;
+  const P=rot?(p,z)=>{const q=P0(p,z),dx=q[0]-px;return [px+dx*Math.cos(rot)-q[2]*Math.sin(rot),q[1],dx*Math.sin(rot)+q[2]*Math.cos(rot)];}:P0, k={};
+  if(fr.kind==="front"){const J=fr.J;
+    Object.assign(k,{shL:P(J.sL),shR:P(J.sR),elL:P(J.eL),elR:P(J.eR),wrL:P(J.hL),wrR:P(J.hR),
+      hpL:P(J.pL),hpR:P(J.pR),knL:P(J.kL),knR:P(J.kR),ftL:P(J.fL),ftR:P(J.fR),
+      neck:P(J.neck),pelv:P([(J.pL[0]+J.pR[0])/2,J.pL[1]]),head:P(J.head)});
+  } else if(fr.lie){const J=fr.J;
+    // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
+    const dx=J.S[0]-J.H[0],dy=J.S[1]-J.H[1],d=Math.hypot(dx,dy)||1,n=[-dy/d,dx/d];
+    const Q=(p,o,z)=>P([p[0]+n[0]*o,p[1]+n[1]*o],z||0);
+    Object.assign(k,{shL:Q(J.S,14),shR:Q(J.S,-14),elL:Q(J.E,22,4),elR:Q(J.E,-22,4),wrL:Q(J.W,5,-7),wrR:Q(J.W,-5,-7),
+      hpL:Q(J.H,9),hpR:Q(J.H,-9),knL:Q(J.K,6),knR:Q(J.K,-6),ftL:Q(J.F,4),ftR:Q(J.F,-4),
+      neck:P(J.S),pelv:P(J.H),head:P(J.C)});
+  } else {const J=fr.J;
+    Object.assign(k,{shL:P(J.S,14),shR:P(J.S,-14),elL:P(J.E,14),elR:P(J.E2||J.E,-14),wrL:P(J.W,14),wrR:P(J.W2||J.W,-14),
+      hpL:P(J.H,9),hpR:P(J.H,-9),knL:P(J.K,9),knR:P(J.K2||J.K,-9),ftL:P(J.F,9),ftR:P(J.F2||J.F,-9),
+      neck:P(J.S),pelv:P(J.H),head:P(J.C)});
+    // moving equipment points (bands / weights) are carried as extra keys so they animate with the body
+    (fr.pr||[]).forEach((q,i)=>{
+      if(q.k==="band"){k["b"+i+"a"]=P(q.from);k["b"+i+"b"]=P(q.to);k["b"+i+"v"]=q.via?P(q.via):null;}
+      if(q.k==="wt"){k["w"+i]=P([q.at[0]+(q.dx||0),q.at[1]+(q.dy||0)]);}
+    });
+  }
+  return k;
+}
+const SEG=[["neck","pelv",8.5],["shL","shR",5],["hpL","hpR",6.5],["shL","elL",4.6],["elL","wrL",4],
+  ["shR","elR",4.6],["elR","wrR",4],["hpL","knL",6.2],["knL","ftL",5],["hpR","knR",6.2],["knR","ftR",5]];
+
+function build(host,frames){
+  const T=window.THREE, W=()=>host.clientWidth||300;
+  const renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(W(),HGT);
+  const cv=renderer.domElement;cv.className="tdcv";host.prepend(cv);
+  const scene=new T.Scene(), cam=new T.PerspectiveCamera(35,W()/HGT,1,4000);
+  scene.add(new T.HemisphereLight(0xffffff,0x667070,0.95));
+  const dl=new T.DirectionalLight(0xffffff,0.75);dl.position.set(180,320,260);scene.add(dl);
+  const mBody=new T.MeshStandardMaterial({color:css("--ink"),roughness:0.55,metalness:0.05});
+  const mEq=new T.MeshStandardMaterial({color:css("--muted"),roughness:0.6});
+  const mWall=new T.MeshStandardMaterial({color:css("--muted"),roughness:1,transparent:true,opacity:0.25});
+  const mAcc=new T.MeshStandardMaterial({color:css("--accent"),roughness:0.5});
+  const mGround=new T.MeshStandardMaterial({color:css("--muted"),roughness:1,transparent:true,opacity:0.18});
+  const keys=frames.map(to3d);
+  const cyl=new T.CylinderGeometry(1,1,1,14), sph=new T.SphereGeometry(1,16,12), tor=new T.TorusGeometry(6.5,1.6,10,24);
+  const V=p=>new T.Vector3(p[0],p[1],p[2]);
+  function place(m,a,b,r){const d=new T.Vector3().subVectors(b,a),len=d.length()||0.001;
+    m.position.copy(a).addScaledVector(d,0.5);m.scale.set(r,len,r);
+    m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());}
+  const staticCyl=(a,b,r,mat)=>{const m=new T.Mesh(cyl,mat||mEq);place(m,V(a),V(b),r);scene.add(m);};
+  const staticBox=(cx,cy,cz,w,h,d,mat)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat||mEq);m.position.set(cx,cy,cz);scene.add(m);};
+  // body
+  const segs=SEG.map(([a,b,r])=>{const m=new T.Mesh(cyl,mBody);scene.add(m);return {a,b,r,m};});
+  const joints={};for(const s of SEG) for(const k of [s[0],s[1]]) if(!joints[k]||joints[k].r<s[2]){
+    if(joints[k]) scene.remove(joints[k].m);const m=new T.Mesh(sph,mBody);m.scale.setScalar(s[2]);scene.add(m);joints[k]={m,r:s[2]};}
+  const head=new T.Mesh(sph,mBody);head.scale.setScalar(10.5);scene.add(head);
+  // equipment
+  const GY=ILLV.GY, dyn=[], seen=new Set();
+  const once=(q,fn)=>{const id=JSON.stringify(q);if(!seen.has(id)){seen.add(id);fn();}};
+  const f0=frames[0];
+  if(f0.kind==="raw"){
+    for(const q of f0.props3d||[]) if(q.pole) staticCyl([q.pole[0],q.pole[1],0],[q.pole[0],q.pole[2],0],3);
+    if(f0.g){const g=new T.Mesh(new T.CylinderGeometry(115,115,1,40),mGround);g.position.set(-40,-GY-4,0);scene.add(g);}
+  } else if(f0.kind==="front"){const J=f0.J;
+    if(J.eq==="bar"){const x1=Math.min(-75,J.hL[0]-15),x2=Math.max(75,J.hR[0]+15);staticCyl([x1,-J.by,0],[x2,-J.by,0],2.6);}
+    else for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:"wr"+s,len:60,axis:"z"});
+    if(J.box){const y=Math.max(J.fL[1],J.fR[1])+4;staticBox(0,-(y+13),0,52,26,40);}
+    if(frames.some(f=>f.J.band)) dyn.push({fband:true,m1:new T.Mesh(cyl,mAcc),m2:new T.Mesh(cyl,mAcc),by:J.by});
+    if(frames.some(f=>f.J.w)) dyn.push({fw:true,m:new T.Mesh(tor,mAcc)});
+    if(frames.some(f=>f.J.towel)) dyn.push({towel:true,m:new T.Mesh(cyl,mAcc),by:J.by});
+  } else {
+    frames.forEach(fr=>(fr.pr||[]).forEach((q,i)=>{
+      if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-45],[q.at[0],-q.at[1],45],2.6));
+      else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
+      else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y;staticBox(q.x+q.w/2,-(q.y+h/2),0,q.w,h,60);});
+      else if(q.k==="wall") once(["wall",q.x],()=>{const h=GY+4-q.y1;staticBox(q.x,-(q.y1+h/2),0,2,h,130,mWall);});
+      else if(q.k==="pole") once(["pole",q.x],()=>staticCyl([q.x,-q.y1,0],[q.x,-q.y2,0],3));
+      else if(q.k==="ring") once(["ring",q.atRef||q.at],()=>{
+        if(q.atRef&&JMAP[q.atRef]&&(q.atRef==="W"||q.atRef==="F")){for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:JMAP[q.atRef]+s,len:q.len||55,axis:"x"});}
+        else for(const z of [-14,14]){const m=new T.Mesh(tor,mEq);m.position.set(q.at[0],-q.at[1],z);m.rotation.y=Math.PI/2;scene.add(m);
+          staticCyl([q.at[0],-q.at[1]+6,z],[q.at[0],-q.at[1]+(q.len||55),z],0.9);}});
+      else if(q.k==="band") once(["band",i],()=>dyn.push({band:i,m1:new T.Mesh(cyl,mAcc),m2:new T.Mesh(cyl,mAcc)}));
+      else if(q.k==="wt") once(["wt",i],()=>dyn.push({wt:i,m:new T.Mesh(tor,mAcc)}));
+    }));
+    if(frames.some(f=>f.g)){const g=new T.Mesh(new T.CylinderGeometry(115,115,1,40),mGround);g.position.set(0,-GY-4,0);scene.add(g);dyn.push({ground:g});}
+  }
+  for(const d of dyn) for(const k of ["ring","strap","m","m1","m2"]) if(d[k]) scene.add(d[k]);
+  function pose(k){
+    for(const s of segs) place(s.m,V(k[s.a]),V(k[s.b]),s.r);
+    for(const n in joints) joints[n].m.position.set(...k[n]);
+    head.position.set(...k.head);
+    for(const d of dyn){
+      if(d.ground){d.ground.position.x=(k.pelv[0]+k.head[0])/2;}
+      else if(d.ring){const w=k[d.j];d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
+        place(d.strap,V([w[0],w[1]+6,w[2]]),V([w[0],w[1]+d.len,w[2]]),0.9);}
+      else if(d.band!=null){const a=k["b"+d.band+"a"],b=k["b"+d.band+"b"],v=k["b"+d.band+"v"];
+        if(!a){d.m1.visible=d.m2.visible=false;continue;}d.m1.visible=d.m2.visible=true;
+        const mid=v?[v[0],v[1]-12,0]:[(a[0]+b[0])/2,(a[1]+b[1])/2,0];place(d.m1,V(a),V(mid),1.6);place(d.m2,V(mid),V(b),1.6);}
+      else if(d.wt!=null){const w=k["w"+d.wt];if(w){d.m.visible=true;d.m.position.set(...w);}else d.m.visible=false;}
+      else if(d.fband){const fL=k.ftL,fR=k.ftR;place(d.m1,V([-6,-d.by,0]),V([fL[0],fL[1]-6,0]),1.4);place(d.m2,V([6,-d.by,0]),V([fR[0],fR[1]-6,0]),1.4);}
+      else if(d.fw){const p=k.pelv;d.m.position.set(p[0],p[1]-14,4);}
+      else if(d.towel){const w=k.wrR;place(d.m,V([w[0],-d.by,0]),V(w),1.4);}
+    }
+  }
+  const lerpK=(a,b,t)=>{const o={};for(const n in a){if(!a[n]||!b[n]){o[n]=a[n];continue;}o[n]=[0,1,2].map(i=>a[n][i]+(b[n][i]-a[n][i])*t);}return o;};
+  const seq=keys.length>1?[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)]:[0];
+  const HOLD=0.7, MOVE=1.15, STEP=HOLD+MOVE;
+  // camera framing over every frame
+  const all=keys.flatMap(k=>Object.values(k).filter(Boolean));
+  const mn=[0,1,2].map(i=>Math.min(...all.map(p=>p[i]))), mx=[0,1,2].map(i=>Math.max(...all.map(p=>p[i])));
+  const ctr=V(mn.map((v,i)=>(v+mx[i])/2)), size=Math.max(mx[0]-mn[0],mx[1]-mn[1],110);
+  let az=f0.kind==="front"?0.55:(f0.kind==="raw"?0.35:-0.75), el=0.22, dist=size*(f0.kind==="front"?2.0:2.25);
+  function camUpdate(){cam.position.set(ctr.x+dist*Math.sin(az)*Math.cos(el),ctr.y+dist*Math.sin(el),ctr.z+dist*Math.cos(az)*Math.cos(el));cam.lookAt(ctr);}
+  camUpdate();
+  let drag=null;
+  cv.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+  cv.addEventListener("pointermove",e=>{if(!drag) return;az-=(e.clientX-drag.x)*0.012;el=Math.max(-0.15,Math.min(1.2,el+(e.clientY-drag.y)*0.008));
+    drag={x:e.clientX,y:e.clientY};camUpdate();if(!playing) renderer.render(scene,cam);});
+  const end=()=>{drag=null;};cv.addEventListener("pointerup",end);cv.addEventListener("pointercancel",end);
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let playing=!reduce&&keys.length>1, t0=performance.now(), tPaused=0, raf=0, alive=true;
+  const btn=host.querySelector(".tdplay");
+  const setBtn=()=>{if(btn){btn.textContent=playing?"⏸ עצירה":"▶ הפעלה";btn.hidden=keys.length<2;}};setBtn();
+  if(btn) btn.onclick=()=>{playing=!playing;if(playing){t0=performance.now()-tPaused;loop();}setBtn();};
+  function frameAt(sec){
+    if(keys.length<2) return keys[0];
+    const total=seq.length*STEP, tt=sec%total, i=Math.floor(tt/STEP), local=tt-i*STEP;
+    const a=keys[seq[i]], b=keys[seq[(i+1)%seq.length]];
+    if(local<HOLD) return a;
+    const u=(local-HOLD)/MOVE, e=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    return lerpK(a,b,e);
+  }
+  function loop(){if(!alive) return;cancelAnimationFrame(raf);
+    const sec=(performance.now()-t0)/1000;tPaused=sec*1000;pose(frameAt(sec));renderer.render(scene,cam);
+    if(playing) raf=requestAnimationFrame(loop);}
+  pose(keys[0]);renderer.render(scene,cam);if(playing) loop();
+  const ro=new ResizeObserver(()=>{renderer.setSize(W(),HGT);cam.aspect=W()/HGT;cam.updateProjectionMatrix();renderer.render(scene,cam);});ro.observe(host);
+  return {stop(){alive=false;cancelAnimationFrame(raf);ro.disconnect();renderer.dispose();cyl.dispose();sph.dispose();tor.dispose();cv.remove();}};
+}
+function fallback(host,ex,ring,msg){
+  const m=host.querySelector(".tdmsg");if(m) m.textContent=msg;
+  const d=document.createElement("div");d.className="ill";d.innerHTML=ILLV.draw(ex,ring);host.prepend(d);
+}
+async function mount(host,ex,ring){
+  stop();
+  try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
+  if(!host.isConnected) return;
+  try{cur=build(host,ILLV.frames3d(ex,ring));host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
+  catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
+}
+return {mount, stop};
+})();
+
+const DATA = [{"name": "סולמות קליסטניקס", "tracks": [{"name": "משיכה אנכית", "ladders": [{"name": "מתח", "steps": [{"ex": "Assisted Hang — תלייה עם תמיכת רגליים", "lvl": 1, "assist": "רגליים על ארגז או על הקרקע; מוט נמוך", "pass": "3×30 שנ׳ ללא כאב", "prim": "מכופפי אמה (אחיזה), רחב גבי (Lats)", "sec": "כתפיים, טרפז תחתון", "equip": "מוט + ארגז", "cues": "אחיזה מלאה עם אגודל; נשימה רגילה", "mist": "כתפיים מכווצות לאוזניים; עצירת נשימה", "how": "אוחזים במוט ברוחב כתפיים כשהרגליים על ארגז או על הקרקע. מורידים חלק מהמשקל לידיים ונשארים תלויים עם מרפקים ישרים, לפי הזמן שנקבע.", "img": "https://www.google.com/search?tbm=isch&q=Assisted+Hang+calisthenics+exercise"}, {"ex": "Active Hang", "lvl": 1, "assist": "קצה רגל על ארגז", "pass": "3×20 שנ׳ עם שכמות מורדות", "prim": "רחב גבי, טרפז תחתון, אחיזה", "sec": "שרירי הליבה", "equip": "מוט", "cues": "להוריד שכמות \"רחוק מהאוזניים\"; מרפקים ישרים", "mist": "כיפוף מרפקים; קשת בגב התחתון", "how": "נתלים במוט עם ידיים ישרות. מורידים את השכמות למטה ומעט לאחור, כך שהכתפיים מתרחקות מהאוזניים, ומחזיקים את המנח בלי לכופף מרפקים.", "img": "https://www.google.com/search?tbm=isch&q=Active+Hang+calisthenics+exercise"}, {"ex": "Scapular Pull-Up", "lvl": 2, "assist": "גומייה עבה או רגל על ארגז", "pass": "3×10", "prim": "טרפז תחתון, רחב גבי, מעויינים (Rhomboids)", "sec": "אחיזה", "equip": "מוט", "cues": "התנועה רק מהשכמות; עצירה של שנייה למעלה", "mist": "כיפוף מרפקים; תנופה", "how": "מתלייה מלאה ופסיבית, מושכים את השכמות למטה בלבד כך שהגוף עולה כמה סנטימטרים בלי לכופף מרפקים. מחזיקים שנייה ויורדים בשליטה חזרה לתלייה.", "img": "https://www.google.com/search?tbm=isch&q=Scapular+Pull-Up+calisthenics+exercise"}, {"ex": "Negative Pull-Up", "lvl": 2, "assist": "ירידה קצרה יותר (3 שנ׳); קפיצה מארגז להתחלה", "pass": "3×5 ירידות של 5 שנ׳", "prim": "רחב גבי, דו-ראשי (Biceps), ברכיאליס", "sec": "מעויינים, ליבה", "equip": "מוט + ארגז", "cues": "סנטר מעל המוט בהתחלה; ירידה אחידה עד תלייה מלאה", "mist": "\"נפילה\" בחצי התחתון; טווח חלקי", "how": "עולים לראש המוט בקפיצה או מארגז, כשהסנטר מעל המוט. יורדים לאט ובאופן אחיד עד תלייה מלאה עם ידיים ישרות, ואז חוזרים לנקודת ההתחלה.", "img": "https://www.google.com/search?tbm=isch&q=Negative+Pull-Up+calisthenics+exercise"}, {"ex": "Band-Assisted Pull-Up — מתח עם גומייה", "lvl": 3, "assist": "גומייה עבה ← בינונית ← דקה", "pass": "3×8 עם הגומייה הדקה", "prim": "רחב גבי, דו-ראשי", "sec": "מעויינים, טרפז אמצעי, ליבה", "equip": "מוט + גומיות", "cues": "גוף Hollow; סנטר מעל המוט", "mist": "קפיצה מהגומייה בתחתית; טווח חלקי", "how": "קושרים גומייה למוט ומניחים בה ברך או כף רגל. מתלייה פעילה מושכים עד שהסנטר עובר את המוט, ויורדים בשליטה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Band-Assisted+Pull-Up+calisthenics+exercise"}, {"ex": "Pull-Up", "lvl": 3, "assist": "גומייה דקה בסט האחרון; Negative בסוף סט", "pass": "3×8 נקיים", "prim": "רחב גבי, דו-ראשי", "sec": "מעויינים, טרפז, ברכיאליס, ליבה", "equip": "מוט", "cues": "יציאה מתלייה פעילה; חזה פתוח", "mist": "קיפינג; חצי טווח למטה", "how": "נתלים באחיזה עליונה מעט רחבה מהכתפיים. מורידים שכמות ומושכים עד שהסנטר עובר את המוט, ואז יורדים בשליטה עד ידיים ישרות לגמרי.", "img": "https://www.google.com/search?tbm=isch&q=Pull-Up+calisthenics+exercise"}, {"ex": "Chest-to-Bar Pull-Up", "lvl": 4, "assist": "גומייה דקה", "pass": "3×5", "prim": "רחב גבי (חלק תחתון), מעויינים, טרפז אמצעי", "sec": "דו-ראשי, כתף אחורית", "equip": "מוט", "cues": "מרפקים למטה ואחורה; חזה אל המוט", "mist": "סנטר קדימה במקום חזה; תנופת רגליים", "how": "מתח שבו ממשיכים למשוך עד שהחזה העליון נוגע במוט. מובילים עם המרפקים למטה ולאחור ומטים מעט את הגוף לאחור בחלק העליון.", "img": "https://www.google.com/search?tbm=isch&q=Chest-to-Bar+Pull-Up+calisthenics+exercise"}, {"ex": "Explosive / High Pull-Up", "lvl": 5, "assist": "גומייה דקה לתחושת המהירות", "pass": "3×3 עד שהמוט מגיע לגובה הבטן העליונה", "prim": "רחב גבי, טרפז, כתף אחורית", "sec": "דו-ראשי, ליבה", "equip": "מוט", "cues": "משיכה מהירה \"אל המותניים\"; גוף מעט נוטה לאחור", "mist": "כיפוף ירכיים; משיכה איטית", "how": "מתלייה פעילה מושכים במהירות המרבית, כך שהמוט מגיע לגובה בית החזה התחתון או הבטן העליונה. יורדים בשליטה ומאפסים לפני כל חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Explosive+%2F+High+Pull-Up+calisthenics+exercise"}, {"ex": "Muscle-Up Progression — Negative / עם גומייה", "lvl": 5, "assist": "גומייה; מוט נמוך עם רגליים; ירידות בלבד", "pass": "3×3 ירידות מבוקרות דרך המעבר", "prim": "רחב גבי, תלת-ראשי (Triceps), חזה", "sec": "כתף קדמית, אחיזה", "equip": "מוט + גומייה", "cues": "אחיזה עמוקה (False Grip חלקי); מעבר קרוב למוט", "mist": "מעבר של יד אחת לפני השנייה (\"עוף\")", "how": "מתחילים מעל המוט בתמיכה על ידיים ישרות. יורדים לאט דרך מנח הדיפס, עוברים בשליטה את נקודת המעבר וממשיכים לתלייה. אפשר גם לבצע את התנועה כולה עם גומייה.", "img": "https://www.google.com/search?tbm=isch&q=Muscle-Up+Progression+calisthenics+exercise"}, {"ex": "Strict Bar Muscle-Up", "lvl": 6, "assist": "גומייה דקה", "pass": "3×3 ללא קיפינג", "prim": "רחב גבי, תלת-ראשי, חזה", "sec": "כתף קדמית, ליבה", "equip": "מוט", "cues": "משיכה גבוהה ← הטיית חזה מעל המוט ← דחיפה", "mist": "קיפינג; מעבר לא סימטרי", "how": "מתלייה פעילה מושכים חזק ונמוך אל המותניים. ברגע שהמוט מגיע לבית החזה מטים את החזה מעל המוט, ומסיימים בדחיפה עד ידיים ישרות. כל זה בלי תנופת רגליים.", "img": "https://www.google.com/search?tbm=isch&q=Strict+Bar+Muscle-Up+calisthenics+exercise"}, {"ex": "Weighted Muscle-Up", "lvl": 7, "assist": "משקל קל (2–5 ק״ג)", "pass": "לפי יעד אישי", "prim": "רחב גבי, תלת-ראשי, חזה", "sec": "כתף, ליבה", "equip": "מוט + חגורת משקולות", "cues": "טכניקה זהה למוט ללא משקל", "mist": "הוספת משקל לפני שליטה מלאה", "how": "Muscle-Up נקי עם משקל קל נוסף, בחגורה או באפוד. הטכניקה זהה בדיוק לגרסה ללא משקל.", "img": "https://www.google.com/search?tbm=isch&q=Weighted+Muscle-Up+calisthenics+exercise"}]}, {"name": "מתח יד אחת", "steps": [{"ex": "Archer Pull-Up", "lvl": 5, "assist": "רגל על ארגז; גומייה", "pass": "3×5 לכל צד", "prim": "רחב גבי (חד-צדדי), דו-ראשי", "sec": "ליבה, אחיזה", "equip": "מוט", "cues": "היד הישרה רק מסייעת; כתפיים מורדות", "mist": "כיפוף היד המסייעת", "how": "אוחזים במוט באחיזה רחבה מאוד. מושכים לכיוון יד אחת, כשהיד השנייה נשארת כמעט ישרה ורק מסייעת. יורדים בשליטה ומחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Pull-Up+calisthenics+exercise"}, {"ex": "Typewriter Pull-Up", "lvl": 6, "assist": "טווח צידי חלקי", "pass": "3×3 הלוך-חזור", "prim": "רחב גבי, דו-ראשי", "sec": "מעויינים, ליבה", "equip": "מוט", "cues": "שמירת גובה קבוע בתנועה הצידית", "mist": "ירידה באמצע התנועה", "how": "עולים לראש המתח באחיזה רחבה. נעים לצד אחד כשהסנטר צמוד לגובה המוט, ואז לצד השני, בלי לרדת באמצע. יורדים בסיום.", "img": "https://www.google.com/search?tbm=isch&q=Typewriter+Pull-Up+calisthenics+exercise"}, {"ex": "Assisted One-Arm Pull-Up", "lvl": 6, "assist": "יד שנייה על מגבת או גומייה", "pass": "3×3 לכל צד", "prim": "רחב גבי, דו-ראשי, ברכיאליס", "sec": "אחיזה, ליבה", "equip": "מוט + מגבת/גומייה", "cues": "להפחית בהדרגה את עזרת היד השנייה", "mist": "סיבוב הגוף; משיכה מהיד המסייעת", "how": "יד אחת אוחזת במוט, והיד השנייה אוחזת במגבת או בגומייה נמוכה יותר. מושכים בעיקר עם היד העליונה ומשתמשים ביד השנייה רק כמה שצריך.", "img": "https://www.google.com/search?tbm=isch&q=Assisted+One-Arm+Pull-Up+calisthenics+exercise"}, {"ex": "One-Arm Negative", "lvl": 7, "assist": "ירידה קצרה יותר", "pass": "3×3 ירידות של 5 שנ׳ לכל צד", "prim": "רחב גבי, דו-ראשי, ברכיאליס", "sec": "אחיזה, ליבה", "equip": "מוט", "cues": "כתף פעילה לאורך כל הירידה", "mist": "נפילה בתחתית — עומס על המרפק", "how": "עולים למעלה בעזרת שתי ידיים, משחררים יד אחת ויורדים לאט עם היד שנשארה עד תלייה מלאה. שומרים על כתף פעילה לכל אורך הירידה.", "img": "https://www.google.com/search?tbm=isch&q=One-Arm+Negative+calisthenics+exercise"}, {"ex": "One-Arm Pull-Up", "lvl": 7, "assist": "—", "pass": "לפי יעד אישי", "prim": "רחב גבי, דו-ראשי, ברכיאליס", "sec": "אחיזה, ליבה", "equip": "מוט", "cues": "יציאה מתלייה פעילה", "mist": "קיפינג; סיבוב מוגזם", "how": "מתלייה פעילה ביד אחת, עם הגוף מעט מסובב לכיוון יד המשיכה, מושכים עד שהסנטר עובר את המוט. יורדים בשליטה.", "img": "https://www.google.com/search?tbm=isch&q=One-Arm+Pull-Up+calisthenics+exercise"}]}]}, {"name": "משיכה אופקית", "ladders": [{"name": "חתירה", "steps": [{"ex": "Australian Row — מנח זקוף", "lvl": 1, "assist": "מוט גבוה; גוף כמעט זקוף", "pass": "3×12", "prim": "מעויינים, טרפז אמצעי, רחב גבי", "sec": "דו-ראשי, כתף אחורית", "equip": "מוט נמוך / טבעות", "cues": "גוף ישר; חזה אל המוט", "mist": "ירכיים נופלות; משיכה בצוואר", "how": "עומדים מול מוט בגובה החזה ואוחזים בו. נשענים לאחור עם גוף ישר וידיים ישרות. מושכים את החזה אל המוט, מצמידים שכמות וחוזרים.", "img": "https://www.google.com/search?tbm=isch&q=Australian+Row+calisthenics+exercise"}, {"ex": "Ring Row", "lvl": 1, "assist": "הליכה לאחור להקטנת הזווית", "pass": "3×12 בזווית של 45°", "prim": "מעויינים, טרפז אמצעי, רחב גבי", "sec": "דו-ראשי, ליבה", "equip": "טבעות", "cues": "שכמות נסגרות בסוף כל חזרה", "mist": "טבעות נפתחות לצדדים", "how": "אוחזים בטבעות ונשענים לאחור עם גוף ישר. מושכים את החזה אל הידיים ומצמידים את השכמות. ככל שהגוף קרוב יותר לרצפה, כך התרגיל קשה יותר.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Row+calisthenics+exercise"}, {"ex": "Australian Row — ברכיים כפופות", "lvl": 2, "assist": "כפות רגליים קרובות למוט", "pass": "3×12", "prim": "מעויינים, רחב גבי", "sec": "דו-ראשי, ליבה", "equip": "מוט נמוך", "cues": "מוט בגובה המותן", "mist": "טווח חלקי", "how": "שוכבים מתחת למוט בגובה המותן, עם ברכיים כפופות וכפות רגליים על הרצפה. מרימים את האגן לקו ישר ומושכים את החזה אל המוט.", "img": "https://www.google.com/search?tbm=isch&q=Australian+Row+calisthenics+exercise"}, {"ex": "Australian Row — רגליים ישרות", "lvl": 3, "assist": "כיפוף ברכיים בסוף הסט", "pass": "3×12", "prim": "מעויינים, רחב גבי, טרפז אמצעי", "sec": "דו-ראשי, ליבה, ישבן", "equip": "מוט נמוך", "cues": "גוף כקרש מכתפיים לעקבים", "mist": "ירכיים נופלות", "how": "שוכבים מתחת למוט עם רגליים ישרות ועקבים על הרצפה. מחזיקים את הגוף כקרש ומושכים עד שהחזה נוגע במוט.", "img": "https://www.google.com/search?tbm=isch&q=Australian+Row+calisthenics+exercise"}, {"ex": "Feet-Elevated Australian Row", "lvl": 4, "assist": "הנמכת הרגליים", "pass": "3×10", "prim": "מעויינים, רחב גבי, כתף אחורית", "sec": "דו-ראשי, ליבה", "equip": "מוט נמוך + ארגז", "cues": "חזה נוגע במוט", "mist": "קשת בגב התחתון", "how": "כמו חתירה אוסטרלית ברגליים ישרות, אבל העקבים מונחים על ארגז בגובה המוט, כך שהגוף מקביל לרצפה.", "img": "https://www.google.com/search?tbm=isch&q=Feet-Elevated+Australian+Row+calisthenics+exercise"}, {"ex": "Archer Row", "lvl": 4, "assist": "רגליים לא מוגבהות", "pass": "3×6 לכל צד", "prim": "רחב גבי (חד-צדדי), מעויינים", "sec": "דו-ראשי, ליבה", "equip": "טבעות / מוט", "cues": "היד הישרה רק מסייעת", "mist": "סיבוב הגוף", "how": "חתירה שבה מושכים לכיוון יד אחת, והיד השנייה נשארת ישרה לצד ומסייעת בלבד. מחליפים צד בכל סט או בכל חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Row+calisthenics+exercise"}, {"ex": "Tuck Front Lever Row", "lvl": 5, "assist": "גומייה מתחת לירכיים", "pass": "3×6", "prim": "רחב גבי, כתף אחורית, מעויינים", "sec": "ליבה, דו-ראשי", "equip": "מוט / טבעות", "cues": "שומרים על גב ישר בתחתית", "mist": "ירכיים יורדות בכל חזרה", "how": "מחזיקים Tuck Front Lever (ברכיים לחזה וגב מקביל לרצפה) ומשם מושכים את המוט אל הבטן עם ידיים כפופות, ואז מיישרים חזרה בלי לאבד את המנח.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Front+Lever+Row+calisthenics+exercise"}, {"ex": "Advanced Tuck Front Lever Row", "lvl": 6, "assist": "גומייה דקה", "pass": "3×5", "prim": "רחב גבי, כתף אחורית, מעויינים", "sec": "ליבה, דו-ראשי", "equip": "מוט / טבעות", "cues": "גב שטוח, ברכיים רחוקות מהחזה", "mist": "עיגול הגב", "how": "חתירה מתוך Advanced Tuck Front Lever: גב שטוח וברכיים רחוקות מהחזה. מושכים את המוט אל הבטן ומיישרים בשליטה.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Front+Lever+Row+calisthenics+exercise"}, {"ex": "Front Lever Row", "lvl": 7, "assist": "Straddle", "pass": "לפי יעד אישי", "prim": "רחב גבי, כתף אחורית, מעויינים", "sec": "ליבה, ישבן, דו-ראשי", "equip": "מוט / טבעות", "cues": "גוף ישר מקביל לרצפה", "mist": "ירכיים נופלות", "how": "מתוך Front Lever מלא, כשהגוף ישר ומקביל לרצפה, מושכים את המוט אל הבטן ומיישרים בלי שהירכיים ייפלו.", "img": "https://www.google.com/search?tbm=isch&q=Front+Lever+Row+calisthenics+exercise"}]}]}, {"name": "דחיפה אופקית", "ladders": [{"name": "שכיבות סמיכה", "steps": [{"ex": "Wall Push-Up", "lvl": 1, "assist": "עמידה קרובה יותר לקיר", "pass": "3×15", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "סראטוס (Serratus), ליבה", "equip": "קיר", "cues": "גוף ישר; מרפקים ב-45°", "mist": "ראש קדימה לפני הגוף", "how": "עומדים מול קיר במרחק צעד וחצי, עם ידיים על הקיר בגובה הכתפיים. מורידים את החזה אל הקיר עם גוף ישר, ודוחפים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Wall+Push-Up+calisthenics+exercise"}, {"ex": "High-Incline Push-Up", "lvl": 1, "assist": "משטח גבוה יותר", "pass": "3×12", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "סראטוס, ליבה", "equip": "שולחן / מקבילים גבוהים", "cues": "חזה מגיע לשפת המשטח", "mist": "ירכיים נופלות", "how": "ידיים על משטח יציב בגובה המותן, כמו שולחן או מקבילים. הגוף בקו ישר מהראש לעקבים. יורדים עד שהחזה קרוב למשטח ודוחפים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=High-Incline+Push-Up+calisthenics+exercise"}, {"ex": "Low-Incline Push-Up", "lvl": 2, "assist": "החזרה לשיפוע גבוה בסוף סט", "pass": "3×12", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "סראטוס, ליבה", "equip": "ספסל / מדרגה", "cues": "ליבה פעילה; טווח מלא", "mist": "מרפקים פתוחים ל-90°", "how": "כמו שכיבת סמיכה בשיפוע גבוה, אבל על משטח נמוך כמו ספסל או מדרגה, כך שיותר מהמשקל עובר לידיים.", "img": "https://www.google.com/search?tbm=isch&q=Low-Incline+Push-Up+calisthenics+exercise"}, {"ex": "Negative Push-Up", "lvl": 2, "assist": "Knee Push-Up לעלייה", "pass": "3×5 ירידות של 3–5 שנ׳", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "ליבה", "equip": "—", "cues": "ירידה אחידה עד נגיעת חזה", "mist": "נפילה בחצי התחתון", "how": "מתחילים במנח שכיבת סמיכה עליון. יורדים לאט ובאופן אחיד עד שהחזה נוגע ברצפה. חוזרים למעלה על הברכיים ומתחילים שוב.", "img": "https://www.google.com/search?tbm=isch&q=Negative+Push-Up+calisthenics+exercise"}, {"ex": "Push-Up", "lvl": 3, "assist": "Incline בסט האחרון", "pass": "3×15", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "סראטוס, ליבה", "equip": "—", "cues": "Protraction קטן למעלה; גוף כקרש", "mist": "טווח חלקי; ירכיים נופלות", "how": "ידיים מעט רחבות מהכתפיים, גוף ישר מהראש לעקבים. יורדים עד שהחזה כמעט נוגע ברצפה, מרפקים בזווית של כ-45° מהגוף, ודוחפים עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Push-Up+calisthenics+exercise"}, {"ex": "Diamond Push-Up", "lvl": 3, "assist": "Incline", "pass": "3×10", "prim": "תלת-ראשי, חזה פנימי", "sec": "כתף קדמית", "equip": "—", "cues": "מרפקים צמודים לגוף", "mist": "מרפקים נפתחים; כאב בשורש כף היד", "how": "שכיבת סמיכה שבה הידיים צמודות מתחת לחזה, כשהאגודלים והאצבעות יוצרים צורת יהלום. המרפקים צמודים לגוף, וכך העומס עובר לתלת-ראשי.", "img": "https://www.google.com/search?tbm=isch&q=Diamond+Push-Up+calisthenics+exercise"}, {"ex": "Decline Push-Up", "lvl": 4, "assist": "הגבהה נמוכה יותר", "pass": "3×12", "prim": "חזה עליון, כתף קדמית", "sec": "תלת-ראשי, ליבה", "equip": "ארגז / ספסל", "cues": "שמירה על גוף ישר בלי \"פייק\"", "mist": "ירכיים עולות", "how": "שכיבת סמיכה עם רגליים מוגבהות על ספסל או ארגז. הגוף נשאר ישר, והעומס עובר יותר לחזה העליון ולכתפיים.", "img": "https://www.google.com/search?tbm=isch&q=Decline+Push-Up+calisthenics+exercise"}, {"ex": "Archer Push-Up", "lvl": 4, "assist": "יד מסייעת על כדור / משטח מוגבה", "pass": "3×6 לכל צד", "prim": "חזה (חד-צדדי), כתף קדמית, תלת-ראשי", "sec": "ליבה", "equip": "—", "cues": "היד הישרה רק מייצבת", "mist": "סיבוב אגן", "how": "ידיים רחבות מאוד. יורדים לכיוון יד אחת שמתכופפת, והיד השנייה נשארת ישרה לצד ומייצבת. דוחפים חזרה ומחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Push-Up+calisthenics+exercise"}, {"ex": "Ring Push-Up", "lvl": 5, "assist": "טבעות גבוהות יותר", "pass": "3×10", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "מייצבי כתף, סראטוס, ליבה", "equip": "טבעות", "cues": "טבעות מסתובבות החוצה למעלה (RTO)", "mist": "טבעות רועדות לצדדים", "how": "שכיבת סמיכה עם ידיים על טבעות נמוכות. שומרים את הטבעות צמודות לגוף, ובחלק העליון מסובבים אותן מעט החוצה (RTO).", "img": "https://www.google.com/search?tbm=isch&q=Ring+Push-Up+calisthenics+exercise"}, {"ex": "Pseudo Planche Push-Up", "lvl": 5, "assist": "הקטנת ההטיה קדימה", "pass": "3×8", "prim": "כתף קדמית, חזה, תלת-ראשי", "sec": "סראטוס, דו-ראשי, פרקי כף יד", "equip": "—", "cues": "כתפיים לפני כפות הידיים; ידיים מסובבות החוצה", "mist": "איבוד ההטיה בתחתית", "how": "ידיים ליד המותניים, אצבעות מסובבות החוצה או לאחור, והגוף מוטה קדימה כך שהכתפיים לפני כפות הידיים. יורדים ודוחפים בלי לאבד את ההטיה.", "img": "https://www.google.com/search?tbm=isch&q=Pseudo+Planche+Push-Up+calisthenics+exercise"}, {"ex": "Assisted One-Arm Push-Up", "lvl": 6, "assist": "יד מסייעת על משטח מוגבה", "pass": "3×5 לכל צד", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "ליבה, אלכסוניים", "equip": "ארגז / כדור", "cues": "רגליים רחבות; אגן ישר", "mist": "סיבוב הגוף", "how": "יד אחת על הרצפה, והיד השנייה על משטח מוגבה או על כדור ומסייעת מעט. רגליים רחבות. יורדים ודוחפים בעיקר עם היד שעל הרצפה.", "img": "https://www.google.com/search?tbm=isch&q=Assisted+One-Arm+Push-Up+calisthenics+exercise"}, {"ex": "One-Arm Push-Up", "lvl": 7, "assist": "Incline", "pass": "3×5 לכל צד", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "ליבה, אלכסוניים", "equip": "—", "cues": "גוף נעול; מרפק קרוב לגוף", "mist": "סיבוב אגן גדול", "how": "יד אחת מתחת לכתף, רגליים רחבות והיד השנייה מאחורי הגב. יורדים עד שהחזה קרוב לרצפה ודוחפים, בלי לסובב את האגן.", "img": "https://www.google.com/search?tbm=isch&q=One-Arm+Push-Up+calisthenics+exercise"}]}]}, {"name": "דחיפה אנכית", "ladders": [{"name": "דיפס", "steps": [{"ex": "Support Hold — רגליים על הקרקע", "lvl": 1, "assist": "רגליים נושאות חלק מהמשקל", "pass": "3×20 שנ׳", "prim": "תלת-ראשי, כתף קדמית, טרפז תחתון", "sec": "חזה", "equip": "מקבילים נמוכים", "cues": "שכמות מורדות; מרפקים נעולים", "mist": "כתפיים עולות לאוזניים", "how": "עומדים בין מקבילים נמוכים ונשענים על ידיים ישרות, כשהרגליים עדיין נושאות חלק מהמשקל. מורידים שכמות ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=parallel+bar+support+hold+feet+assisted"}, {"ex": "Parallel Bar Support Hold", "lvl": 2, "assist": "רגל על ארגז", "pass": "3×30 שנ׳", "prim": "תלת-ראשי, טרפז תחתון, כתף קדמית", "sec": "חזה, ליבה", "equip": "מקבילים", "cues": "גוף מעט Hollow", "mist": "שקיעה בכתפיים", "how": "עולים מעל המקבילים ונשענים על ידיים ישרות ונעולות. מורידים את הכתפיים הרחק מהאוזניים ומחזיקים, עם גוף מעט Hollow.", "img": "https://www.google.com/search?tbm=isch&q=Parallel+Bar+Support+Hold+calisthenics+exercise"}, {"ex": "Negative Dip", "lvl": 3, "assist": "גומייה", "pass": "3×5 ירידות של 5 שנ׳", "prim": "חזה תחתון, תלת-ראשי, כתף קדמית", "sec": "ליבה", "equip": "מקבילים", "cues": "ירידה עד 90° במרפק או לפי נוחות", "mist": "ירידה עמוקה מדי עם כאב בכתף", "how": "מתחילים בתמיכה על המקבילים. יורדים לאט עד שהמרפקים בזווית של כ-90°, או לפי נוחות הכתף, ואז עולים חזרה בעזרת הרגליים.", "img": "https://www.google.com/search?tbm=isch&q=Negative+Dip+calisthenics+exercise"}, {"ex": "Band-Assisted Dip", "lvl": 3, "assist": "גומייה עבה ← דקה", "pass": "3×8 עם גומייה דקה", "prim": "חזה תחתון, תלת-ראשי", "sec": "כתף קדמית", "equip": "מקבילים + גומייה", "cues": "גוף מעט קדימה", "mist": "טווח חלקי", "how": "גומייה מתוחה בין המקבילים, והברכיים או כפות הרגליים נשענות עליה. יורדים עד כ-90° במרפק ודוחפים חזרה לתמיכה.", "img": "https://www.google.com/search?tbm=isch&q=Band-Assisted+Dip+calisthenics+exercise"}, {"ex": "Parallel Bar Dip", "lvl": 4, "assist": "גומייה דקה", "pass": "3×10", "prim": "חזה תחתון, תלת-ראשי, כתף קדמית", "sec": "ליבה", "equip": "מקבילים", "cues": "טווח שנוח לכתף; נעילה למעלה", "mist": "כתפיים נופלות קדימה בתחתית", "how": "מתמיכה על המקבילים יורדים עם גוף מעט נוטה קדימה, עד שהכתף מעט מתחת לגובה המרפק או לפי הטווח הנוח. דוחפים עד נעילת הידיים.", "img": "https://www.google.com/search?tbm=isch&q=Parallel+Bar+Dip+calisthenics+exercise"}, {"ex": "Straight Bar Dip", "lvl": 5, "assist": "רגל על ארגז", "pass": "3×8", "prim": "תלת-ראשי, חזה, כתף קדמית", "sec": "ליבה", "equip": "מוט", "cues": "רגליים מעט קדימה לאיזון", "mist": "מרפקים פתוחים לצדדים", "how": "נשענים מעל מוט ישר עם ידיים ישרות, והמוט צמוד לירכיים. יורדים עד שהמוט נוגע בבית החזה התחתון ודוחפים חזרה. זה גם החלק העליון של ה-Muscle-Up.", "img": "https://www.google.com/search?tbm=isch&q=Straight+Bar+Dip+calisthenics+exercise"}, {"ex": "Ring Support Hold", "lvl": 5, "assist": "רגליים על הקרקע", "pass": "3×30 שנ׳ עם RTO", "prim": "תלת-ראשי, מייצבי כתף, חזה", "sec": "דו-ראשי, ליבה", "equip": "טבעות", "cues": "טבעות צמודות לגוף; סיבוב החוצה", "mist": "רעידות; טבעות מתרחקות", "how": "נשענים מעל הטבעות עם ידיים ישרות, הטבעות צמודות לגוף ומסובבות מעט החוצה (RTO). מחזיקים את המנח בלי רעידות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Support+Hold+calisthenics+exercise"}, {"ex": "Ring Dip", "lvl": 6, "assist": "גומייה דקה", "pass": "3×8", "prim": "חזה, תלת-ראשי, מייצבי כתף", "sec": "כתף קדמית, ליבה", "equip": "טבעות", "cues": "שליטה בטבעות לאורך כל הטווח", "mist": "ירידה מהירה ללא שליטה", "how": "מתמיכה על הטבעות יורדים כשהטבעות צמודות לגוף, עד שהכתף מתחת לגובה המרפק. דוחפים חזרה עד ידיים ישרות וטבעות מסובבות החוצה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Dip+calisthenics+exercise"}, {"ex": "Weighted Dip", "lvl": 6, "assist": "משקל קל", "pass": "לפי יעד אישי", "prim": "חזה, תלת-ראשי, כתף קדמית", "sec": "ליבה", "equip": "מקבילים + חגורת משקולות", "cues": "טכניקה זהה לדיפס רגיל", "mist": "הוספת משקל לפני 3×12 נקיים", "how": "דיפס על מקבילים עם משקל נוסף בחגורה או באפוד. מתחילים רק אחרי שליטה מלאה בגרסה ללא משקל.", "img": "https://www.google.com/search?tbm=isch&q=Weighted+Dip+calisthenics+exercise"}]}, {"name": "דחיפה מעל הראש", "steps": [{"ex": "Pike Hold", "lvl": 2, "assist": "רגליים רחבות יותר", "pass": "3×20 שנ׳", "prim": "כתף קדמית, טרפז עליון", "sec": "תלת-ראשי, פרקי כף יד", "equip": "—", "cues": "ירכיים גבוהות; ראש בין הידיים", "mist": "גב מעוגל", "how": "מתחילים במנח שכיבת סמיכה ומרימים את האגן למעלה ליצירת צורת V הפוכה. הידיים דוחפות את הרצפה, הראש בין הידיים, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Pike+Hold+calisthenics+exercise"}, {"ex": "Pike Push-Up", "lvl": 3, "assist": "טווח חלקי", "pass": "3×10", "prim": "כתף קדמית ואמצעית, תלת-ראשי", "sec": "טרפז עליון", "equip": "—", "cues": "ראש יורד לפני הידיים (משולש)", "mist": "מרפקים פתוחים לצדדים", "how": "ממנח Pike, כשהאגן גבוה, מכופפים מרפקים ומורידים את הראש לנקודה שלפני הידיים, כך שנוצר משולש. דוחפים חזרה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Pike+Push-Up+calisthenics+exercise"}, {"ex": "Elevated Pike Push-Up", "lvl": 4, "assist": "הגבהה נמוכה יותר", "pass": "3×8", "prim": "כתף, תלת-ראשי", "sec": "טרפז עליון, ליבה", "equip": "ארגז", "cues": "ירכיים מעל הכתפיים", "mist": "ירכיים נופלות אחורה", "how": "Pike Push-Up כשכפות הרגליים על ארגז, כך שהגו קרוב יותר לאנכי והעומס על הכתפיים גדל.", "img": "https://www.google.com/search?tbm=isch&q=Elevated+Pike+Push-Up+calisthenics+exercise"}, {"ex": "Deficit Pike Push-Up", "lvl": 5, "assist": "בלי עומק נוסף", "pass": "3×8", "prim": "כתף, תלת-ראשי", "sec": "טרפז עליון", "equip": "ארגז + ידיות / Parallettes", "cues": "ראש יורד מתחת לגובה הידיים", "mist": "טווח שגורם לכאב בכתף", "how": "Pike Push-Up עם רגליים מוגבהות וידיים על ידיות או Parallettes, כך שהראש יכול לרדת מתחת לגובה הידיים לטווח מלא יותר.", "img": "https://www.google.com/search?tbm=isch&q=Deficit+Pike+Push-Up+calisthenics+exercise"}, {"ex": "Wall HSPU Negative", "lvl": 5, "assist": "כרית מתחת לראש", "pass": "3×3 ירידות של 5 שנ׳", "prim": "כתף, תלת-ראשי", "sec": "טרפז עליון, ליבה", "equip": "קיר + כרית", "cues": "ירידה במשולש; גוף ישר", "mist": "נפילה על הראש", "how": "עומדים בעמידת ידיים מול קיר. יורדים לאט עד שהראש נוגע בכרית שעל הרצפה, ויוצאים מהתרגיל בלי לדחוף חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Wall+HSPU+Negative+calisthenics+exercise"}, {"ex": "Partial-Range Wall HSPU", "lvl": 6, "assist": "כרית עבה מתחת לראש", "pass": "3×5", "prim": "כתף, תלת-ראשי", "sec": "טרפז עליון", "equip": "קיר + כרית", "cues": "להוריד בהדרגה את עובי הכרית", "mist": "קשת בגב", "how": "דחיקה בעמידת ידיים מול קיר, כשהראש יורד רק עד כרית עבה. מקטינים את עובי הכרית בהדרגה.", "img": "https://www.google.com/search?tbm=isch&q=Partial-Range+Wall+HSPU+calisthenics+exercise"}, {"ex": "Wall Handstand Push-Up", "lvl": 6, "assist": "Partial Range", "pass": "3×5", "prim": "כתף, תלת-ראשי, טרפז עליון", "sec": "ליבה, סראטוס", "equip": "קיר", "cues": "ראש נוגע ברצפה ← דחיפה מלאה", "mist": "קיפינג ברגליים", "how": "בעמידת ידיים מול קיר יורדים עד שהראש נוגע ברצפה, בצורת משולש עם הידיים, ודוחפים חזרה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Wall+Handstand+Push-Up+calisthenics+exercise"}, {"ex": "Deficit Handstand Push-Up", "lvl": 7, "assist": "Deficit קטן יותר", "pass": "3×5", "prim": "כתף, תלת-ראשי, טרפז עליון", "sec": "ליבה, סראטוס", "equip": "קיר + Parallettes", "cues": "שליטה בתחתית העמוקה", "mist": "טווח שגורם לכאב", "how": "דחיקה בעמידת ידיים מול קיר, כשהידיים על Parallettes או על משטחים מוגבהים. הראש יורד מתחת לגובה הידיים, לטווח עמוק יותר.", "img": "https://www.google.com/search?tbm=isch&q=Deficit+Handstand+Push-Up+calisthenics+exercise"}, {"ex": "Freestanding Handstand Push-Up", "lvl": 7, "assist": "Wall HSPU", "pass": "לפי יעד אישי", "prim": "כתף, תלת-ראשי, טרפז עליון", "sec": "ליבה, פרקי כף יד", "equip": "—", "cues": "דורש עמידת ידיים חופשית יציבה", "mist": "איבוד איזון בתחתית", "how": "דחיקה מלאה מעמידת ידיים חופשית, בלי קיר. דורש איזון יציב גם בתחתית התנועה.", "img": "https://www.google.com/search?tbm=isch&q=Freestanding+Handstand+Push-Up+calisthenics+exercise"}]}]}, {"name": "עמידת ידיים", "ladders": [{"name": "הכנה", "steps": [{"ex": "Wrist Prep — חימום שורש כף היד", "lvl": 1, "assist": "על הברכיים, טווח קטן", "pass": "2 דק׳ לפני כל אימון עמידות", "prim": "פרקי כף יד, מכופפי אמה", "sec": "כתף", "equip": "—", "cues": "משקל עובר בהדרגה קדימה; אצבעות פרושות", "mist": "קפיצה ישר לעומס מלא", "how": "על ארבע, ידיים מתחת לכתפיים ואצבעות פרושות. מעבירים לאט משקל קדימה מעל כפות הידיים וחוזרים, בכמה כיווני אצבעות. חובה לפני כל עבודה על עמידת ידיים.", "img": "https://www.google.com/search?tbm=isch&q=Wrist+Prep+calisthenics+exercise"}, {"ex": "Bear Hold", "lvl": 1, "assist": "ברכיים קרובות לרצפה", "pass": "3×30 שנ׳", "prim": "כתפיים, בטן רוחבית", "sec": "ארבע-ראשי, פרקי כף יד", "equip": "—", "cues": "גב שטוח; דחיפת הרצפה", "mist": "גב מעוגל", "how": "ממנח שש (ידיים וברכיים על הרצפה) מרימים את הברכיים כמה סנטימטרים מהרצפה, עם גב שטוח, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Bear+Hold+calisthenics+exercise"}, {"ex": "Pike Hold", "lvl": 2, "assist": "רגליים רחבות יותר", "pass": "3×20 שנ׳", "prim": "כתף קדמית, טרפז עליון", "sec": "תלת-ראשי, פרקי כף יד", "equip": "—", "cues": "ירכיים גבוהות; ראש בין הידיים", "mist": "גב מעוגל", "how": "מתחילים במנח שכיבת סמיכה ומרימים את האגן למעלה ליצירת צורת V הפוכה. הידיים דוחפות את הרצפה, הראש בין הידיים, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Pike+Hold+calisthenics+exercise"}, {"ex": "Box Pike Hold — רגליים על ארגז", "lvl": 3, "assist": "ארגז נמוך יותר", "pass": "3×30 שנ׳", "prim": "כתף, טרפז עליון", "sec": "תלת-ראשי, ליבה, פרקי כף יד", "equip": "ארגז", "cues": "אגן מעל הכתפיים; ידיים דוחפות את הרצפה", "mist": "גב מעוגל; ראש מורם", "how": "כפות הרגליים על ארגז גבוה, הידיים על הרצפה, והאגן עולה עד שהוא מעל הכתפיים. הגו כמעט אנכי והרגליים אופקיות לארגז. מחזיקים ודוחפים את הרצפה.", "img": "https://www.google.com/search?tbm=isch&q=Box+Pike+Hold+calisthenics+exercise"}]}, {"name": "קיר", "steps": [{"ex": "Wall Handstand Lean", "lvl": 2, "assist": "רגליים נמוכות יותר על הקיר", "pass": "3×30 שנ׳", "prim": "כתף, טרפז עליון", "sec": "פרקי כף יד, ליבה", "equip": "קיר", "cues": "אגן מעל הידיים; ידיים דוחפות", "mist": "כתפיים שוקעות; ידיים רחוקות מהקיר", "how": "הגב לקיר והידיים על הרצפה במרחק אורך רגל מהקיר. הולכים ברגליים על הקיר עד שהאגן מעל הידיים והרגליים אופקיות על הקיר, בצורת L. מחזיקים ודוחפים.", "img": "https://www.google.com/search?tbm=isch&q=Wall+Handstand+Lean+calisthenics+exercise"}, {"ex": "Wall Walk חלקי", "lvl": 3, "assist": "עלייה חלקית", "pass": "3×3", "prim": "כתף, טרפז עליון, ליבה", "sec": "פרקי כף יד", "equip": "קיר + מזרן", "cues": "עלייה וירידה איטיות", "mist": "נפילה בירידה", "how": "מתחילים במנח שכיבת סמיכה עם כפות הרגליים צמודות לקיר. הולכים ברגליים במעלה הקיר ומקרבים את הידיים לקיר, עד גובה חלקי, וחוזרים לאט.", "img": "https://www.google.com/search?tbm=isch&q=wall+walk+handstand"}, {"ex": "Back-to-Wall Handstand — גב לקיר", "lvl": 4, "assist": "ידיים קרוב יותר לקיר; השגחה של מאמן", "pass": "3×30 שנ׳", "prim": "כתף, טרפז עליון, סראטוס", "sec": "ליבה, פרקי כף יד", "equip": "קיר + מזרן", "cues": "בעיטה קטנה; עקבים נוגעים בקיר בעדינות", "mist": "קשת גדולה בגב (\"בננה\")", "how": "ידיים על הרצפה כ-20 ס״מ מהקיר. בועטים בעדינות לעמידת ידיים כשהגב לקיר, והעקבים נשענים על הקיר. מחזיקים עם גוף ישר ככל האפשר.", "img": "https://www.google.com/search?tbm=isch&q=Back-to-Wall+Handstand+calisthenics+exercise"}, {"ex": "Chest-to-Wall Handstand", "lvl": 4, "assist": "ידיים רחוקות יותר מהקיר", "pass": "3×45 שנ׳", "prim": "כתף, טרפז עליון, סראטוס", "sec": "ליבה, פרקי כף יד", "equip": "קיר + מזרן", "cues": "גוף ישר; אף קרוב לקיר", "mist": "קשת בגב (\"בננה\")", "how": "עמידת ידיים כשהבטן והחזה מול הקיר, והידיים במרחק של כ-20–30 ס״מ ממנו. הגוף ישר ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Chest-to-Wall+Handstand+calisthenics+exercise"}, {"ex": "Wall Toe Pulls — שחרור רגליים מהקיר", "lvl": 5, "assist": "שחרור רגל אחת בלבד", "pass": "5×5 שנ׳ בלי קיר", "prim": "כתף, ליבה, פרקי כף יד", "sec": "ישבן", "equip": "קיר", "cues": "שחרור דרך לחיצת האצבעות לרצפה", "mist": "בעיטה חזקה מהקיר", "how": "מעמידת ידיים עם הבטן לקיר, לוחצים קלות עם האצבעות לרצפה ומרחיקים את הרגליים מהקיר כמה סנטימטרים. מחזיקים איזון לרגע וחוזרים לקיר.", "img": "https://www.google.com/search?tbm=isch&q=Wall+Toe+Pulls+calisthenics+exercise"}]}, {"name": "עמידה חופשית", "steps": [{"ex": "Bail — יציאה מבוקרת מעמידת ידיים", "lvl": 4, "assist": "מצב רך / מזרן", "pass": "יציאה בטוחה לשני הצדדים", "prim": "—", "sec": "—", "equip": "מזרן", "cues": "ללמד לפני Kick-Up חופשי", "mist": "ניסיון להציל עמידה אבודה", "how": "מלמדים איך לרדת בבטחה מעמידת ידיים שמאבדת איזון: מזיזים יד אחת קדימה, מסובבים את הגוף לצד ונוחתים על הרגליים (גלגל), או מתגלגלים קדימה.", "img": "https://www.google.com/search?tbm=isch&q=handstand+bail+out"}, {"ex": "Handstand Kick-Up", "lvl": 5, "assist": "השגחה של מאמן", "pass": "8 מתוך 10 עליות לאיזון", "prim": "כתף, ליבה", "sec": "ישבן, פרקי כף יד", "equip": "מזרן + השגחה", "cues": "בעיטה קטנה ומבוקרת", "mist": "בעיטה חזקה מדי", "how": "מעמידה פוסעים קדימה, מניחים ידיים על הרצפה ובועטים ברגל אחת למעלה כשהשנייה מצטרפת, עד שמגיעים לאיזון בלי ליפול.", "img": "https://www.google.com/search?tbm=isch&q=Handstand+Kick-Up+calisthenics+exercise"}, {"ex": "Freestanding Handstand", "lvl": 5, "assist": "קיר בגב / השגחה", "pass": "3×10 שנ׳", "prim": "כתף, טרפז עליון, סראטוס", "sec": "ליבה, פרקי כף יד", "equip": "מזרן", "cues": "איזון דרך האצבעות", "mist": "איזון דרך כיפוף מרפקים", "how": "עמידת ידיים בלי קיר. הגוף ישר, הידיים דוחפות, והאיזון מגיע מהאצבעות ומשורשי כפות הידיים.", "img": "https://www.google.com/search?tbm=isch&q=Freestanding+Handstand+calisthenics+exercise"}, {"ex": "Handstand Shoulder Taps", "lvl": 6, "assist": "מול קיר", "pass": "3×6 לכל צד", "prim": "כתף, סראטוס, ליבה", "sec": "פרקי כף יד", "equip": "קיר / חופשי", "cues": "העברת משקל קטנה", "mist": "סיבוב אגן", "how": "בעמידת ידיים מעבירים משקל ליד אחת ונוגעים בכתף עם היד השנייה, ואז מחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Handstand+Shoulder+Taps+calisthenics+exercise"}, {"ex": "Press to Handstand Progression", "lvl": 7, "assist": "רגליים על ארגז", "pass": "לפי יעד אישי", "prim": "כתף, סראטוס, ליבה, מכופפי ירך", "sec": "פרקי כף יד", "equip": "ארגז / Parallettes", "cues": "גמישות פייק היא תנאי מקדים", "mist": "קפיצה במקום לחיצה", "how": "עלייה לעמידת ידיים בלי בעיטה: מעבירים משקל קדימה מעל הידיים ומעלים את האגן ואז את הרגליים בשליטה. מתחילים כשהרגליים על ארגז.", "img": "https://www.google.com/search?tbm=isch&q=Press+to+Handstand+Progression+calisthenics+exercise"}]}]}, {"name": "רגליים", "ladders": [{"name": "סקוואטים ותרגילים על רגל אחת", "steps": [{"ex": "Supported Squat", "lvl": 1, "assist": "אחיזה במוט / TRX", "pass": "3×12", "prim": "ארבע-ראשי (Quads), ישבן", "sec": "ליבה", "equip": "מוט / TRX", "cues": "ברכיים בכיוון האצבעות", "mist": "עקבים עולים", "how": "אוחזים במוט, בעמוד או ב-TRX לפנים. יורדים לסקוואט עם גב זקוף, נעזרים בידיים רק כמה שצריך, ועולים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Supported+Squat+calisthenics+exercise"}, {"ex": "Box Squat", "lvl": 1, "assist": "ארגז גבוה יותר", "pass": "3×12", "prim": "ארבע-ראשי, ישבן", "sec": "ליבה", "equip": "ספסל / ארגז", "cues": "ישיבה מבוקרת בלי \"נפילה\"", "mist": "דחיפה בידיים", "how": "עומדים מול ספסל או ארגז. יורדים לאט עד ישיבה קלה עליו, ועולים בלי להיעזר בידיים.", "img": "https://www.google.com/search?tbm=isch&q=Box+Squat+calisthenics+exercise"}, {"ex": "Bodyweight Squat", "lvl": 1, "assist": "Box Squat", "pass": "3×20", "prim": "ארבע-ראשי, ישבן", "sec": "המסטרינג, ליבה", "equip": "—", "cues": "טווח מלא שנוח; גב ניטרלי", "mist": "ברכיים קורסות פנימה", "how": "רגליים ברוחב כתפיים, אצבעות מעט החוצה. יורדים כאילו מתיישבים לאחור, עד הטווח הנוח, עם עקבים על הרצפה וגב ניטרלי. עולים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Bodyweight+Squat+calisthenics+exercise"}, {"ex": "Reverse Lunge", "lvl": 2, "assist": "אחיזה בתמיכה", "pass": "3×10 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "מקרבים, ליבה", "equip": "—", "cues": "ברך אחורית קרובה לרצפה", "mist": "ברך קדמית קורסת", "how": "מעמידה פוסעים צעד ארוך לאחור ויורדים עד שהברך האחורית כמעט נוגעת ברצפה. דוחפים דרך העקב הקדמי וחוזרים לעמידה.", "img": "https://www.google.com/search?tbm=isch&q=Reverse+Lunge+calisthenics+exercise"}, {"ex": "Split Squat", "lvl": 2, "assist": "אחיזה בתמיכה", "pass": "3×10 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "מקרבים", "equip": "—", "cues": "גו זקוף; עלייה דרך העקב הקדמי", "mist": "צעד קצר מדי", "how": "עומדים בפיסוק קדמי-אחורי קבוע. יורדים ישר למטה עד שהברך האחורית קרובה לרצפה ועולים, בלי להזיז את הרגליים.", "img": "https://www.google.com/search?tbm=isch&q=Split+Squat+calisthenics+exercise"}, {"ex": "Bulgarian Split Squat", "lvl": 3, "assist": "אחיזה בתמיכה", "pass": "3×10 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "מקרבים, ליבה", "equip": "ספסל", "cues": "רגל אחורית רק לאיזון", "mist": "דחיפה מהרגל האחורית", "how": "כף הרגל האחורית מונחת על ספסל מאחור. יורדים על הרגל הקדמית עד שהירך כמעט מקבילה לרצפה ועולים. הרגל האחורית רק לאיזון.", "img": "https://www.google.com/search?tbm=isch&q=Bulgarian+Split+Squat+calisthenics+exercise"}, {"ex": "Assisted Pistol Squat", "lvl": 3, "assist": "אחיזה בעמוד / TRX; ישיבה לארגז", "pass": "3×8 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "ליבה, תאומים", "equip": "עמוד / TRX", "cues": "עקב על הקרקע לאורך הטווח", "mist": "ברך קורסת פנימה", "how": "עומדים על רגל אחת ואוחזים בעמוד או ב-TRX. הרגל השנייה ישרה קדימה. יורדים על הרגל העומדת עד הטווח האפשרי ועולים.", "img": "https://www.google.com/search?tbm=isch&q=Assisted+Pistol+Squat+calisthenics+exercise"}, {"ex": "Shrimp Squat", "lvl": 4, "assist": "טווח חלקי; אחיזה", "pass": "3×6 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "ליבה", "equip": "—", "cues": "ברך אחורית נוגעת ברצפה בשליטה", "mist": "נפילה על הברך", "how": "עומדים על רגל אחת, אוחזים ביד את כף הרגל השנייה מאחור. יורדים עד שהברך האחורית נוגעת ברצפה בשליטה, ועולים.", "img": "https://www.google.com/search?tbm=isch&q=Shrimp+Squat+calisthenics+exercise"}, {"ex": "Pistol Squat", "lvl": 5, "assist": "ארגז בתחתית; משקולת קדימה לאיזון", "pass": "3×5 לכל רגל", "prim": "ארבע-ראשי, ישבן", "sec": "ליבה, מכופפי ירך", "equip": "—", "cues": "שליטה בתחתית", "mist": "קפיצה מהתחתית", "how": "עומדים על רגל אחת, הרגל השנייה ישרה קדימה והידיים קדימה לאיזון. יורדים עד סקוואט מלא על הרגל העומדת ועולים בלי לגעת ברצפה ברגל השנייה.", "img": "https://www.google.com/search?tbm=isch&q=Pistol+Squat+calisthenics+exercise"}, {"ex": "Weighted Pistol Squat", "lvl": 7, "assist": "משקל קל", "pass": "לפי יעד אישי", "prim": "ארבע-ראשי, ישבן", "sec": "ליבה", "equip": "משקולת / קטלבל", "cues": "טכניקה זהה לפיסטול רגיל", "mist": "הוספת משקל לפני 3×8 נקיים", "how": "פיסטול סקוואט עם משקולת או קטלבל שמוחזקים בחזה. המשקל שלפנים גם עוזר לאיזון.", "img": "https://www.google.com/search?tbm=isch&q=Weighted+Pistol+Squat+calisthenics+exercise"}]}, {"name": "שרשרת אחורית", "steps": [{"ex": "Glute Bridge", "lvl": 1, "assist": "טווח חלקי", "pass": "3×15", "prim": "ישבן", "sec": "המסטרינג", "equip": "—", "cues": "אגן מעט מגולגל אחורה; עצירה למעלה", "mist": "קשת בגב התחתון", "how": "שוכבים על הגב, ברכיים כפופות וכפות רגליים על הרצפה. מרימים את האגן עד קו ישר מהברכיים לכתפיים, מכווצים ישבן, ויורדים.", "img": "https://www.google.com/search?tbm=isch&q=Glute+Bridge+calisthenics+exercise"}, {"ex": "Single-Leg Glute Bridge", "lvl": 2, "assist": "רגל שנייה מסייעת קלות", "pass": "3×12 לכל רגל", "prim": "ישבן", "sec": "המסטרינג", "equip": "—", "cues": "אגן ישר", "mist": "אגן נופל לצד", "how": "גשר ישבן על רגל אחת, כשהרגל השנייה מורמת או ישרה. שומרים את האגן מאוזן בלי שייפול לצד.", "img": "https://www.google.com/search?tbm=isch&q=Single-Leg+Glute+Bridge+calisthenics+exercise"}, {"ex": "Roman Chair Hip Extension", "lvl": 2, "assist": "טווח חלקי; ידיים על הכרית", "pass": "3×12", "prim": "ישבן, המסטרינג", "sec": "זוקפי גב", "equip": "כיסא רומי", "cues": "כרית מתחת לעצם האגן; התנועה מהירך והגב ישר כל הזמן", "mist": "עיגול הגב; קשת מעבר לקו ישר למעלה", "how": "בעברית: פשיטת ירך על ספסל רומי. הכרית מתחת לעצם האגן, כדי שהירך תוכל להתקפל. יורדים מהירך עם גב ישר, ועולים מכיווץ ישבן ואחורי ירך עד קו ישר מהעקבים לראש. הגב לא מתעגל. ההבדל מ-Back Extension: כאן הציר הוא הירך והגב נשאר ישר.", "img": "https://www.google.com/search?tbm=isch&q=Roman+Chair+Hip+Extension+calisthenics+exercise"}, {"ex": "Single-Leg RDL", "lvl": 3, "assist": "אחיזה בקיר", "pass": "3×10 לכל רגל", "prim": "המסטרינג, ישבן", "sec": "ליבה, יציבות קרסול", "equip": "—", "cues": "גב ישר; אגן מקביל לרצפה", "mist": "סיבוב אגן", "how": "עומדים על רגל אחת עם ברך מעט כפופה. מתכופפים קדימה מהירכיים עם גב ישר, בזמן שהרגל השנייה עולה לאחור. חוזרים לעמידה.", "img": "https://www.google.com/search?tbm=isch&q=Single-Leg+RDL+calisthenics+exercise"}, {"ex": "Assisted Nordic Curl", "lvl": 3, "assist": "גומייה; ידיים לבלימה; טווח חלקי", "pass": "3×5", "prim": "המסטרינג", "sec": "ישבן, ליבה", "equip": "עיגון לקרסוליים + גומייה", "cues": "ירכיים פתוחות לאורך כל התנועה", "mist": "כיפוף בירך", "how": "כורעים על ברכיים כשהקרסוליים מעוגנים מאחור. נוטים קדימה עם גוף ישר מהברכיים לראש, נעזרים בגומייה או בידיים, וחוזרים.", "img": "https://www.google.com/search?tbm=isch&q=Assisted+Nordic+Curl+calisthenics+exercise"}, {"ex": "Nordic Curl Negative", "lvl": 5, "assist": "טווח חלקי", "pass": "3×5", "prim": "המסטרינג", "sec": "ישבן", "equip": "עיגון לקרסוליים", "cues": "ירידה איטית עד הרצפה", "mist": "נפילה מהירה", "how": "מכריעה עם קרסוליים מעוגנים, נוטים קדימה לאט ככל האפשר עד הרצפה, בולמים עם הידיים, ודוחפים חזרה למעלה.", "img": "https://www.google.com/search?tbm=isch&q=Nordic+Curl+Negative+calisthenics+exercise"}, {"ex": "Nordic Curl", "lvl": 7, "assist": "דחיפה קלה מהידיים", "pass": "3×3", "prim": "המסטרינג", "sec": "ישבן, ליבה", "equip": "עיגון לקרסוליים", "cues": "ירידה ועלייה בשליטה", "mist": "עלייה בכיפוף ירכיים", "how": "מכריעה עם קרסוליים מעוגנים, יורדים עד הרצפה ועולים חזרה בכוח ההמסטרינג בלבד, עם ירכיים פתוחות לכל אורך התנועה.", "img": "https://www.google.com/search?tbm=isch&q=Nordic+Curl+calisthenics+exercise"}]}, {"name": "תאומים", "steps": [{"ex": "Standing Calf Raise", "lvl": 1, "assist": "אחיזה בקיר", "pass": "3×20", "prim": "תאומים", "sec": "סולאוס", "equip": "—", "cues": "עלייה מלאה; עצירה למעלה", "mist": "תנופה", "how": "עומדים זקוף, עולים על קצות האצבעות עד הגובה המרבי, מחזיקים שנייה ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Standing+Calf+Raise+calisthenics+exercise"}, {"ex": "Single-Leg Calf Raise — עם תמיכה", "lvl": 2, "assist": "אחיזה בקיר", "pass": "3×15 לכל רגל", "prim": "תאומים", "sec": "סולאוס", "equip": "מדרגה", "cues": "טווח מלא מעל המדרגה", "mist": "טווח קצר", "how": "עומדים על רגל אחת על שפת מדרגה ואוחזים בקיר. יורדים עם העקב מתחת לגובה המדרגה ועולים עד קצות האצבעות.", "img": "https://www.google.com/search?tbm=isch&q=Single-Leg+Calf+Raise+calisthenics+exercise"}, {"ex": "Single-Leg Calf Raise", "lvl": 3, "assist": "תמיכת אצבע", "pass": "3×15 לכל רגל", "prim": "תאומים", "sec": "סולאוס, יציבות קרסול", "equip": "מדרגה", "cues": "ירידה איטית", "mist": "קפיצות", "how": "כמו הגרסה עם התמיכה, אבל עם אצבע אחת בלבד על הקיר לאיזון.", "img": "https://www.google.com/search?tbm=isch&q=Single-Leg+Calf+Raise+calisthenics+exercise"}]}]}, {"name": "ליבה", "ladders": [{"name": "Hollow / אנטי-אקסטנזיה", "steps": [{"ex": "Dead Bug", "lvl": 1, "assist": "רגליים כפופות", "pass": "3×10 לכל צד", "prim": "בטן רוחבית, בטן ישרה", "sec": "מכופפי ירך", "equip": "—", "cues": "גב תחתון צמוד לרצפה", "mist": "קשת בגב", "how": "שוכבים על הגב, ידיים כלפי התקרה וברכיים כפופות ב-90°. מורידים יד ורגל נגדיות לכיוון הרצפה, כשהגב התחתון צמוד לרצפה, וחוזרים.", "img": "https://www.google.com/search?tbm=isch&q=Dead+Bug+calisthenics+exercise"}, {"ex": "Knee Plank", "lvl": 1, "assist": "משך קצר יותר", "pass": "3×20 שנ׳", "prim": "בטן רוחבית, בטן ישרה", "sec": "כתפיים", "equip": "—", "cues": "אגן מגולגל אחורה מעט", "mist": "ישבן גבוה", "how": "נשענים על אמות הידיים ועל הברכיים, עם גוף ישר מהראש לברכיים. מכווצים בטן וישבן ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Knee+Plank+calisthenics+exercise"}, {"ex": "Hollow Body Tuck Hold", "lvl": 1, "assist": "ידיים לצד הגוף", "pass": "3×20 שנ׳", "prim": "בטן ישרה, בטן רוחבית", "sec": "מכופפי ירך", "equip": "—", "cues": "גב תחתון צמוד לרצפה", "mist": "קשת בגב", "how": "שוכבים על הגב, מצמידים את הגב התחתון לרצפה, מרימים כתפיים וברכיים כפופות אל החזה ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Hollow+Body+Tuck+Hold+calisthenics+exercise"}, {"ex": "Forearm Plank", "lvl": 2, "assist": "Knee Plank", "pass": "3×45 שנ׳", "prim": "בטן רוחבית, בטן ישרה", "sec": "ישבן, כתפיים", "equip": "—", "cues": "ישבן מכווץ; גוף ישר", "mist": "ירכיים נופלות", "how": "נשענים על אמות הידיים ועל קצות האצבעות. הגוף ישר מהראש לעקבים, הבטן והישבן מכווצים, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Forearm+Plank+calisthenics+exercise"}, {"ex": "Hollow Hold", "lvl": 3, "assist": "רגל אחת כפופה", "pass": "3×30 שנ׳", "prim": "בטן ישרה, בטן רוחבית", "sec": "מכופפי ירך", "equip": "—", "cues": "ידיים ורגליים ארוכות; גב צמוד", "mist": "קשת בגב", "how": "שוכבים על הגב, גב תחתון צמוד לרצפה. מרימים כתפיים ורגליים ישרות מעט מעל הרצפה, ידיים ארוכות מעל הראש, ומחזיקים בצורת \"בננה\".", "img": "https://www.google.com/search?tbm=isch&q=Hollow+Hold+calisthenics+exercise"}, {"ex": "Hollow Rocks", "lvl": 4, "assist": "Tuck", "pass": "3×15", "prim": "בטן ישרה", "sec": "מכופפי ירך", "equip": "—", "cues": "שמירה על צורת \"בננה\" קבועה", "mist": "פירוק הצורה", "how": "ממנח Hollow Hold מתנדנדים קדימה ואחורה על הגב, בלי לשנות את צורת הגוף.", "img": "https://www.google.com/search?tbm=isch&q=Hollow+Rocks+calisthenics+exercise"}, {"ex": "Dragon Flag Negative", "lvl": 5, "assist": "Tuck; טווח חלקי", "pass": "3×3 ירידות של 5 שנ׳", "prim": "בטן ישרה, אלכסוניים", "sec": "רחב גבי", "equip": "ספסל / עמוד", "cues": "גוף ישר מהכתפיים", "mist": "כיפוף בירכיים", "how": "שוכבים על ספסל ואוחזים מאחורי הראש. מרימים את הגוף כולו לאנכי על השכמות, ויורדים לאט עם גוף ישר מהכתפיים ועד הרגליים.", "img": "https://www.google.com/search?tbm=isch&q=Dragon+Flag+Negative+calisthenics+exercise"}, {"ex": "Dragon Flag", "lvl": 7, "assist": "Tuck", "pass": "3×5", "prim": "בטן ישרה, אלכסוניים", "sec": "רחב גבי, ישבן", "equip": "ספסל / עמוד", "cues": "עלייה וירידה בשליטה", "mist": "קשת בגב", "how": "מאותו מנח, מורידים את הגוף הישר עד שהוא כמעט מקביל לספסל, ומעלים אותו חזרה, הכל בשליטה ובלי כיפוף בירכיים.", "img": "https://www.google.com/search?tbm=isch&q=Dragon+Flag+calisthenics+exercise"}]}, {"name": "תלייה", "steps": [{"ex": "Reverse Crunch", "lvl": 2, "assist": "טווח חלקי", "pass": "3×12", "prim": "בטן ישרה (תחתונה)", "sec": "מכופפי ירך", "equip": "—", "cues": "גלגול אגן ולא רק הרמת רגליים", "mist": "תנופה", "how": "שוכבים על הגב, ברכיים כפופות למעלה. מגלגלים את האגן כלפי החזה כך שהישבן מתרומם מהרצפה, ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Reverse+Crunch+calisthenics+exercise"}, {"ex": "Hanging Knee Raise — עם תמיכה", "lvl": 2, "assist": "גב לעמוד / ידיות מקבילים", "pass": "3×10", "prim": "בטן ישרה, מכופפי ירך", "sec": "אחיזה", "equip": "מוט / מקבילים", "cues": "בלי תנופה", "mist": "נדנוד", "how": "נשענים על אמות הידיים בכיסא רומי או על ידיות מקבילים, כשהגב צמוד. מרימים ברכיים אל החזה ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Hanging+Knee+Raise+calisthenics+exercise"}, {"ex": "Hanging Knee Raise", "lvl": 3, "assist": "טווח חלקי", "pass": "3×12", "prim": "בטן ישרה, מכופפי ירך", "sec": "אחיזה, רחב גבי", "equip": "מוט", "cues": "ברכיים לחזה וגלגול אגן", "mist": "תנופה", "how": "נתלים במוט עם כתפיים פעילות. מרימים ברכיים אל החזה תוך גלגול האגן, ויורדים בשליטה בלי נדנוד.", "img": "https://www.google.com/search?tbm=isch&q=Hanging+Knee+Raise+calisthenics+exercise"}, {"ex": "Hanging Leg Raise", "lvl": 4, "assist": "ברך אחת כפופה", "pass": "3×10", "prim": "בטן ישרה, מכופפי ירך", "sec": "אחיזה, רחב גבי", "equip": "מוט", "cues": "רגליים ישרות עד 90°", "mist": "תנופה", "how": "בתלייה, מרימים רגליים ישרות עד שהן מקבילות לרצפה (90°), ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Hanging+Leg+Raise+calisthenics+exercise"}, {"ex": "Toes-to-Bar", "lvl": 5, "assist": "עד גובה הידיים", "pass": "3×8", "prim": "בטן ישרה, מכופפי ירך, רחב גבי", "sec": "אחיזה", "equip": "מוט", "cues": "דחיפת המוט מטה בזמן ההרמה", "mist": "קיפינג", "how": "בתלייה, מרימים רגליים ישרות עד שקצות האצבעות נוגעים במוט, תוך דחיפת המוט מטה עם ידיים ישרות. יורדים בשליטה.", "img": "https://www.google.com/search?tbm=isch&q=Toes-to-Bar+calisthenics+exercise"}, {"ex": "Hanging Windshield Wipers", "lvl": 6, "assist": "ברכיים כפופות", "pass": "3×5 לכל צד", "prim": "אלכסוניים, בטן ישרה", "sec": "רחב גבי, אחיזה", "equip": "מוט", "cues": "רגליים למעלה ליד המוט לאורך כל התנועה", "mist": "ירידה של הרגליים בתנועה", "how": "בתלייה, מרימים רגליים עד המוט ומסובבים אותן מצד לצד כמו מגב, כשהן נשארות גבוהות לכל אורך התנועה.", "img": "https://www.google.com/search?tbm=isch&q=Hanging+Windshield+Wipers+calisthenics+exercise"}]}, {"name": "L-Sit / V-Sit", "steps": [{"ex": "Seated Leg Lift — Compression Lift", "lvl": 2, "assist": "רגל אחת", "pass": "3×10", "prim": "מכופפי ירך, בטן ישרה", "sec": "ארבע-ראשי", "equip": "—", "cues": "ידיים ליד הירכיים; הרמת עקבים", "mist": "נטייה אחורה", "how": "יושבים עם רגליים ישרות וידיים על הרצפה ליד הירכיים. מרימים את העקבים מהרצפה בכוח מכופפי הירך והבטן, מחזיקים שנייה ומורידים.", "img": "https://www.google.com/search?tbm=isch&q=Seated+Leg+Lift+calisthenics+exercise"}, {"ex": "Tuck L-Sit", "lvl": 3, "assist": "רגליים נוגעות", "pass": "3×15 שנ׳", "prim": "בטן ישרה, מכופפי ירך, תלת-ראשי", "sec": "טרפז תחתון", "equip": "מקבילים / Parallettes", "cues": "שכמות מורדות; ברכיים לחזה", "mist": "כתפיים עולות", "how": "נשענים על מקבילים או על Parallettes עם ידיים ישרות. מרימים ברכיים כפופות אל החזה, כך שהגוף כולו באוויר, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+L-Sit+calisthenics+exercise"}, {"ex": "One-Leg L-Sit", "lvl": 4, "assist": "Tuck", "pass": "3×10 שנ׳ לכל רגל", "prim": "בטן ישרה, מכופפי ירך", "sec": "ארבע-ראשי, תלת-ראשי", "equip": "מקבילים / Parallettes", "cues": "רגל ישרה מקבילה לרצפה", "mist": "ברך כפופה", "how": "מ-Tuck L-Sit מיישרים רגל אחת קדימה, מקבילה לרצפה, והשנייה נשארת כפופה. מחזיקים ומחליפים.", "img": "https://www.google.com/search?tbm=isch&q=One-Leg+L-Sit+calisthenics+exercise"}, {"ex": "L-Sit", "lvl": 5, "assist": "One-Leg", "pass": "3×15 שנ׳", "prim": "בטן ישרה, מכופפי ירך, ארבע-ראשי", "sec": "תלת-ראשי, טרפז תחתון", "equip": "מקבילים / Parallettes", "cues": "רגליים ישרות ונעולות", "mist": "רגליים יורדות", "how": "בתמיכה על ידיים ישרות, מחזיקים את שתי הרגליים ישרות ונעולות קדימה, מקבילות לרצפה, כך שהגוף יוצר צורת L.", "img": "https://www.google.com/search?tbm=isch&q=L-Sit+calisthenics+exercise"}, {"ex": "V-Sit Progression", "lvl": 6, "assist": "רגליים בזווית נמוכה", "pass": "3×5 שנ׳", "prim": "מכופפי ירך, בטן ישרה", "sec": "תלת-ראשי, כתפיים", "equip": "Parallettes", "cues": "גמישות המסטרינג היא תנאי מקדים", "mist": "כיפוף ברכיים", "how": "מ-L-Sit דוחפים את הידיים לאחור ומעלים את הרגליים גבוה יותר מהאופק, בזווית הדרגתית.", "img": "https://www.google.com/search?tbm=isch&q=V-Sit+Progression+calisthenics+exercise"}, {"ex": "V-Sit", "lvl": 7, "assist": "—", "pass": "לפי יעד אישי", "prim": "מכופפי ירך, בטן ישרה", "sec": "תלת-ראשי, כתפיים", "equip": "Parallettes", "cues": "ידיים דוחפות לאחור", "mist": "גב מעוגל", "how": "בתמיכה על הידיים, הרגליים ישרות ומורמות גבוה, קרוב לפנים, כך שהגוף יוצר צורת V.", "img": "https://www.google.com/search?tbm=isch&q=V-Sit+calisthenics+exercise"}, {"ex": "Manna Progression", "lvl": 8, "assist": "—", "pass": "לפי יעד אישי", "prim": "מכופפי ירך, כתף אחורית, תלת-ראשי", "sec": "בטן ישרה", "equip": "Parallettes", "cues": "דורש גמישות כתפיים גבוהה", "mist": "התקדמות מהירה מדי", "how": "המשך של ה-V-Sit: הידיים מאחורי הגוף, האגן עולה ונדחף אחורה, והרגליים ממשיכות לעלות. דורש גמישות כתפיים ודחיסה ברמה גבוהה מאוד.", "img": "https://www.google.com/search?tbm=isch&q=Manna+Progression+calisthenics+exercise"}]}, {"name": "גב תחתון", "steps": [{"ex": "Roman Chair Back Extension", "lvl": 2, "assist": "טווח חלקי", "pass": "3×12", "prim": "זוקפי גב", "sec": "ישבן, המסטרינג", "equip": "כיסא רומי", "cues": "כרית גבוהה על האגן, שנשאר נעול; התנועה מהגב: מתעגלים למטה ומתיישרים", "mist": "תנופה; קשת מעבר לקו ישר למעלה", "how": "בעברית: פשיטת גב (זוקפי גב) על כיסא רומי. הכרית גבוהה, על האגן, כך שהאגן נשאר נעול. יורדים כשהגב מתעגל חוליה אחרי חוליה, ועולים כשהגב מתיישר עד קו ישר. ההבדל מ-Hip Extension: כאן התנועה מהגב ולא מהירך.", "img": "https://www.google.com/search?tbm=isch&q=Roman+Chair+Back+Extension+calisthenics+exercise"}]}, {"name": "צד", "steps": [{"ex": "Side Plank — ברכיים כפופות", "lvl": 1, "assist": "משך קצר יותר", "pass": "3×20 שנ׳ לכל צד", "prim": "אלכסוניים, ישבן בינוני", "sec": "כתפיים", "equip": "—", "cues": "גוף בקו ישר", "mist": "אגן נופל", "how": "שוכבים על הצד, נשענים על אמה אחת ועל הברכיים הכפופות. מרימים את האגן לקו ישר ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Side+Plank+calisthenics+exercise"}, {"ex": "Side Plank", "lvl": 2, "assist": "ברכיים כפופות", "pass": "3×30 שנ׳ לכל צד", "prim": "אלכסוניים", "sec": "ישבן בינוני, כתפיים", "equip": "—", "cues": "אגן גבוה", "mist": "גוף נוטה קדימה", "how": "נשענים על אמה אחת ועל צד כף הרגל, רגליים ישרות אחת על השנייה. האגן גבוה והגוף בקו ישר. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Side+Plank+calisthenics+exercise"}, {"ex": "Side Plank + הרמת רגל", "lvl": 3, "assist": "Side Plank רגיל", "pass": "3×20 שנ׳ לכל צד", "prim": "אלכסוניים, ישבן בינוני", "sec": "מקרבים", "equip": "—", "cues": "הרמה מבוקרת בלי לאבד גובה אגן", "mist": "אגן נופל", "how": "מתוך Side Plank מרימים את הרגל העליונה ומורידים אותה, בלי שהאגן ייפול.", "img": "https://www.google.com/search?tbm=isch&q=Side+Plank+%2B+%D7%94%D7%A8%D7%9E%D7%AA+%D7%A8%D7%92%D7%9C+calisthenics+exercise"}, {"ex": "Roman Chair Side Bend", "lvl": 3, "assist": "טווח חלקי; ידיים על החזה", "pass": "3×10 לכל צד", "prim": "אלכסוניים", "sec": "מרובע מותני, זוקפי גב", "equip": "כיסא רומי", "cues": "שוכבים על הצד, אגן על הכרית; יורדים לצד ועולים בלי לסובב את הגוף", "mist": "סיבוב הגוף קדימה; תנופה", "how": "בעברית: כפיפות בטן צדיות על כיסא רומי. שוכבים על הצד, האגן על הכרית והרגליים נעולות. ידיים על החזה או מאחורי הראש. יורדים לצד ועולים לקו ישר בלי לסובב את הגוף קדימה או אחורה. מחליפים צד. ההבדל משני האחרים: התנועה לצד ולא קדימה.", "img": "https://www.google.com/search?tbm=isch&q=Roman+Chair+Side+Bend+calisthenics+exercise"}]}]}, {"name": "סטטיקה", "ladders": [{"name": "Front Lever", "steps": [{"ex": "Tuck Front Lever Drill — עם גומייה", "lvl": 3, "assist": "גומייה עבה", "pass": "3×10 שנ׳", "prim": "רחב גבי, טרפז תחתון", "sec": "ליבה, כתף אחורית", "equip": "מוט + גומייה", "cues": "ידיים ישרות; שכמות מורדות", "mist": "כיפוף מרפקים", "how": "בתלייה, הגומייה תומכת במותניים. מושכים עם ידיים ישרות עד שהגב מקביל לרצפה והברכיים צמודות לחזה, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Front+Lever+Drill+calisthenics+exercise"}, {"ex": "Tuck Front Lever", "lvl": 4, "assist": "גומייה דקה", "pass": "3×10 שנ׳", "prim": "רחב גבי, טרפז תחתון, מעויינים", "sec": "ליבה, כתף אחורית", "equip": "מוט / טבעות", "cues": "גב מקביל לרצפה", "mist": "גב מעוגל; ירכיים נמוכות", "how": "בתלייה עם ידיים ישרות, מושכים את הגוף לאופק כשהברכיים צמודות לחזה והגב מקביל לרצפה. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Front+Lever+calisthenics+exercise"}, {"ex": "Advanced Tuck Front Lever", "lvl": 5, "assist": "גומייה", "pass": "3×10 שנ׳", "prim": "רחב גבי, טרפז תחתון", "sec": "ליבה, ישבן", "equip": "מוט / טבעות", "cues": "גב שטוח; ברכיים רחוקות", "mist": "ירכיים נופלות", "how": "כמו ה-Tuck, אבל הגב שטוח לגמרי והברכיים מתרחקות מהחזה, כך שהמנוף ארוך יותר.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Front+Lever+calisthenics+exercise"}, {"ex": "One-Leg Front Lever", "lvl": 5, "assist": "גומייה", "pass": "3×8 שנ׳ לכל רגל", "prim": "רחב גבי, ליבה", "sec": "ישבן, כתף אחורית", "equip": "מוט / טבעות", "cues": "רגל ישרה בקו הגוף", "mist": "סיבוב אגן", "how": "רגל אחת ישרה בקו הגוף, והשנייה כפופה בתנוחת Tuck. מחזיקים עם גוף מקביל לרצפה ומחליפים רגל.", "img": "https://www.google.com/search?tbm=isch&q=One-Leg+Front+Lever+calisthenics+exercise"}, {"ex": "Straddle Front Lever", "lvl": 6, "assist": "גומייה דקה", "pass": "3×8 שנ׳", "prim": "רחב גבי, ליבה, ישבן", "sec": "כתף אחורית", "equip": "מוט / טבעות", "cues": "רגליים פתוחות רחב", "mist": "ירכיים נופלות", "how": "Front Lever עם רגליים ישרות ופתוחות רחב לצדדים, מה שמקצר את המנוף לעומת רגליים צמודות.", "img": "https://www.google.com/search?tbm=isch&q=Straddle+Front+Lever+calisthenics+exercise"}, {"ex": "Full Front Lever", "lvl": 7, "assist": "Straddle", "pass": "3×8 שנ׳", "prim": "רחב גבי, ליבה, ישבן", "sec": "כתף אחורית, אחיזה", "equip": "מוט / טבעות", "cues": "גוף ישר מקביל לרצפה", "mist": "קשת / ירכיים נופלות", "how": "בתלייה עם ידיים ישרות, כל הגוף ישר ומקביל לרצפה, עם רגליים צמודות ופנים כלפי מעלה.", "img": "https://www.google.com/search?tbm=isch&q=Full+Front+Lever+calisthenics+exercise"}]}, {"name": "Back Lever", "steps": [{"ex": "Skin-the-Cat — טווח מותאם", "lvl": 4, "assist": "רגליים על הקרקע", "pass": "3×3 מבוקרים ללא כאב", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות / מוט", "cues": "רק אחרי הכנת כתפיים; טווח הדרגתי", "mist": "טווח מעבר ליכולת", "how": "בתלייה מעבירים את הרגליים בין הידיים ומסתובבים לאחור לאט, לטווח שנוח לכתף, וחוזרים באותה דרך.", "img": "https://www.google.com/search?tbm=isch&q=Skin-the-Cat+calisthenics+exercise"}, {"ex": "Tuck Back Lever", "lvl": 4, "assist": "רגליים על הקרקע", "pass": "3×10 שנ׳", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות / מוט", "cues": "ידיים ישרות; גוף מקביל", "mist": "כיפוף מרפקים", "how": "מתוך Skin-the-Cat עוצרים כשהגוף מקביל לרצפה עם הפנים כלפי מטה, הברכיים צמודות לחזה והידיים ישרות, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Back+Lever+calisthenics+exercise"}, {"ex": "Advanced Tuck Back Lever", "lvl": 5, "assist": "Tuck", "pass": "3×10 שנ׳", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות / מוט", "cues": "גב שטוח", "mist": "גב מעוגל", "how": "כמו ה-Tuck, אבל עם גב שטוח וברכיים רחוקות יותר מהחזה.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Back+Lever+calisthenics+exercise"}, {"ex": "Straddle Back Lever", "lvl": 6, "assist": "One-Leg", "pass": "3×8 שנ׳", "prim": "חזה, דו-ראשי, רחב גבי", "sec": "ליבה, ישבן", "equip": "טבעות / מוט", "cues": "ישבן פעיל; גוף ישר", "mist": "קשת בגב", "how": "Back Lever עם רגליים ישרות ופתוחות לצדדים, והגוף מקביל לרצפה עם הפנים כלפי מטה.", "img": "https://www.google.com/search?tbm=isch&q=Straddle+Back+Lever+calisthenics+exercise"}, {"ex": "Full Back Lever", "lvl": 6, "assist": "Straddle", "pass": "3×8 שנ׳", "prim": "חזה, דו-ראשי, רחב גבי", "sec": "ליבה, ישבן", "equip": "טבעות / מוט", "cues": "עומס רב על דו-ראשי — לבנות בהדרגה", "mist": "התקדמות מהירה מדי", "how": "גוף ישר לגמרי עם רגליים צמודות, מקביל לרצפה עם הפנים כלפי מטה, בתלייה על ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Full+Back+Lever+calisthenics+exercise"}]}, {"name": "Planche", "steps": [{"ex": "Frog Stand", "lvl": 3, "assist": "רגל אחת על הקרקע", "pass": "3×20 שנ׳", "prim": "כתף קדמית, תלת-ראשי", "sec": "פרקי כף יד, ליבה", "equip": "—", "cues": "ברכיים על המרפקים; מבט קדימה", "mist": "נפילה קדימה", "how": "כורעים, מניחים ידיים על הרצפה ואת הברכיים על המרפקים. נוטים קדימה עד שהרגליים מתרוממות מהרצפה, ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Frog+Stand+calisthenics+exercise"}, {"ex": "Planche Lean", "lvl": 4, "assist": "הטיה קטנה יותר", "pass": "3×20 שנ׳", "prim": "כתף קדמית, סראטוס, חזה", "sec": "פרקי כף יד, דו-ראשי, ליבה", "equip": "— / Parallettes", "cues": "Protraction מלא; ידיים נעולות", "mist": "שכמות נסגרות", "how": "ממנח שכיבת סמיכה עם ידיים ישרות, נוטים קדימה כך שהכתפיים עוברות את כפות הידיים, עם שכמות דחוקות קדימה. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Planche+Lean+calisthenics+exercise"}, {"ex": "Tuck Planche", "lvl": 5, "assist": "גומייה מתחת לירכיים", "pass": "3×10 שנ׳", "prim": "כתף קדמית, סראטוס, חזה", "sec": "דו-ראשי, פרקי כף יד, ליבה", "equip": "Parallettes", "cues": "גב מעוגל; ירכיים בגובה הכתפיים", "mist": "כיפוף מרפקים", "how": "על ידיים ישרות, נוטים קדימה ומרימים את הגוף, עם ברכיים צמודות לחזה וגב מעוגל, כך שהירכיים בגובה הכתפיים. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Planche+calisthenics+exercise"}, {"ex": "Advanced Tuck Planche", "lvl": 6, "assist": "גומייה", "pass": "3×8 שנ׳", "prim": "כתף קדמית, סראטוס", "sec": "חזה, דו-ראשי, ליבה", "equip": "Parallettes", "cues": "גב שטוח", "mist": "ירכיים נמוכות", "how": "כמו ה-Tuck Planche, אבל עם גב שטוח והברכיים מתרחקות מהחזה.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Planche+calisthenics+exercise"}, {"ex": "Straddle Planche", "lvl": 7, "assist": "גומייה", "pass": "3×5 שנ׳", "prim": "כתף קדמית, סראטוס, חזה", "sec": "ליבה, ישבן, דו-ראשי", "equip": "Parallettes", "cues": "בנייה הדרגתית — שנים לרוב", "mist": "עומס יתר על המרפקים", "how": "על ידיים ישרות, כל הגוף מקביל לרצפה והרגליים ישרות ופתוחות לצדדים.", "img": "https://www.google.com/search?tbm=isch&q=Straddle+Planche+calisthenics+exercise"}, {"ex": "Full Planche", "lvl": 8, "assist": "Straddle", "pass": "לפי יעד אישי", "prim": "כתף קדמית, סראטוס, חזה", "sec": "ליבה, ישבן, דו-ראשי", "equip": "Parallettes", "cues": "השגחה וניהול עומס צמוד", "mist": "התקדמות מהירה מדי", "how": "על ידיים ישרות, כל הגוף ישר ומקביל לרצפה, עם רגליים צמודות.", "img": "https://www.google.com/search?tbm=isch&q=Full+Planche+calisthenics+exercise"}]}, {"name": "Human Flag", "steps": [{"ex": "Human Flag Progression — Tuck", "lvl": 6, "assist": "רגליים כפופות; השגחה", "pass": "3×5 שנ׳ לכל צד", "prim": "אלכסוניים, רחב גבי, כתף", "sec": "ליבה", "equip": "עמוד אנכי", "cues": "יד עליונה מושכת, תחתונה דוחפת", "mist": "כתף תחתונה קורסת", "how": "אוחזים בעמוד אנכי ביד עליונה ויד תחתונה. היד העליונה מושכת והתחתונה דוחפת. מרימים את הגוף לצד עם ברכיים כפופות ומחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Human+Flag+Progression+calisthenics+exercise"}, {"ex": "Human Flag", "lvl": 7, "assist": "Straddle", "pass": "3×5 שנ׳ לכל צד", "prim": "אלכסוניים, רחב גבי, כתף", "sec": "ליבה, ישבן", "equip": "עמוד אנכי", "cues": "גוף ישר מקביל לרצפה", "mist": "סיבוב הגוף", "how": "באותה אחיזה, הגוף ישר ומקביל לרצפה, בולט הצידה מהעמוד כמו דגל.", "img": "https://www.google.com/search?tbm=isch&q=Human+Flag+calisthenics+exercise"}]}]}]}, {"name": "סולמות טבעות", "tracks": [{"name": "משיכה", "ladders": [{"name": "חתירה בטבעות", "steps": [{"ex": "Ring Row — גוף זקוף", "lvl": 1, "assist": "לעמוד קרוב יותר לנקודת התלייה", "pass": "3×12", "prim": "מעויינים, טרפז אמצעי, רחב גבי", "sec": "דו-ראשי, כתף אחורית", "equip": "טבעות", "cues": "גוף ישר; שכמות נסגרות בסוף", "mist": "משיכה בצוואר; ירכיים נופלות", "how": "אוחזים בטבעות בגובה החזה ונשענים מעט לאחור, עם גוף ישר וידיים ישרות. מושכים את החזה אל הידיים, מצמידים שכמות וחוזרים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Row"}, {"ex": "Ring Row — 45°", "lvl": 2, "assist": "צעד קטן קדימה להגדלת הזווית", "pass": "3×12", "prim": "מעויינים, טרפז אמצעי, רחב גבי", "sec": "דו-ראשי, כתף אחורית, ליבה", "equip": "טבעות", "cues": "טבעות צמודות לצלעות למעלה", "mist": "טבעות נפתחות לצדדים", "how": "הולכים עם הרגליים קדימה עד שהגוף בזווית של כ-45° לרצפה. מושכים עד שהטבעות ליד הצלעות ויורדים בשליטה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Row"}, {"ex": "Ring Row — גוף מקביל", "lvl": 3, "assist": "כיפוף ברכיים", "pass": "3×10", "prim": "רחב גבי, מעויינים, טרפז אמצעי", "sec": "דו-ראשי, כתף אחורית, ליבה", "equip": "טבעות נמוכות", "cues": "גוף כקרש מכתפיים לעקבים", "mist": "קשת בגב התחתון", "how": "הטבעות נמוכות, והגוף כמעט מקביל לרצפה עם עקבים על הקרקע. מחזיקים גוף ישר ומושכים את החזה עד הטבעות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Row"}, {"ex": "Feet-Elevated Ring Row", "lvl": 4, "assist": "רגליים על הרצפה", "pass": "3×10", "prim": "רחב גבי, מעויינים, כתף אחורית", "sec": "דו-ראשי, ליבה", "equip": "טבעות + ארגז", "cues": "חזה אל הטבעות; עצירה של שנייה למעלה", "mist": "ירכיים נופלות", "how": "כמו חתירה בגוף מקביל, אבל העקבים על ארגז בגובה הטבעות. מושכים עד שהחזה בין הטבעות ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Feet-Elevated+Ring+Row"}, {"ex": "Archer Ring Row", "lvl": 5, "assist": "פחות שיפוע", "pass": "3×6 לכל צד", "prim": "רחב גבי (חד-צדדי), מעויינים", "sec": "דו-ראשי, ליבה, אלכסוניים", "equip": "טבעות", "cues": "היד הישרה רק מייצבת", "mist": "סיבוב הגוף", "how": "מושכים לכיוון טבעת אחת, בזמן שהיד השנייה נפתחת לצד ונשארת ישרה ומסייעת בלבד. יורדים בשליטה ומחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Ring+Row"}, {"ex": "One-Arm Ring Row", "lvl": 6, "assist": "פחות שיפוע; יד שנייה נוגעת קלות ברצועה", "pass": "3×5 לכל צד", "prim": "רחב גבי, מעויינים, דו-ראשי", "sec": "ליבה, אלכסוניים", "equip": "טבעות", "cues": "רגליים רחבות לייצוב; אגן ישר", "mist": "סיבוב הגוף לכיוון הרצפה", "how": "אוחזים טבעת אחת ביד אחת, ושתי הטבעות קשורות יחד או שמשתמשים ברצועה אחת. מושכים עם יד אחת עד החזה, בלי לתת לגוף להסתובב.", "img": "https://www.google.com/search?tbm=isch&q=One-Arm+Ring+Row"}]}, {"name": "מתח בטבעות", "steps": [{"ex": "Ring Active Hang", "lvl": 1, "assist": "רגליים על ארגז", "pass": "3×20 שנ׳", "prim": "רחב גבי, טרפז תחתון, אחיזה", "sec": "ליבה", "equip": "טבעות גבוהות", "cues": "שכמות למטה; טבעות בכיוון ניטרלי", "mist": "כתפיים לאוזניים", "how": "נתלים בטבעות עם ידיים ישרות וכפות ידיים אחת מול השנייה. מורידים את השכמות למטה ומחזיקים בלי לכופף מרפקים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Active+Hang"}, {"ex": "Ring Scapular Pull-Up", "lvl": 2, "assist": "רגליים על ארגז", "pass": "3×10", "prim": "טרפז תחתון, רחב גבי, מעויינים", "sec": "אחיזה", "equip": "טבעות גבוהות", "cues": "התנועה רק מהשכמות", "mist": "כיפוף מרפקים", "how": "מתלייה פסיבית מושכים את השכמות למטה כך שהגוף עולה כמה סנטימטרים, בלי לכופף מרפקים. מחזיקים שנייה ויורדים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Scapular+Pull-Up"}, {"ex": "False Grip Hang", "lvl": 3, "assist": "רגליים על ארגז; זמן קצר", "pass": "3×20 שנ׳", "prim": "מכופפי שורש כף היד, אחיזה", "sec": "רחב גבי, דו-ראשי", "equip": "טבעות", "cues": "שורש כף היד מעל הטבעת, לא מתחתיה", "mist": "אחיזה שמחליקה חזרה לאחיזה רגילה", "how": "אוחזים בטבעת כך ששורש כף היד מונח מעל הטבעת והאגודל לצד היד. נתלים ומחזיקים את האחיזה הזו. היא הבסיס ל-Muscle-Up בטבעות.", "img": "https://www.google.com/search?tbm=isch&q=False+Grip+Hang+gymnastic+rings"}, {"ex": "Ring Pull-Up", "lvl": 4, "assist": "גומייה; רגליים על ארגז", "pass": "3×8", "prim": "רחב גבי, דו-ראשי, ברכיאליס", "sec": "מעויינים, ליבה", "equip": "טבעות גבוהות", "cues": "הטבעות מסתובבות פנימה במהלך המשיכה", "mist": "חצי טווח; תנופה", "how": "מתלייה פעילה מושכים עד שהטבעות ליד הכתפיים. כפות הידיים מסתובבות בחופשיות במהלך התנועה. יורדים בשליטה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Pull-Up"}, {"ex": "False Grip Pull-Up", "lvl": 5, "assist": "גומייה", "pass": "3×6 בלי לאבד את האחיזה", "prim": "רחב גבי, דו-ראשי, מכופפי שורש כף היד", "sec": "מעויינים, ליבה", "equip": "טבעות", "cues": "שומרים על False Grip לכל אורך התנועה", "mist": "אחיזה שנפתחת בתחתית", "how": "מתח רגיל בטבעות, אבל מתוך False Grip. מושכים עד שהטבעות מגיעות לבית החזה ויורדים בלי לשחרר את האחיזה.", "img": "https://www.google.com/search?tbm=isch&q=False+Grip+Pull-Up+gymnastic+rings"}, {"ex": "High False Grip Pull-Up", "lvl": 6, "assist": "גומייה דקה", "pass": "3×5 עד עצם החזה", "prim": "רחב גבי, דו-ראשי, כתף אחורית", "sec": "טרפז, ליבה", "equip": "טבעות", "cues": "מושכים נמוך — הטבעות אל עצם החזה", "mist": "משיכה לסנטר בלבד", "how": "מתח ב-False Grip שבו ממשיכים למשוך עד שהטבעות נוגעות בעצם החזה, עם מרפקים צמודים לגוף. זו המשיכה שצריך בשביל ה-Muscle-Up.", "img": "https://www.google.com/search?tbm=isch&q=High+False+Grip+Pull-Up+gymnastic+rings"}, {"ex": "Archer Ring Pull-Up", "lvl": 6, "assist": "גומייה", "pass": "3×4 לכל צד", "prim": "רחב גבי (חד-צדדי), דו-ראשי", "sec": "ליבה, אחיזה", "equip": "טבעות", "cues": "היד הנפתחת לצד רק מסייעת", "mist": "כיפוף היד המסייעת", "how": "מושכים לכיוון טבעת אחת, והיד השנייה נפתחת לצד ישרה. יורדים בשליטה ומחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Ring+Pull-Up"}]}, {"name": "Muscle-Up בטבעות", "steps": [{"ex": "Low Ring Transition", "lvl": 4, "assist": "יותר משקל על הרגליים", "pass": "3×5 מעברים נקיים", "prim": "רחב גבי, חזה, תלת-ראשי", "sec": "כתף קדמית, ליבה", "equip": "טבעות נמוכות", "cues": "טבעות צמודות לגוף במעבר", "mist": "מרפקים נפתחים לצדדים", "how": "הטבעות בגובה המותן, ויושבים מתחתן עם רגליים על הרצפה. ב-False Grip מושכים ועוברים מעל הטבעות למנח דיפס, בעזרת הרגליים כמה שצריך.", "img": "https://www.google.com/search?tbm=isch&q=Low+Ring+Transition"}, {"ex": "Ring Muscle-Up Negative", "lvl": 5, "assist": "ירידה מהירה יותר דרך המעבר", "pass": "3×3 ירידות מבוקרות", "prim": "רחב גבי, חזה, תלת-ראשי", "sec": "כתף קדמית, דו-ראשי", "equip": "טבעות + ארגז", "cues": "שומרים על False Grip עד התלייה", "mist": "נפילה דרך המעבר", "how": "מתחילים בתמיכה מעל הטבעות. יורדים לאט דרך הדיפס, עוברים את המעבר כשהטבעות צמודות לגוף, וממשיכים עד תלייה מלאה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Muscle-Up+Negative"}, {"ex": "Band-Assisted Ring Muscle-Up", "lvl": 5, "assist": "גומייה עבה ← דקה", "pass": "3×3 עם גומייה דקה", "prim": "רחב גבי, חזה, תלת-ראשי", "sec": "כתף קדמית, ליבה", "equip": "טבעות + גומייה", "cues": "משיכה לעצם החזה ← הטיית חזה מעל ← דחיפה", "mist": "פתיחת האחיזה", "how": "גומייה קשורה בין הרצועות ותומכת ברגליים. מ-False Grip מושכים לעצם החזה, מטים את החזה מעל הטבעות ודוחפים עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Band-Assisted+Ring+Muscle-Up"}, {"ex": "Strict Ring Muscle-Up", "lvl": 6, "assist": "גומייה דקה", "pass": "3×3 ללא קיפינג", "prim": "רחב גבי, חזה, תלת-ראשי", "sec": "כתף קדמית, דו-ראשי, ליבה", "equip": "טבעות", "cues": "טבעות צמודות לגוף; מעבר מהיר", "mist": "קיפינג; אחיזה שנפתחת", "how": "מתלייה ב-False Grip מושכים לעצם החזה, מטים את הכתפיים קדימה מעל הטבעות ועוברים לדיפס, ומסיימים בדחיפה עד ידיים ישרות. בלי תנופת רגליים.", "img": "https://www.google.com/search?tbm=isch&q=Strict+Ring+Muscle-Up"}, {"ex": "Weighted Ring Muscle-Up", "lvl": 7, "assist": "משקל קל (2–5 ק״ג)", "pass": "לפי יעד אישי", "prim": "רחב גבי, חזה, תלת-ראשי", "sec": "כתף, ליבה", "equip": "טבעות + חגורת משקולות", "cues": "טכניקה זהה לגרסה בלי משקל", "mist": "הוספת משקל לפני 3×5 נקיים", "how": "Muscle-Up נקי בטבעות עם משקל קל נוסף בחגורה או באפוד.", "img": "https://www.google.com/search?tbm=isch&q=Weighted+Ring+Muscle-Up"}]}]}, {"name": "דחיפה", "ladders": [{"name": "שכיבות סמיכה בטבעות", "steps": [{"ex": "Incline Ring Push-Up", "lvl": 3, "assist": "טבעות גבוהות יותר", "pass": "3×12", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "מייצבי כתף, סראטוס, ליבה", "equip": "טבעות", "cues": "טבעות צמודות לגוף; גוף ישר", "mist": "טבעות נפתחות לצדדים", "how": "הטבעות בגובה המותן. נשענים עליהן עם ידיים ישרות וגוף ישר בשיפוע, יורדים עד שהחזה בין הטבעות ודוחפים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Incline+Ring+Push-Up"}, {"ex": "Ring Push-Up", "lvl": 5, "assist": "טבעות גבוהות יותר", "pass": "3×10", "prim": "חזה, כתף קדמית, תלת-ראשי", "sec": "מייצבי כתף, סראטוס, ליבה", "equip": "טבעות נמוכות", "cues": "בחלק העליון מסובבים את הטבעות החוצה (RTO)", "mist": "רעידות; טבעות מתרחקות", "how": "הטבעות כמה סנטימטרים מעל הרצפה. ממנח שכיבת סמיכה יורדים עד שהחזה בין הטבעות, ודוחפים עד ידיים ישרות תוך סיבוב הטבעות החוצה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Push-Up"}, {"ex": "Feet-Elevated Ring Push-Up", "lvl": 6, "assist": "רגליים על הרצפה", "pass": "3×10", "prim": "חזה עליון, כתף קדמית, תלת-ראשי", "sec": "מייצבי כתף, ליבה", "equip": "טבעות + ארגז", "cues": "גוף ישר בלי \"פייק\"", "mist": "ירכיים עולות", "how": "שכיבת סמיכה בטבעות כשהרגליים על ארגז. היציבות נשארת קשה, והעומס עובר יותר לכתפיים ולחזה העליון.", "img": "https://www.google.com/search?tbm=isch&q=Feet-Elevated+Ring+Push-Up"}, {"ex": "Archer Ring Push-Up", "lvl": 6, "assist": "פתיחה קטנה יותר של הטבעת", "pass": "3×6 לכל צד", "prim": "חזה (חד-צדדי), כתף קדמית, תלת-ראשי", "sec": "ליבה, מייצבי כתף", "equip": "טבעות", "cues": "היד שנפתחת לצד נשארת ישרה", "mist": "סיבוב אגן", "how": "בזמן הירידה טבעת אחת מחליקה לצד והיד נשארת ישרה, והיד השנייה עושה את רוב העבודה. דוחפים חזרה ומחליפים צד.", "img": "https://www.google.com/search?tbm=isch&q=Archer+Ring+Push-Up"}, {"ex": "Ring Pseudo Planche Push-Up", "lvl": 7, "assist": "הקטנת ההטיה קדימה", "pass": "3×6", "prim": "כתף קדמית, חזה, תלת-ראשי", "sec": "סראטוס, דו-ראשי, ליבה", "equip": "טבעות נמוכות", "cues": "כתפיים לפני הידיים; טבעות מסובבות החוצה", "mist": "איבוד ההטיה בתחתית", "how": "ידיים על הטבעות ליד המותניים, והגוף מוטה קדימה כך שהכתפיים לפני הידיים. יורדים ודוחפים בלי לאבד את ההטיה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Pseudo+Planche+Push-Up"}]}, {"name": "דיפס בטבעות", "steps": [{"ex": "Ring Dip Negative", "lvl": 5, "assist": "ירידה קצרה יותר", "pass": "3×5 ירידות של 5 שנ׳", "prim": "חזה, תלת-ראשי, כתף קדמית", "sec": "מייצבי כתף, ליבה", "equip": "טבעות + ארגז", "cues": "טבעות צמודות לגוף לכל אורך הירידה", "mist": "טבעות מתרחקות; ירידה מהירה", "how": "עולים לתמיכה מעל הטבעות מארגז. יורדים לאט עד שהכתף מעט מתחת לגובה המרפק, ויוצאים מהתרגיל בעזרת הרגליים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Dip+Negative"}, {"ex": "Band-Assisted Ring Dip", "lvl": 5, "assist": "גומייה עבה ← דקה", "pass": "3×8 עם גומייה דקה", "prim": "חזה, תלת-ראשי", "sec": "כתף קדמית, מייצבי כתף", "equip": "טבעות + גומייה", "cues": "טבעות צמודות; גוף מעט קדימה", "mist": "טווח חלקי", "how": "גומייה מתוחה בין הרצועות, והברכיים נשענות עליה. יורדים עד כתף מתחת למרפק ודוחפים חזרה לתמיכה.", "img": "https://www.google.com/search?tbm=isch&q=Band-Assisted+Ring+Dip"}, {"ex": "Ring Dip", "lvl": 6, "assist": "גומייה דקה", "pass": "3×8", "prim": "חזה, תלת-ראשי, מייצבי כתף", "sec": "כתף קדמית, ליבה", "equip": "טבעות", "cues": "שליטה בטבעות לכל אורך הטווח", "mist": "ירידה מהירה ללא שליטה", "how": "מתמיכה על הטבעות יורדים כשהטבעות צמודות לגוף, עד שהכתף מתחת לגובה המרפק. דוחפים חזרה עד ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Dip"}, {"ex": "RTO Ring Dip", "lvl": 7, "assist": "Ring Dip רגיל", "pass": "3×6", "prim": "חזה, תלת-ראשי, מייצבי כתף", "sec": "דו-ראשי, ליבה", "equip": "טבעות", "cues": "בכל חזרה מסיימים עם טבעות מסובבות החוצה", "mist": "שכחה של הסיבוב למעלה", "how": "Ring Dip שבו בכל נעילה למעלה מסובבים את הטבעות החוצה (RTO), כך שכפות הידיים פונות קדימה. דורש שליטה ויציבות כתף גבוהות.", "img": "https://www.google.com/search?tbm=isch&q=RTO+Ring+Dip"}, {"ex": "Weighted Ring Dip", "lvl": 7, "assist": "משקל קל", "pass": "לפי יעד אישי", "prim": "חזה, תלת-ראשי, כתף קדמית", "sec": "מייצבי כתף, ליבה", "equip": "טבעות + חגורת משקולות", "cues": "טכניקה זהה לדיפס בלי משקל", "mist": "הוספת משקל לפני 3×10 נקיים", "how": "דיפס בטבעות עם משקל נוסף בחגורה או באפוד. מתחילים רק אחרי שליטה מלאה בגרסה בלי משקל.", "img": "https://www.google.com/search?tbm=isch&q=Weighted+Ring+Dip"}]}]}, {"name": "תמיכה", "ladders": [{"name": "תמיכה", "steps": [{"ex": "Low Ring Support — רגליים על הקרקע", "lvl": 3, "assist": "יותר משקל על הרגליים", "pass": "3×20 שנ׳", "prim": "תלת-ראשי, מייצבי כתף, טרפז תחתון", "sec": "חזה", "equip": "טבעות נמוכות", "cues": "טבעות צמודות לירכיים", "mist": "טבעות מתרחקות לצדדים", "how": "הטבעות בגובה המותן. נשענים עליהן עם ידיים ישרות כשהרגליים על הרצפה ונושאות חלק מהמשקל. מחזיקים בלי רעידות.", "img": "https://www.google.com/search?tbm=isch&q=Low+Ring+Support"}, {"ex": "Ring Support Hold", "lvl": 5, "assist": "רגליים על הקרקע", "pass": "3×30 שנ׳", "prim": "תלת-ראשי, מייצבי כתף, חזה", "sec": "דו-ראשי, ליבה", "equip": "טבעות", "cues": "שכמות למטה; טבעות צמודות לגוף", "mist": "רעידות; כתפיים עולות", "how": "עולים מעל הטבעות ונשענים עם ידיים ישרות ונעולות, טבעות צמודות לירכיים. מחזיקים כשהגוף מעט Hollow.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Support+Hold"}, {"ex": "RTO Support Hold", "lvl": 6, "assist": "סיבוב חלקי", "pass": "3×20 שנ׳", "prim": "תלת-ראשי, מייצבי כתף, דו-ראשי", "sec": "חזה, ליבה", "equip": "טבעות", "cues": "כפות ידיים פונות קדימה; מרפקים נעולים", "mist": "מרפקים מתכופפים", "how": "בתמיכה מעל הטבעות מסובבים את הטבעות החוצה עד שכפות הידיים פונות קדימה, ומחזיקים עם מרפקים ישרים. זה בסיס חשוב לכל העבודה על טבעות.", "img": "https://www.google.com/search?tbm=isch&q=RTO+Support+Hold+gymnastic+rings"}, {"ex": "Ring Tuck L-Sit", "lvl": 6, "assist": "רגל אחת נוגעת", "pass": "3×10 שנ׳", "prim": "בטן ישרה, מכופפי ירך, תלת-ראשי", "sec": "מייצבי כתף", "equip": "טבעות", "cues": "שכמות למטה; ברכיים לחזה", "mist": "טבעות נפתחות", "how": "בתמיכה מעל הטבעות מרימים ברכיים כפופות אל החזה ומחזיקים. הטבעות לא יציבות, ולכן התרגיל קשה יותר מאשר על מקבילים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Tuck+L-Sit"}, {"ex": "Ring L-Sit", "lvl": 7, "assist": "Tuck / רגל אחת", "pass": "3×10 שנ׳", "prim": "בטן ישרה, מכופפי ירך, ארבע-ראשי", "sec": "תלת-ראשי, מייצבי כתף", "equip": "טבעות", "cues": "רגליים ישרות ונעולות; טבעות צמודות", "mist": "רגליים יורדות", "how": "בתמיכה מעל הטבעות מחזיקים רגליים ישרות קדימה, מקבילות לרצפה, כך שהגוף יוצר צורת L.", "img": "https://www.google.com/search?tbm=isch&q=Ring+L-Sit"}]}]}, {"name": "ליבה", "ladders": [{"name": "ליבה בטבעות", "steps": [{"ex": "Ring Plank — רגליים בטבעות", "lvl": 2, "assist": "ברכיים על הרצפה", "pass": "3×30 שנ׳", "prim": "בטן רוחבית, בטן ישרה", "sec": "כתפיים, ישבן", "equip": "טבעות נמוכות", "cues": "גוף ישר; רגליים יציבות", "mist": "ירכיים נופלות", "how": "מכניסים את כפות הרגליים לטבעות הנמוכות ונשענים על הידיים במנח פלאנק. מחזיקים גוף ישר בלי שהטבעות יתנדנדו.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Plank"}, {"ex": "Ring Knee Tuck", "lvl": 3, "assist": "טווח חלקי", "pass": "3×10", "prim": "בטן ישרה, מכופפי ירך", "sec": "כתפיים, ליבה", "equip": "טבעות נמוכות", "cues": "גב מעוגל קלות בסוף התנועה", "mist": "ירכיים נופלות בחזרה", "how": "ממנח פלאנק עם רגליים בטבעות מושכים את הברכיים אל החזה ומיישרים חזרה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Knee+Tuck"}, {"ex": "Ring Rollout — מברכיים", "lvl": 4, "assist": "טווח קצר יותר; טבעות גבוהות יותר", "pass": "3×8", "prim": "בטן ישרה, בטן רוחבית", "sec": "רחב גבי, כתפיים", "equip": "טבעות", "cues": "גב תחתון לא נשבר; אגן מגולגל", "mist": "קשת בגב התחתון", "how": "כורעים מול הטבעות ואוחזים בהן. נוטים קדימה כשהידיים נעות קדימה מעל הראש, עד הטווח שבו הגב עדיין ישר, וחוזרים בכוח הבטן.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Rollout"}, {"ex": "Ring Pike", "lvl": 5, "assist": "Knee Tuck", "pass": "3×8", "prim": "בטן ישרה, מכופפי ירך", "sec": "כתפיים, סראטוס", "equip": "טבעות נמוכות", "cues": "ירכיים גבוהות; רגליים ישרות", "mist": "כיפוף ברכיים", "how": "ממנח פלאנק עם רגליים בטבעות מרימים את האגן גבוה עם רגליים ישרות, ליצירת V הפוכה, וחוזרים לפלאנק.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Pike"}, {"ex": "Ring Body Saw", "lvl": 5, "assist": "טווח קצר", "pass": "3×10", "prim": "בטן רוחבית, בטן ישרה", "sec": "כתפיים, רחב גבי", "equip": "טבעות נמוכות", "cues": "תנועה מהכתפיים, הגוף נשאר ישר", "mist": "ירכיים נופלות", "how": "בפלאנק על האמות עם רגליים בטבעות, דוחפים את הגוף לאחור ולפנים מהכתפיים, כמו מסור, בלי לשבור את הקו.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Body+Saw"}, {"ex": "Standing Ring Rollout", "lvl": 6, "assist": "Rollout מברכיים", "pass": "3×5", "prim": "בטן ישרה, בטן רוחבית", "sec": "רחב גבי, כתפיים", "equip": "טבעות", "cues": "עלייה בכוח הבטן בלבד", "mist": "גב תחתון נשבר", "how": "מעמידה אוחזים בטבעות ונוטים קדימה עד שהגוף כמעט מקביל לרצפה וידיים מעל הראש, וחוזרים לעמידה.", "img": "https://www.google.com/search?tbm=isch&q=Standing+Ring+Rollout"}]}, {"name": "תלייה בטבעות", "steps": [{"ex": "Ring Hanging Knee Raise", "lvl": 3, "assist": "טווח חלקי", "pass": "3×10", "prim": "בטן ישרה, מכופפי ירך", "sec": "אחיזה, רחב גבי", "equip": "טבעות גבוהות", "cues": "בלי נדנוד", "mist": "תנופה", "how": "נתלים בטבעות עם כתפיים פעילות. מרימים ברכיים אל החזה תוך גלגול אגן ויורדים בשליטה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Hanging+Knee+Raise"}, {"ex": "Ring Hanging Leg Raise", "lvl": 4, "assist": "ברך אחת כפופה", "pass": "3×8", "prim": "בטן ישרה, מכופפי ירך", "sec": "אחיזה, רחב גבי", "equip": "טבעות גבוהות", "cues": "רגליים ישרות עד 90°", "mist": "נדנוד הטבעות", "how": "בתלייה בטבעות מרימים רגליים ישרות עד שהן מקבילות לרצפה, ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Hanging+Leg+Raise"}, {"ex": "Ring Toes-to-Rings", "lvl": 5, "assist": "עד גובה הידיים", "pass": "3×6", "prim": "בטן ישרה, מכופפי ירך, רחב גבי", "sec": "אחיזה", "equip": "טבעות גבוהות", "cues": "דחיפת הטבעות מטה עם ידיים ישרות", "mist": "קיפינג", "how": "בתלייה מרימים רגליים ישרות עד שקצות האצבעות נוגעים בטבעות, ויורדים בשליטה.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Toes-to-Rings"}]}]}, {"name": "סטטיקה והפיכות", "ladders": [{"name": "סיבובים והפיכות", "steps": [{"ex": "Skin-the-Cat — רגליים על הקרקע", "lvl": 3, "assist": "טווח חלקי", "pass": "3×3 ללא כאב", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות נמוכות", "cues": "טווח הדרגתי; לא נכנסים לכאב בכתף", "mist": "טווח מעבר ליכולת", "how": "הטבעות נמוכות. אוחזים, מעבירים רגליים בין הידיים ומסתובבים לאחור לטווח נוח בעזרת הרגליים על הרצפה, וחוזרים.", "img": "https://www.google.com/search?tbm=isch&q=Skin-the-Cat+gymnastic+rings"}, {"ex": "Inverted Tuck Hang", "lvl": 4, "assist": "עזרה של מאמן", "pass": "3×15 שנ׳", "prim": "רחב גבי, ליבה, דו-ראשי", "sec": "אחיזה", "equip": "טבעות", "cues": "ידיים ישרות; ברכיים לחזה", "mist": "כיפוף מרפקים", "how": "מתלייה מושכים את הברכיים לחזה ומתהפכים עד שהגוף הפוך, עם ירכיים למעלה וידיים ישרות. מחזיקים ויורדים לאט.", "img": "https://www.google.com/search?tbm=isch&q=Inverted+Tuck+Hang+gymnastic+rings"}, {"ex": "Inverted Hang", "lvl": 5, "assist": "Tuck", "pass": "3×15 שנ׳", "prim": "רחב גבי, ליבה", "sec": "דו-ראשי, אחיזה", "equip": "טבעות", "cues": "גוף ישר ואנכי, ראש למטה", "mist": "קשת בגב", "how": "מתהפכים לתלייה הפוכה ומיישרים את הגוף כלפי מעלה, כשכל הגוף בקו אנכי מעל הידיים. זה גם מנח הכניסה ל-Back Lever.", "img": "https://www.google.com/search?tbm=isch&q=Inverted+Hang+gymnastic+rings"}, {"ex": "German Hang", "lvl": 5, "assist": "רגליים על הקרקע", "pass": "3×15 שנ׳ ללא כאב", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי", "equip": "טבעות", "cues": "כתפיים פעילות; טווח נוח", "mist": "צניחה פסיבית לתוך הכתף", "how": "ממנח הפוך ממשיכים להסתובב לאחור עד שהידיים מאחורי הגוף והרגליים פונות לרצפה, ומחזיקים. מותח את הכתפיים ומכין ל-Back Lever.", "img": "https://www.google.com/search?tbm=isch&q=German+Hang+gymnastic+rings"}, {"ex": "Skin-the-Cat", "lvl": 5, "assist": "רגליים על הקרקע", "pass": "3×3 מבוקרים", "prim": "חזה, דו-ראשי, רחב גבי", "sec": "ליבה, כתף קדמית", "equip": "טבעות", "cues": "תנועה איטית ורציפה", "mist": "תנופה", "how": "מתלייה מלאה מעבירים רגליים בין הידיים, מסתובבים לאחור דרך התלייה ההפוכה ועד German Hang, וחוזרים באותה דרך.", "img": "https://www.google.com/search?tbm=isch&q=Skin-the-Cat+gymnastic+rings"}]}, {"name": "Back Lever בטבעות", "steps": [{"ex": "Tuck Back Lever", "lvl": 4, "assist": "רגליים על הקרקע", "pass": "3×10 שנ׳", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות", "cues": "ידיים ישרות; גב מקביל לרצפה", "mist": "כיפוף מרפקים", "how": "מתלייה הפוכה יורדים לאחור עם ברכיים לחזה עד שהגב מקביל לרצפה והפנים כלפי מטה. מחזיקים עם ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Back+Lever+gymnastic+rings"}, {"ex": "Advanced Tuck Back Lever", "lvl": 5, "assist": "Tuck", "pass": "3×10 שנ׳", "prim": "חזה, דו-ראשי, כתף קדמית", "sec": "רחב גבי, ליבה", "equip": "טבעות", "cues": "גב שטוח", "mist": "גב מעוגל", "how": "כמו ה-Tuck, אבל עם גב שטוח והברכיים רחוקות מהחזה.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Back+Lever+gymnastic+rings"}, {"ex": "Straddle Back Lever", "lvl": 6, "assist": "רגל אחת", "pass": "3×8 שנ׳", "prim": "חזה, דו-ראשי, רחב גבי", "sec": "ליבה, ישבן", "equip": "טבעות", "cues": "ישבן פעיל; גוף ישר", "mist": "קשת בגב", "how": "Back Lever עם רגליים ישרות ופתוחות לצדדים, הגוף מקביל לרצפה והפנים כלפי מטה.", "img": "https://www.google.com/search?tbm=isch&q=Straddle+Back+Lever+gymnastic+rings"}, {"ex": "Full Back Lever", "lvl": 6, "assist": "Straddle", "pass": "3×8 שנ׳", "prim": "חזה, דו-ראשי, רחב גבי", "sec": "ליבה, ישבן", "equip": "טבעות", "cues": "עומס רב על הדו-ראשי — לבנות בהדרגה", "mist": "התקדמות מהירה מדי", "how": "גוף ישר עם רגליים צמודות, מקביל לרצפה והפנים כלפי מטה, בתלייה על ידיים ישרות.", "img": "https://www.google.com/search?tbm=isch&q=Full+Back+Lever+gymnastic+rings"}]}, {"name": "Front Lever בטבעות", "steps": [{"ex": "Tuck Front Lever", "lvl": 4, "assist": "גומייה", "pass": "3×10 שנ׳", "prim": "רחב גבי, טרפז תחתון, מעויינים", "sec": "ליבה, כתף אחורית", "equip": "טבעות", "cues": "ידיים ישרות; שכמות למטה", "mist": "גב מעוגל", "how": "בתלייה בטבעות מושכים עם ידיים ישרות עד שהגב מקביל לרצפה, עם ברכיים לחזה. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Tuck+Front+Lever+gymnastic+rings"}, {"ex": "Advanced Tuck Front Lever", "lvl": 5, "assist": "גומייה", "pass": "3×10 שנ׳", "prim": "רחב גבי, טרפז תחתון", "sec": "ליבה, ישבן", "equip": "טבעות", "cues": "גב שטוח; ברכיים רחוקות", "mist": "ירכיים נופלות", "how": "כמו ה-Tuck, אבל עם גב שטוח לגמרי והברכיים מתרחקות מהחזה.", "img": "https://www.google.com/search?tbm=isch&q=Advanced+Tuck+Front+Lever+gymnastic+rings"}, {"ex": "Straddle Front Lever", "lvl": 6, "assist": "גומייה דקה", "pass": "3×8 שנ׳", "prim": "רחב גבי, ליבה, ישבן", "sec": "כתף אחורית", "equip": "טבעות", "cues": "רגליים פתוחות רחב", "mist": "ירכיים נופלות", "how": "Front Lever עם רגליים ישרות ופתוחות לצדדים, הגוף מקביל לרצפה והפנים כלפי מעלה.", "img": "https://www.google.com/search?tbm=isch&q=Straddle+Front+Lever+gymnastic+rings"}, {"ex": "Full Front Lever", "lvl": 7, "assist": "Straddle", "pass": "3×8 שנ׳", "prim": "רחב גבי, ליבה, ישבן", "sec": "כתף אחורית, אחיזה", "equip": "טבעות", "cues": "גוף ישר מקביל לרצפה", "mist": "קשת / ירכיים נופלות", "how": "בתלייה עם ידיים ישרות, כל הגוף ישר ומקביל לרצפה עם רגליים צמודות. בטבעות צריך גם לשמור שהטבעות לא ייפתחו.", "img": "https://www.google.com/search?tbm=isch&q=Full+Front+Lever+gymnastic+rings"}]}, {"name": "עמידת ידיים בטבעות", "steps": [{"ex": "Ring Shoulder Stand — עם הרצועות", "lvl": 5, "assist": "רגליים על הרצועות", "pass": "3×15 שנ׳", "prim": "כתף, תלת-ראשי, חזה", "sec": "ליבה, מייצבי כתף", "equip": "טבעות נמוכות", "cues": "מרפקים צמודים לגוף; ידיים צמודות לצלעות", "mist": "מרפקים נפתחים", "how": "מתמיכה בטבעות נמוכות מתכופפים קדימה עד שהכתפיים כמעט בגובה הטבעות, ומרימים את הרגליים עד שהן נשענות על הרצועות. מחזיקים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Shoulder+Stand"}, {"ex": "Ring Shoulder Stand", "lvl": 6, "assist": "רגליים על הרצועות", "pass": "3×10 שנ׳", "prim": "כתף, תלת-ראשי, חזה", "sec": "ליבה, מייצבי כתף", "equip": "טבעות נמוכות", "cues": "גוף ישר מעל הכתפיים", "mist": "נפילה קדימה", "how": "אותו מנח, אבל הרגליים באוויר ולא נוגעות ברצועות. הגוף ישר והאיזון מגיע מהידיים והכתפיים.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Shoulder+Stand"}, {"ex": "Ring Handstand — עם הרצועות", "lvl": 7, "assist": "השגחה", "pass": "3×20 שנ׳", "prim": "כתף, תלת-ראשי, טרפז עליון", "sec": "ליבה, מייצבי כתף", "equip": "טבעות נמוכות", "cues": "ידיים נעולות; טבעות מסובבות החוצה", "mist": "טבעות מתרחקות", "how": "עמידת ידיים על הטבעות כשהרגליים נשענות על הרצועות לייצוב. דוחפים חזק למעלה ומחזיקים את הטבעות צמודות.", "img": "https://www.google.com/search?tbm=isch&q=Ring+Handstand"}, {"ex": "Freestanding Ring Handstand", "lvl": 8, "assist": "רגליים על הרצועות", "pass": "לפי יעד אישי", "prim": "כתף, תלת-ראשי, טרפז עליון", "sec": "ליבה, מייצבי כתף, פרקי כף יד", "equip": "טבעות", "cues": "שליטה דרך הטבעות, לא דרך הגוף", "mist": "התקדמות לפני עמידת ידיים חופשית יציבה על הרצפה", "how": "עמידת ידיים על הטבעות בלי תמיכה ברצועות. דורשת עמידת ידיים יציבה על הרצפה ותמיכה חזקה בטבעות.", "img": "https://www.google.com/search?tbm=isch&q=Freestanding+Ring+Handstand"}]}, {"name": "Iron Cross", "steps": [{"ex": "Wide Ring Support", "lvl": 6, "assist": "רגליים על הקרקע", "pass": "3×10 שנ׳", "prim": "רחב גבי, חזה, דו-ראשי", "sec": "מייצבי כתף", "equip": "טבעות", "cues": "מרפקים ישרים לחלוטין", "mist": "כיפוף מרפקים", "how": "בתמיכה מעל הטבעות פותחים את הידיים מעט לצדדים, כמה סנטימטרים בכל פעם, ומחזיקים עם מרפקים ישרים. זו הכניסה לעבודה על Cross.", "img": "https://www.google.com/search?tbm=isch&q=Wide+Ring+Support"}, {"ex": "Band-Assisted Iron Cross", "lvl": 7, "assist": "גומייה עבה ← דקה", "pass": "3×8 שנ׳ עם גומייה דקה", "prim": "רחב גבי, חזה, דו-ראשי", "sec": "מייצבי כתף, ליבה", "equip": "טבעות + גומיות", "cues": "ידיים ישרות בקו הכתפיים", "mist": "כיפוף מרפקים", "how": "גומיות מחוברות לטבעות או לכפות הידיים ומקלות את העומס. מחזיקים מנח צלב עם ידיים ישרות לצדדים בגובה הכתפיים.", "img": "https://www.google.com/search?tbm=isch&q=Band-Assisted+Iron+Cross+gymnastic+rings"}, {"ex": "Iron Cross Negative", "lvl": 7, "assist": "גומייה", "pass": "3×3 ירידות של 3–5 שנ׳", "prim": "רחב גבי, חזה, דו-ראשי", "sec": "מייצבי כתף", "equip": "טבעות", "cues": "ירידה איטית עם מרפקים נעולים", "mist": "עומס יתר על המרפקים", "how": "מתמיכה פותחים את הידיים לאט לצדדים ויורדים לכיוון מנח הצלב בשליטה. עומס גבוה מאוד על הגידים, לבנות בהדרגה.", "img": "https://www.google.com/search?tbm=isch&q=Iron+Cross+Negative+gymnastic+rings"}, {"ex": "Iron Cross", "lvl": 8, "assist": "גומייה דקה", "pass": "לפי יעד אישי", "prim": "רחב גבי, חזה, דו-ראשי", "sec": "מייצבי כתף, ליבה", "equip": "טבעות", "cues": "השגחה וניהול עומס צמוד", "mist": "התקדמות מהירה מדי", "how": "מחזיקים את הגוף זקוף בין הטבעות, עם ידיים ישרות פתוחות לצדדים בגובה הכתפיים. אחד התרגילים הקשים בטבעות, לא מתאים לאימון קבוצתי כללי.", "img": "https://www.google.com/search?tbm=isch&q=Iron+Cross+gymnastic+rings"}]}]}]}];
+const st = {c:0, t:0, l:0, open:-1};
+try{ const s = JSON.parse(localStorage.getItem("cal-rings-ladders")||"{}"); if(DATA[s.c]){st.c=s.c; const T=DATA[s.c].tracks; if(T[s.t]){st.t=s.t; if(T[s.t].ladders[s.l]) st.l=s.l;}} }catch(e){}
+const save=()=>{try{localStorage.setItem("cal-rings-ladders",JSON.stringify({c:st.c,t:st.t,l:st.l}))}catch(e){}};
+const TR=()=>DATA[st.c].tracks;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const firstSentence=s=>{const m=s.match(/^[^.]*\./);return m?m[0]:s};
+
+function renderCats(){
+  $("cats").innerHTML = DATA.map((c,i)=>`<button class="cat" aria-pressed="${i===st.c}" data-i="${i}">${esc(c.name)}</button>`).join("");
+}
+function renderTracks(){
+  $("tracks").innerHTML = TR().map((t,i)=>{
+    const n=t.ladders.reduce((a,l)=>a+l.steps.length,0);
+    return `<button class="track" aria-pressed="${i===st.t}" data-i="${i}">${esc(t.name)}<small>${n} תרגילים</small></button>`}).join("");
+}
+function renderLadders(){
+  $("ladders").innerHTML = TR()[st.t].ladders.map((l,i)=>
+    `<button class="lad" aria-pressed="${i===st.l}" data-i="${i}">${esc(l.name)}</button>`).join("");
+}
+function dots(n){let s="";for(let i=1;i<=8;i++)s+=`<i class="${i<=n?"on":""}"></i>`;return s}
+function renderRail(){
+  const lad = TR()[st.t].ladders[st.l];
+  $("ladname").textContent = lad.name;
+  $("ladcount").textContent = `${lad.steps.length} שלבים · מהקל לקשה`;
+  $("rail").innerHTML = lad.steps.map((s,i)=>{
+    const open = i===st.open;
+    return `<li class="step${open?" open":""}">
+      <button class="num" data-i="${i}" tabindex="-1" aria-label="שלב ${i+1}">${i+1}</button>
+      <div class="card">
+        <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
+          <div class="top"><span class="name">${esc(s.ex)}</span>
+            <span class="lvl">רמה ${s.lvl}<span class="dots">${dots(s.lvl)}</span></span></div>
+          <p class="one">${esc(firstSentence(s.how))}</p>
+        </div>
+        ${open?`<div class="body">
+          ${ILLV.has(s.ex,st.c===1)?`<div class="td"><div class="tdbar"><span class="tdmsg">טוען תלת-ממד…</span><button class="tdplay" hidden>⏸ עצירה</button></div></div>`:""}
+          <p class="how">${esc(s.how)}</p>
+          <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(s.pass)}</div>
+          <div class="grid2">
+            <div class="box"><b>אם קשה מדי — סיוע</b>${esc(s.assist)}</div>
+            <div class="box"><b>ציוד</b>${esc(s.equip)}</div>
+            <div class="box"><b>שרירים עיקריים</b>${esc(s.prim)}</div>
+            <div class="box"><b>שרירים משניים</b>${esc(s.sec)}</div>
+            <div class="box"><b>דגשים</b>${esc(s.cues)}</div>
+            <div class="box"><b>טעויות נפוצות</b>${esc(s.mist)}</div>
+          </div>
+          <div class="nav">
+            <button class="mv" data-go="${i-1}" ${i===0?"disabled":""}>→ שלב קודם</button>
+            <a href="${esc(s.img)}" target="_blank" rel="noopener">תמונות של התרגיל ↗</a>
+            <button class="mv" data-go="${i+1}" ${i===lad.steps.length-1?"disabled":""}>שלב הבא ←</button>
+          </div>
+        </div>`:""}
+      </div></li>`}).join("");
+  TD.stop();
+  const tdh=document.querySelector(".td");
+  if(tdh&&st.open>=0) TD.mount(tdh,lad.steps[st.open].ex,st.c===1);
+}
+function all(){renderCats();renderTracks();renderLadders();renderRail()}
+$("cats").onclick=e=>{const b=e.target.closest(".cat");if(!b)return;st.c=+b.dataset.i;st.t=0;st.l=0;st.open=-1;save();all()};
+$("tracks").onclick=e=>{const b=e.target.closest(".track");if(!b)return;st.t=+b.dataset.i;st.l=0;st.open=-1;save();all()};
+$("ladders").onclick=e=>{const b=e.target.closest(".lad");if(!b)return;st.l=+b.dataset.i;st.open=-1;save();renderLadders();renderRail()};
+const hasSelection=()=>{try{return String(window.getSelection()).length>0}catch(e){return false}};
+$("rail").onkeydown=e=>{
+  const h=e.target.closest(".head");
+  if(h && (e.key==="Enter"||e.key===" ")){e.preventDefault();h.click();}
+};
+$("rail").onclick=e=>{
+  const h=e.target.closest(".head, .num"), g=e.target.closest(".mv");
+  if(h && h.classList.contains("head") && hasSelection()) return;
+  if(h){const i=+h.dataset.i;st.open=st.open===i?-1:i;renderRail();}
+  else if(g){st.open=+g.dataset.go;renderRail();}
+  else return;
+  const el=document.querySelectorAll(".step")[st.open];
+  if(el) el.scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+};
+all();
+</script>
+
+</body></html>
