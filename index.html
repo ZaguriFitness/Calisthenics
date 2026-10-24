@@ -137,14 +137,29 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .hist p{margin:2px 0}
 .del{font:inherit;justify-self:start;padding:6px 12px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--warn);cursor:pointer}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.chips.sel{align-items:center}
-.chips.sel #sadd{width:auto;max-width:100%;padding:6px 10px;border-radius:999px}
-.tpl{font:inherit;font-weight:700;padding:8px 14px;border-radius:10px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);cursor:pointer}
-.rx{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin:4px 0 16px;font-size:.95rem}
-.rx b{display:block;font-size:.78rem;color:var(--muted);letter-spacing:.04em}
-.blk{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
-.blk h3{font-family:var(--display);font-weight:400;font-size:1.25rem;margin:0;display:flex;gap:8px;align-items:baseline}
-.eqsum{color:var(--muted);font-size:.85rem;margin:2px 0 6px}
+.seg{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}
+.seg .track{padding:9px 8px}
+.opt,.blk{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px}
+.opt summary,.blk summary,.howto summary{list-style:none;cursor:pointer}
+.opt summary::-webkit-details-marker,.blk summary::-webkit-details-marker,.howto summary::-webkit-details-marker{display:none}
+.opt summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;font-weight:700}
+.opt summary span{color:var(--muted);font-weight:400;font-size:.9rem;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt summary::after,.blk summary::after{content:"▾";color:var(--muted);flex:none;transition:transform .15s}
+.opt[open] summary::after,.blk[open] summary::after{transform:rotate(180deg)}
+.opt .chips{padding:0 14px 12px;margin:0}
+.blks{margin-top:16px}
+.blk[open]{border-color:var(--accent)}
+.blk summary{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.blk .bt{flex:1;min-width:0;font-family:var(--display);font-size:1.1rem}
+.blk .bm{display:flex;gap:8px;font-size:.85rem;color:var(--accent);font-weight:700}
+.blk .bm i{font-style:normal}
+.blk>:not(summary){margin-inline:14px}
+.blk .rm{font:inherit;font-size:.85rem;padding:4px 0 12px;border:0;background:none;color:var(--muted);cursor:pointer;text-decoration:underline}
+.addex{margin:4px 0 14px;color:var(--muted)}
+.howto{margin-top:14px;color:var(--muted);font-size:.9rem}
+.howto summary{text-align:center;text-decoration:underline}
+.howto p{margin:8px 0 0}
+.eqsum{color:var(--muted);font-size:.85rem;margin-top:0;margin-bottom:6px}
 .srow{border-top:1px solid var(--line);padding:8px 0 6px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center}
 .srow>.warn,.srow>.sact{grid-column:1/-1}
 .sact .tg{flex:1;min-width:0;font-size:.9rem;color:var(--muted)}
@@ -1061,6 +1076,8 @@ const KP=K("משיכה אנכית","מתח"), KR=K("משיכה אופקית","ח
   KO=K("דחיפה אנכית","דחיפה מעל הראש"), KSQ=K("רגליים","סקוואטים ותרגילים על רגל אחת"), KH=K("רגליים","שרשרת אחורית"),
   KCA=K("רגליים","תאומים"), KHO=K("ליבה","Hollow / אנטי-אקסטנזיה"), KHA=K("ליבה","תלייה"), KAR=K("ליבה","אנטי-רוטציה"),
   KSI=K("ליבה","צד"), KHS=K("עמידת ידיים","קיר"), KFL=K("סטטיקה","Front Lever");
+const SHORT={[KSQ]:"סקוואט",[KHO]:"Hollow / פלאנק",[KO]:"דחיפה מעל הראש",[KHS]:"עמידת ידיים"};
+const shortName=L=>SHORT[L.key]||L.l;
 const MAIN=[KP,KR,KPU,KD,KO,KSQ,KH,KHO,KHA].filter(Boolean);
 // full-body follows the r/bodyweightfitness Recommended Routine pairs: pull+squat, dip+hinge, row+push, then core
 const TEMPLATES=[
@@ -1194,6 +1211,9 @@ $("imp").onchange=async e=>{
 };
 
 // ---------- group session ----------
+// open/closed state of the collapsible parts of the session screen (kept while the app is open)
+const openSes=new Set();
+const isOpen=(id,dflt)=>openSes.has(id)?true:openSes.has("!"+id)?false:dflt;
 function renderSes(){
   const S=CO.ses;S.present=S.present.filter(id=>trById(id));
   if(!CO.trainees.length){
@@ -1201,24 +1221,33 @@ function renderSes(){
     return;
   }
   const chip=(on,attrs,txt)=>`<button class="lad" aria-pressed="${on}" ${attrs}>${txt}</button>`;
-  let h=`<p class="label">מי מגיע היום (${S.present.length})</p><div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
-    <p class="label">ציוד שיש במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div>
-    <p class="label">מה מתאמנים היום</p><div class="chips">${TEMPLATES.map((t,i)=>`<button class="tpl" data-tpl="${i}">${t.name}</button>`).join("")}</div>
-    <div class="chips sel">${S.keys.map((k,n)=>{const L=LAD(k);return L?chip(true,`data-rm="${esc(k)}" aria-label="הסרת ${esc(L.l)}"`,`${n+1}. ${esc(L.l)} ✕`):""}).join("")}
-      <select id="sadd" aria-label="הוספת סולם לאימון"><option value="">+ הוספת תרגיל…</option>${LADS.filter(L=>!S.keys.includes(L.key)).map(L=>`<option value="${esc(L.key)}">${esc(L.l)} (${esc(L.t)}${L.ci===1?", טבעות":""})</option>`).join("")}</select></div>`;
-  if(!S.keys.length||!S.present.length){
-    h+=`<p class="empty">${!S.present.length?"מסמנים מי מגיע היום.":"בוחרים תבנית (למשל פול-בודי) או מוסיפים תרגילים."}</p>`;
+  const tplOn=TEMPLATES.findIndex(t=>t.keys.length===S.keys.length&&t.keys.every((k,i)=>k===S.keys[i]));
+  const missing=EQ.filter(e=>!S.avail.includes(e[0])).map(e=>e[1]);
+  let h=`<div class="tracks seg">${TEMPLATES.map((t,i)=>`<button class="track" data-tpl="${i}" aria-pressed="${i===tplOn}">${t.name}<small>${t.keys.length} תרגילים</small></button>`).join("")}</div>
+    <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>מי מגיע<span>${S.present.length===CO.trainees.length?`כולם (${S.present.length})`:`${S.present.length} מתוך ${CO.trainees.length}`}</span></summary>
+      <div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div></details>
+    <details class="opt" data-o="eq"${isOpen("eq",false)?" open":""}><summary>ציוד במקום<span>${missing.length?`חסר: ${missing.join(", ")}`:"הכל זמין"}</span></summary>
+      <div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>`;
+  if(!S.keys.length){
+    h+=`<p class="empty">בוחרים סוג אימון למעלה.</p>`+addSel(S);
     $("sbody").innerHTML=h;return;
   }
-  h+=`<details class="rx"><summary><b>איך מעבירים</b></summary>כולם עובדים על אותה תנועה באותו זמן, כל אחד בשלב שלו. 3 סטים לכל תרגיל, מנוחה 60–90 שנ׳. אפשר לעבוד בזוגות (1+2, 3+4…): סט מהראשון, מנוחה, סט מהשני. מתאמן בלי שלב? בוחרים את השלב הקשה ביותר שהוא עושה נקי 3×5. מי שעמד ביעד בכל הסטים מקבל "עמד", ובסיום האימון עולה שלב. "?" פותח הסבר ואיור.</details>`;
+  if(!S.present.length){
+    h+=`<p class="empty">מסמנים מי מגיע היום ב"מי מגיע".</p>`;
+    $("sbody").innerHTML=h;return;
+  }
   const pres=S.present.map(trById);
+  h+=`<div class="blks">`;
   S.keys.forEach((k,n)=>{
     const L=LAD(k);if(!L)return;
     const rows=pres.map(tr=>{const i=lvIdx(tr,k);return {tr,i,j:subIdx(L.steps,i,S.avail)}}).sort((a,b)=>(a.i<0)-(b.i<0)||a.i-b.i);
     const need={};
     rows.forEach(r=>{if(r.j>=0)(fitAlt(L.steps[r.j],S.avail)||[]).forEach(t=>need[t]=(need[t]||0)+1);});
     const needTxt=Object.keys(need).map(t=>`${EQN[t]} ×${need[t]}`).join(" · ");
-    h+=`<section class="blk"><h3>${n+1}. ${ladLabel(L)}</h3><p class="eqsum">${needTxt?`ציוד: ${needTxt}`:"בלי ציוד"}</p>`+
+    const nOk=rows.filter(r=>S.done[r.tr.id+"|"+k]).length, nUnset=rows.filter(r=>r.i<0).length;
+    h+=`<details class="blk" data-o="b:${esc(k)}"${isOpen("b:"+k,false)?" open":""}>
+      <summary><span class="bt">${n+1}. ${esc(shortName(L))}</span><span class="bm">${nUnset?`<i class="warn">${nUnset} בלי שלב</i>`:""}${nOk?`<i>✓ ${nOk}</i>`:""}</span></summary>
+      <p class="eqsum">${needTxt?`ציוד: ${needTxt}`:"בלי ציוד"}</p>`+
       rows.map(({tr,i,j})=>{
         const dk=tr.id+"|"+k, done=!!S.done[dk], s=j>=0?L.steps[j]:null;
         return `<div class="srow">
@@ -1229,12 +1258,19 @@ function renderSes(){
              <div class="sact"><span class="tg">יעד: <b>${esc(s.pass)}</b></span>
                ${j===i?`<button class="ok" data-ok="${esc(dk)}" aria-pressed="${done}">${done?"✓ עמד":"עמד?"}</button>`:""}
                <button class="mv" data-open="${esc(k)}" data-x="${j}" aria-label="איך עושים ${esc(s.ex)}">?</button></div>`}
-        </div>`}).join("")+`</section>`;
+        </div>`}).join("")+`<button class="rm" data-rm="${esc(k)}">הסרה מהאימון</button></details>`;
   });
+  h+=`</div>`+addSel(S);
   const nDone=Object.keys(S.done).filter(x=>S.done[x]).length;
-  h+=`<button class="primary" id="sfin">סיום אימון ועדכון רמות${nDone?` (${nDone} עולים שלב)`:""}</button>`;
+  h+=`<button class="primary" id="sfin">סיום אימון ועדכון רמות${nDone?` (${nDone} עולים שלב)`:""}</button>
+    <details class="howto"><summary>איך מעבירים?</summary><p>כולם עובדים על אותה תנועה באותו זמן, כל אחד בשלב שלו. 3 סטים לכל תרגיל, מנוחה 60–90 שנ׳. אפשר לעבוד בזוגות (1+2, 3+4…): סט מהראשון, מנוחה, סט מהשני. מתאמן בלי שלב? בוחרים את השלב הקשה ביותר שהוא עושה נקי 3×5. מי שעמד ביעד בכל הסטים מקבל "עמד", ובסיום האימון עולה שלב.</p></details>`;
   $("sbody").innerHTML=h;
 }
+function addSel(S){
+  return `<select id="sadd" class="addex" aria-label="הוספת תרגיל לאימון"><option value="">+ הוספת תרגיל</option>${LADS.filter(L=>!S.keys.includes(L.key)).map(L=>`<option value="${esc(L.key)}">${esc(L.l)} (${esc(L.t)}${L.ci===1?", טבעות":""})</option>`).join("")}</select>`;
+}
+$("sbody").addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.o)return;
+  const id=d.dataset.o;openSes.delete(id);openSes.delete("!"+id);openSes.add(d.open?id:"!"+id);},true);
 $("sbody").onclick=e=>{
   const S=CO.ses,b=e.target.closest("button");if(!b)return;
   $("smsg").hidden=true;
