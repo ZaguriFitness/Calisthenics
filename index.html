@@ -145,7 +145,7 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .opt,.blk{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px}
 .opt summary,.blk summary,.howto summary{list-style:none;cursor:pointer}
 .opt summary::-webkit-details-marker,.blk summary::-webkit-details-marker,.howto summary::-webkit-details-marker{display:none}
-.opt summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;font-weight:700}
+.opt summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;font-weight:700;white-space:nowrap}
 .opt summary span{color:var(--muted);font-weight:400;font-size:.9rem;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .opt summary::after,.blk summary::after{content:"▾";color:var(--muted);flex:none;transition:transform .15s}
 .opt[open] summary::after,.blk[open] summary::after{transform:rotate(180deg)}
@@ -153,7 +153,7 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .blks{margin-top:16px}
 .blk[open]{border-color:var(--accent)}
 .blk summary{display:flex;align-items:center;gap:10px;padding:12px 14px}
-.blk .bt{flex:1;min-width:0;font-family:var(--display);font-size:1.1rem}
+.blk .bt{flex:1;min-width:0;font-family:var(--display);font-size:1.1rem;display:flex;align-items:baseline;gap:10px}
 .blk .bm{display:flex;gap:8px;font-size:.85rem;color:var(--accent);font-weight:700}
 .blk .bm i{font-style:normal}
 .blk>:not(summary){margin-inline:14px}
@@ -172,7 +172,7 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .guide{padding:0 14px 12px;display:grid;gap:8px;font-size:.95rem}
 .guide p{margin:0}
 .guide b{display:block;font-size:.85rem;color:var(--accent)}
-.blk .tm{direction:ltr;unicode-bidi:isolate;font-style:normal;font-family:var(--body);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-inline-end:8px;display:inline-block;min-width:3.2em}
+.blk .tm{direction:ltr;unicode-bidi:isolate;font-style:normal;font-family:var(--body);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
 .blk .how{margin:0 14px 6px;padding-inline-start:20px;display:grid;gap:3px;font-size:.95rem}
 .blk h4{margin:12px 14px 0;font-size:.95rem;color:var(--accent)}
 .blk>.srow:last-of-type{padding-bottom:12px}
@@ -1126,6 +1126,7 @@ const SES0=()=>({present:[],keys:[],avail:EQ.map(e=>e[0]),done:{}});
 let CO={trainees:[],log:[],ses:SES0()};
 try{const s=JSON.parse(localStorage.getItem(CK)||"null");
   if(s&&Array.isArray(s.trainees)){CO.trainees=s.trainees;CO.log=Array.isArray(s.log)?s.log:[];CO.ses=Object.assign(SES0(),s.ses||{});}}catch(e){}
+if(!CO.ses.plan){CO.ses.keys=[];CO.ses.done={};}
 const csave=()=>{try{localStorage.setItem(CK,JSON.stringify(CO))}catch(e){}};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const trById=id=>CO.trainees.find(t=>t.id===id);
