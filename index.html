@@ -61,11 +61,10 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .step.open .card{border-color:var(--accent)}
 .head{all:unset;box-sizing:border-box;display:block;width:100%;padding:12px 14px;cursor:pointer}
 .head:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:12px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.name{font-weight:700;font-size:1.05rem;min-width:0;display:grid}
-.name .en{direction:ltr;text-align:right;unicode-bidi:plaintext}
-.name .he,.qres .he{font-weight:400;font-size:.9rem;color:var(--muted);direction:rtl}
-.qres .he{display:block}
+.top{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.name{font-weight:700;font-size:1.05rem;min-width:0}
+.name .sep,.qres .sep{color:var(--line);font-weight:400}
+.name .he,.qres .he{font-weight:600}
 .lvl{flex:none;display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
 .dots{display:flex;gap:2px}
 .dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
@@ -116,7 +115,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .qres{list-style:none;margin:0 0 14px;padding:0;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
 .qres button{all:unset;box-sizing:border-box;display:block;width:100%;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}
 .qres li:last-child button{border-bottom:0}
-.qres b{display:block;direction:ltr;text-align:right;unicode-bidi:plaintext}
+.qres b{display:block}
 .qres small,.lad small,.blk h3 small,.fl.lv span small{color:var(--muted);font-size:.8rem;font-family:var(--body);font-weight:400}
 .qres .none{padding:9px 12px;color:var(--muted)}
 .addrow{display:flex;gap:8px;margin-bottom:14px}
@@ -1041,7 +1040,7 @@ function renderRail(){
       <button class="num" data-i="${i}" tabindex="-1" aria-label="שלב ${i+1}">${i+1}</button>
       <div class="card">
         <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
-          <div class="top"><span class="name"><span class="en">${esc(s.en||s.ex)}</span><span class="he">${esc(s.he||"")}</span></span>
+          <div class="top"><span class="name"><bdi class="en">${esc(s.en||s.ex)}</bdi>${s.he?`<span class="sep"> | </span><bdi class="he">${esc(s.he)}</bdi>`:""}</span>
             <span class="lvl">רמה ${s.lvl}<span class="dots">${dots(s.lvl)}</span></span></div>
           <p class="one">${esc(firstSentence(s.how))}</p>
         </div>
@@ -1132,7 +1131,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const trById=id=>CO.trainees.find(t=>t.id===id);
 const lvIdx=(tr,k)=>{const L=LAD(k),n=tr.lv&&tr.lv[k];return L&&n?L.steps.findIndex(s=>s.ex===n):-1};
 const exName=s=>s.en||s.ex;
-const exFull=s=>s.he?`${exName(s)} · ${s.he}`:exName(s);
+const exFull=s=>s.he?`${exName(s)} | ${s.he}`:exName(s);
 const exByKey=(k,ex)=>{const L=LAD(k),s=L&&L.steps.find(x=>x.ex===ex);return s?exFull(s):ex};
 const stepOpts=(L,i)=>`<option value="">— עוד לא נבדק —</option>`+L.steps.map((s,j)=>`<option value="${j}"${j===i?" selected":""}>${j+1}. ${esc(exName(s))}</option>`).join("");
 const ladLabel=L=>`${esc(L.l)}<small>${esc(L.t)}${L.ci===1?" · טבעות":""}</small>`;
@@ -1165,7 +1164,7 @@ $("q").oninput=()=>{
   const out=[];
   for(const L of LADS) L.steps.forEach((s,i)=>{if(out.length<25&&[s.ex,s.en,s.he].some(x=>x&&x.toLowerCase().includes(q))) out.push({L,s,i});});
   $("qres").hidden=false;
-  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b>${esc(exName(o.s))}</b><span class="he">${esc(o.s.he||"")}</span><small>${esc(o.L.l)} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
+  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b><bdi>${esc(exName(o.s))}</bdi>${o.s.he?`<span class="sep"> | </span><bdi class="he">${esc(o.s.he)}</bdi>`:""}</b><small>${esc(o.L.l)} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
     :`<li class="none">לא נמצא תרגיל בשם הזה</li>`;
 };
 $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$("q").value="";$("qres").innerHTML="";$("qres").hidden=true;openStep(b.dataset.k,+b.dataset.x);};
