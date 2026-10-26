@@ -225,6 +225,17 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .pbody .stepc{margin-top:8px}
 .opt>.label{margin:4px 14px 6px}
 .guide3{margin-top:18px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);margin:8px 0}
+.seg2 button{font:inherit;font-weight:700;padding:8px;border:0;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer}
+.seg2 button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.story{display:grid;gap:6px}
+.sh{all:unset;cursor:pointer;margin-top:10px;font-weight:700;color:var(--accent);font-size:.95rem}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.scard{font:inherit;text-align:right;cursor:pointer;display:grid;grid-template-rows:auto 1fr;gap:4px;padding:8px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);min-width:0}
+.scap{font-size:.8rem;line-height:1.35;color:var(--ink);display:flex;gap:6px;align-items:flex-start}
+.scap i{font-style:normal;flex:none;min-width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--surface);font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.scard .ill{display:grid;place-items:center;padding:6px 4px 2px}
+.scard .ill svg{max-height:120px;width:100%}
 .eqsum{color:var(--muted);font-size:.85rem;margin-top:0;margin-bottom:6px}
 .srow{border-top:1px solid var(--line);padding:8px 0 6px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center}
 .srow>.warn,.srow>.sact{grid-column:1/-1}
@@ -1310,22 +1321,33 @@ const KLS=K("ליבה","L-Sit / V-Sit"), KEL=K("סטטיקה","Elbow Lever");
 // ---------- group workout plans, written as a coach's script: one step at a time, what to say, what to do, who does what ----------
 // step: t title, m minutes, say (what to tell the group), do (actions in order), lad [[label, ladderKey, maxStep?]],
 // groups (split the group between the ladders as stations), pairs, dose (replaces the step target), timer {sec} or {work,rest,rounds}, notes, test
+// small front-view figures for the warm-up and stretch cards (same classes as the exercise illustrations)
+const FIG=(extra,arms)=>`<svg viewBox="0 0 120 165" role="img" aria-label="איור"><circle class="hd" cx="60" cy="24" r="11"/><polyline class="fg" points="60,36 60,92"/><polyline class="fg" points="44,46 76,46"/>${arms||'<polyline class="fg" points="44,46 40,92"/><polyline class="fg" points="76,46 80,92"/>'}<polyline class="fg" points="52,92 68,92"/><polyline class="fg" points="52,92 50,150"/><polyline class="fg" points="68,92 70,150"/><line class="gr" x1="30" y1="154" x2="90" y2="154"/>${extra||""}</svg>`;
+const ARC=(cx,cy,r)=>`<path class="ar" d="M${cx-r},${cy} A${r},${r*0.55} 0 1 1 ${cx+r*0.7},${cy+r*0.4}"/><path class="ar" d="M${cx+r*0.7-7},${cy+r*0.4-2} L${cx+r*0.7},${cy+r*0.4} L${cx+r*0.7-3},${cy+r*0.4-8}"/>`;
+const WU={
+  neck:FIG(ARC(60,24,20)),
+  shoulders:FIG(ARC(26,28,11)+ARC(94,28,11),'<polyline class="fg" points="44,46 28,30"/><polyline class="fg" points="76,46 92,30"/>'),
+  hips:FIG(ARC(60,92,26),'<polyline class="fg" points="44,46 34,70 52,86"/><polyline class="fg" points="76,46 86,70 68,86"/>'),
+  stretch:FIG("",'<polyline class="fg" points="76,46 40,54"/><polyline class="fg" points="44,46 34,64 44,58"/>'),
+};
 const JOINTS={t:"חימום מפרקים",m:8,timer:{sec:480},notes:true,
+  cards:[{svg:WU.neck,cap:"צוואר · 5 סיבובים לכל צד"},{svg:WU.shoulders,cap:"כתפיים · 10 קדימה, 10 אחורה"},{svg:WU.hips,cap:"אגן · 10 סיבובים לכל צד"},
+    {ex:"Bodyweight Squat",cap:"רגליים · 10 סקוואטים + 10 לאנג'ים"},{ex:"Wrist Prep — חימום שורש כף היד",cap:"שורש כף היד · 10 + 10"}],
   do:["צוואר: 5 סיבובים לכל צד.","כתפיים: 10 סיבובים קדימה, 10 אחורה.","ירך ואגן: 10 סיבובים לכל צד.",
     "רגליים: 10 סקוואטים איטיים + 10 לאנג'ים לסירוגין.","שורש כף היד, על ארבע: 10 קדימה-אחורה, 10 לצדדים."]};
-const PREP={t:"תלייה ותמיכה",m:6,dose:"2 × 20–30 שנ׳",
+const PREP={t:"תלייה ותמיכה",m:6,dose:"2 × 20–30 שנ׳",cc:"20–30 שנ׳ × 2",
   do:["תלייה על המתח: 20–30 שנ׳, כתפיים רחוק מהאוזניים.","תמיכה במקבילים: 20–30 שנ׳, ידיים ישרות.","2 סבבים. מי שמחכה למתח מתחיל במקבילים."],
   lad:[["תלייה על המתח",KP,1],["תמיכה במקבילים",KD,1]]};
-const COOL={t:"שחרור וסיכום",m:4,
+const COOL={t:"שחרור וסיכום",m:4,cards:[{svg:WU.stretch,cap:"מתיחות · 30 שנ׳ לכל אחת"}],
   do:["מתיחות כתפיים, חזה ושורש כף היד: 30 שנ׳ לכל אחת.","כל אחד אומר דבר אחד שהשתפר.","מסמנים \"עמד\" ולוחצים \"סיום אימון\"."]};
-const STN=(t,a,b,rounds)=>({t,m:rounds+1,groups:true,timer:{work:40,rest:20,rounds},
+const STN=(t,a,b,rounds)=>({t,m:rounds+1,groups:true,timer:{work:40,rest:20,rounds},cc:`40 שנ׳ · ${rounds/2} פעמים`,
   do:["2 קבוצות, כל אחת מתחילה בתחנה שלה (למטה).","40 שנ׳: סט אחד של התרגיל האישי.","20 שנ׳: מעבר לתחנה השנייה.",`${rounds} סבבים (${rounds/2} פעמים בכל תחנה).`],
   lad:[a,b]});
-const SS=(t,m,a,b,rounds)=>({t,m,timer:{sec:m*60},
+const SS=(t,m,a,b,rounds)=>({t,m,timer:{sec:m*60},cc:`${rounds} סבבים, ברצף`,
   do:[`סט ${a[0]}, ומיד סט ${b[0]}.`,"מנוחה 60–90 שנ׳.",`${rounds} סבבים.`],lad:[a,b]});
 const SIMPLE=(id,name,keys)=>{keys=keys.filter(Boolean);return {id,name,group:"לפי שריר",when:"3 סטים לכל תרגיל, 60–90 שנ׳ מנוחה.",
   blocks:[JOINTS,
-    {t:"תרגילים",m:keys.length*6,do:["3 סטים לכל תרגיל, 60–90 שנ׳ מנוחה.","אפשר בזוגות: סט מהראשון, מנוחה, סט מהשני."],lad:keys.map((k,i)=>[String(i+1),k])},
+    {t:"תרגילים",m:keys.length*6,cc:"3 סטים",do:["3 סטים לכל תרגיל, 60–90 שנ׳ מנוחה.","אפשר בזוגות: סט מהראשון, מנוחה, סט מהשני."],lad:keys.map((k,i)=>[String(i+1),k])},
     COOL]};};
 const PLANS=[
  {id:"stations",name:"תחנות · משיכה ודחיפה",group:"מבנה אימון",when:"חימום, תלייה ותמיכה, ואז תחנות. מתאים למתח אחד ומקבילים אחד.",blocks:[
@@ -1336,7 +1358,7 @@ const PLANS=[
    COOL]},
  {id:"classic",name:"קלאסי · סופרסטים",group:"מבנה אימון",when:"כוח לכל הגוף בזוגות של תרגילים. מתאים לרוב הימים.",blocks:[
    JOINTS,
-   {t:"מיומנות",m:8,timer:{sec:480},do:["4 ניסיונות קצרים, 60 שנ׳ מנוחה.","מי שמחכה לציוד: אותו תרגיל על הרצפה."],
+   {t:"מיומנות",m:8,timer:{sec:480},cc:"4 ניסיונות",do:["4 ניסיונות קצרים, 60 שנ׳ מנוחה.","מי שמחכה לציוד: אותו תרגיל על הרצפה."],
      alt:[["L-Sit",KLS],["עמידת ידיים",KHS],["Front Lever",KFL],["Elbow Lever",KEL]]},
    SS("כוח 1: מתח + שכיבות סמיכה",14,["מתח",KP],["שכיבות סמיכה",KPU],4),
    SS("כוח 2: מעל הראש + חתירה",14,["מעל הראש",KO],["חתירה",KR],4),
@@ -1344,25 +1366,25 @@ const PLANS=[
    COOL]},
  {id:"emom",name:"EMOM · כל דקה",group:"מבנה אימון",when:"קצר ואינטנסיבי. כולם על אותו שעון.",blocks:[
    JOINTS,
-   {t:"EMOM 24 דק׳",m:24,timer:{work:60,rest:0,rounds:24,cycle:["מתח","שכיבות סמיכה","סקוואט","ליבה"]},dose:"חצי מהמקסימום (החזקה: 15–20 שנ׳)",
+   {t:"EMOM 24 דק׳",m:24,timer:{work:60,rest:0,rounds:24,cycle:["מתח","שכיבות סמיכה","סקוואט","ליבה"]},dose:"חצי מהמקסימום (החזקה: 15–20 שנ׳)",cc:"כל דקה · 6 פעמים",
      do:["בתחילת כל דקה: התרגיל של הדקה. שאר הדקה מנוחה.","סדר: מתח, שכיבות סמיכה, סקוואט, ליבה. 6 סבבים.","אין מנוחה בסוף הדקה? פחות חזרות."],
      lad:[["דקה 1",KP],["דקה 2",KPU],["דקה 3",KSQ],["דקה 4",KHO]]},
    COOL]},
  {id:"partners",name:"זוגות · אני-אתה",group:"מבנה אימון",when:"מתח אחד לכל שניים. אחד עובד, השני בתרגיל אחר.",blocks:[
    JOINTS,PREP,
-   {t:"זוגות: מתח + ליבה",m:14,pairs:true,timer:{sec:840},do:["אחד: סט מתח. השני: מחזיק ליבה באותו זמן.","מחליפים. 5 סבבים לכל אחד."],lad:[["מתח",KP],["ליבה",KHO]]},
-   {t:"זוגות: מקבילים + רגליים",m:14,pairs:true,timer:{sec:840},do:["אחד: סט במקבילים. השני: סט רגליים.","מחליפים. 5 סבבים לכל אחד."],lad:[["מקבילים",KD],["רגליים",KSQ]]},
-   {t:"סיום: סולם יורד",m:5,timer:{sec:300},dose:"5-4-3-2-1 חזרות",do:["שכיבות סמיכה: 5, 4, 3, 2, 1.","בין מדרגה למדרגה: פלאנק 10 שנ׳."],lad:[["שכיבות סמיכה",KPU]]},
+   {t:"זוגות: מתח + ליבה",m:14,pairs:true,cc:"5 סבבים לכל אחד",timer:{sec:840},do:["אחד: סט מתח. השני: מחזיק ליבה באותו זמן.","מחליפים. 5 סבבים לכל אחד."],lad:[["מתח",KP],["ליבה",KHO]]},
+   {t:"זוגות: מקבילים + רגליים",m:14,pairs:true,cc:"5 סבבים לכל אחד",timer:{sec:840},do:["אחד: סט במקבילים. השני: סט רגליים.","מחליפים. 5 סבבים לכל אחד."],lad:[["מקבילים",KD],["רגליים",KSQ]]},
+   {t:"סיום: סולם יורד",m:5,timer:{sec:300},cc:"5-4-3-2-1",dose:"5-4-3-2-1 חזרות",do:["שכיבות סמיכה: 5, 4, 3, 2, 1.","בין מדרגה למדרגה: פלאנק 10 שנ׳."],lad:[["שכיבות סמיכה",KPU]]},
    COOL]},
  {id:"skill",name:"יום מיומנות",group:"מבנה אימון",when:"לגיוון או אחרי שבוע כבד: עמידת ידיים, L-Sit, Front Lever.",blocks:[
    {...JOINTS,m:10,timer:{sec:600},do:[...JOINTS.do,"עוד 2 דק׳ לשורש כף היד."]},
-   {t:"עמידת ידיים",m:20,timer:{sec:1200},do:["6–8 ניסיונות קצרים.","60–90 שנ׳ מנוחה.","עוצרים כשהקו נשבר."],lad:[["עמידת ידיים",KHS]]},
-   {t:"L-Sit",m:10,timer:{sec:600},do:["5 סטים קצרים.","45 שנ׳ מנוחה."],lad:[["L-Sit",KLS]]},
-   {t:"Front Lever",m:10,timer:{sec:600},do:["5 החזקות קצרות.","90 שנ׳ מנוחה. גב שטוח, ידיים ישרות."],lad:[["Front Lever",KFL]]},
+   {t:"עמידת ידיים",m:20,timer:{sec:1200},cc:"6–8 ניסיונות",do:["6–8 ניסיונות קצרים.","60–90 שנ׳ מנוחה.","עוצרים כשהקו נשבר."],lad:[["עמידת ידיים",KHS]]},
+   {t:"L-Sit",m:10,timer:{sec:600},cc:"5 סטים קצרים",do:["5 סטים קצרים.","45 שנ׳ מנוחה."],lad:[["L-Sit",KLS]]},
+   {t:"Front Lever",m:10,timer:{sec:600},cc:"5 החזקות",do:["5 החזקות קצרות.","90 שנ׳ מנוחה. גב שטוח, ידיים ישרות."],lad:[["Front Lever",KFL]]},
    COOL]},
  {id:"test",name:"בדיקת רמות",group:"מבנה אימון",when:"לקבוצה חדשה או פעם בחודש: כל אחד מקבל שלב בכל סולם.",blocks:[
    JOINTS,
-   {t:"בדיקה",m:36,test:true,
+   {t:"בדיקה",m:36,test:true,cc:"עד 3×5 נקי",
      do:["בכל סולם: מתחילים משלב קל ועולים שלב-שלב.","השלב הקשה ביותר שיוצא 3×5 נקי (או החזקה מלאה) = השלב שלו.","בוחרים אותו ב\"שלב\" ליד השם.","מנוחה מלאה. לסירוגין: משיכה, דחיפה, רגליים."],
      lad:[["משיכה אנכית",KP],["משיכה אופקית",KR],["דחיפה אופקית",KPU],["דחיפה אנכית",KD],["רגליים",KSQ],["ליבה",KHO]]},
    COOL]},
@@ -1406,7 +1428,7 @@ function rowsHtml(k,trs,S,b,cap){
       <div class="r1"><b>${esc(tr.name)}</b>${s?`<span class="exn">${esc(exFull(s))}</span>`:`<span class="exn warn">${lvIdx(tr,k)<0?"עוד אין שלב":"אין ציוד מתאים היום"}</span>`}</div>
       ${s&&j!==i?`<p class="warn">אין ציוד ל-${esc(exName(L.steps[i]))}, אז היום זה.</p>`:""}
       ${s?missingReq(tr,s).map(r=>{const q=LAD(r.k).steps.find(x=>x.ex===r.ex);return `<p class="warn">קודם צריך לשלוט ב-${esc(exFull(q))}.</p>`}).join(""):""}
-      <div class="sact">${s?`<span class="tg">${b.dose?esc(b.dose):`יעד: <b>${esc(s.pass)}</b>${st?` <i class="st">(1 מתוך 2)</i>`:""}`}</span>`:`<span class="tg"></span>`}
+      <div class="sact">${s?`<span class="tg">${b.dose?fmt(b.dose):`יעד: <b>${esc(s.pass)}</b>${st?` <i class="st">(1 מתוך 2)</i>`:""}`}</span>`:`<span class="tg"></span>`}
         ${s&&trackable(b)&&cap==null&&j===i?`<button class="ok" data-ok="${esc(dk)}" aria-pressed="${done}">${done?"✓ עמד":"עמד?"}</button>`:""}
         ${s?`<button class="mv" data-open="${esc(k)}" data-x="${j}" aria-label="איך עושים">?</button>`:""}
         ${cap==null?`<button class="mv" data-pick="${esc(dk)}" aria-label="שינוי שלב">שלב</button>`:""}</div>
@@ -1415,6 +1437,29 @@ function rowsHtml(k,trs,S,b,cap){
 }
 // split the present trainees into n groups (stations) or pairs, keeping the order stable
 function split(trs,n){const g=Array.from({length:n},()=>[]);trs.forEach((t,i)=>g[i%n].push(t));return g.filter(x=>x.length);}
+// ---------- the whole workout as pictures, in order: right to left, then down ----------
+const REP={[KP]:"Pull-Up",[KD]:"Parallel Bar Dip",[KR]:"Australian Row — רגליים ישרות",[KPU]:"Push-Up",[KSQ]:"Bodyweight Squat",[KHO]:"Hollow Hold",
+  [KO]:"Pike Push-Up",[KH]:"Glute Bridge",[KCA]:"Standing Calf Raise",[KAR]:"Bird Dog",[KSI]:"Side Plank",[KHA]:"Hanging Knee Raise",
+  [KFL]:"Tuck Front Lever",[KHS]:"Chest-to-Wall Handstand",[KLS]:"Tuck L-Sit",[KEL]:"Bent-Knee Elbow Lever"};
+function repEx(k,cap){const L=LAD(k);if(!L)return null;
+  if(cap!=null) return L.steps[Math.min(cap,L.steps.length-1)];
+  return L.steps.find(s=>s.ex===REP[k])||L.steps[Math.floor(L.steps.length/2)];}
+// number ranges like 20–30 keep their order inside Hebrew text
+const fmt=t=>esc(t).replace(/(\d+(?:[–-]\d+)+)/g,'<bdi dir="ltr">$1</bdi>');
+function storyHtml(p,S){
+  let n=0,t0=0,h=`<div class="story">`;
+  p.blocks.forEach((b,bi)=>{
+    const lads=blockLads(p,bi,S);
+    const cards=b.cards?b.cards:lads.map(([lab,k,cap])=>{const s=repEx(k,cap);
+      return {ex:s&&s.ex,cap:`${b.groups?`תחנה ${lads.findIndex(x=>x[1]===k)+1} · `:""}${lab}${b.cc?` · ${b.cc}`:""}`};});
+    h+=`<button class="sh" data-step="${bi}" data-view="steps"><bdi>${t0}–${t0+b.m}</bdi> דק׳ · ${esc(b.t)}</button><div class="sgrid">`;
+    for(const c of cards){n++;
+      const pic=c.svg?c.svg:(c.ex&&ILLV.has(c.ex,false)?ILLV.draw(c.ex,false):"");
+      h+=`<button class="scard" data-step="${bi}" data-view="steps"><span class="scap"><i>${n}</i><span>${fmt(c.cap)}</span></span><span class="ill">${pic}</span></button>`;}
+    h+=`</div>`;t0+=b.m;
+  });
+  return h+`</div>`;
+}
 function stepHtml(p,bi,S,pres){
   const b=p.blocks[bi], lads=blockLads(p,bi,S);
   let t0=0;for(let i=0;i<bi;i++) t0+=p.blocks[i].m;
@@ -1422,7 +1467,7 @@ function stepHtml(p,bi,S,pres){
     <p class="smeta">שלב ${bi+1} מתוך ${p.blocks.length} · דקות <bdi>${t0}–${t0+b.m}</bdi></p>
     <h3 class="stitle">${esc(b.t)}</h3>
     ${b.say?`<div class="say"><b>אומרים לקבוצה</b>${esc(b.say)}</div>`:""}
-    <div class="dobox"><b>מה עושים</b><ol>${b.do.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>`;
+    <div class="dobox"><b>מה עושים</b><ol>${b.do.map(x=>`<li>${fmt(x)}</li>`).join("")}</ol></div>`;
   if(b.notes){const n=pres.filter(t=>t.note);h+=`<div class="dobox"><b>הערות על המתאמנים</b>${n.length?n.map(t=>`<p><b>${esc(t.name)}:</b> ${esc(t.note)}</p>`).join(""):"<p>אין הערות.</p>"}</div>`;}
   if(b.timer) h+=timerHtml(p,bi,b);
   if(b.alt) h+=`<div class="chips alt"><span class="lbl2">מה מתרגלים היום:</span>${b.alt.map((a,ci)=>`<button class="lad" data-alt="${bi}:${ci}" aria-pressed="${a[1]===lads[0][1]}">${esc(a[0])}</button>`).join("")}</div>`;
@@ -1486,7 +1531,8 @@ function renderSes(){
       <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>מי הגיע וציוד<span>${S.present.length===CO.trainees.length?`כולם (${S.present.length})`:`${S.present.length} מתוך ${CO.trainees.length}`} · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
         <p class="label">מי הגיע</p><div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
         <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>
-      ${S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מסמנים ב"מי הגיע" מי בא היום.</p>`}
+      <div class="seg2"><button data-view="cards" aria-pressed="${S.view!=="steps"}">בתמונות</button><button data-view="steps" aria-pressed="${S.view==="steps"}">שלב אחר שלב</button></div>
+      ${S.view!=="steps"?storyHtml(p,S):S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מסמנים ב"מי הגיע" מי בא היום.</p>`}
     </div>`;
   }
   h+=`<details class="opt guide3" data-o="guide"${isOpen("guide",false)?" open":""}><summary>מדריך למאמן<span>איך מעבירים אימון קבוצתי</span></summary><div class="guide">${GUIDE.map(g=>`<p><b>${g[0]}</b>${esc(g[1])}</p>`).join("")}</div></details>`;
@@ -1508,7 +1554,8 @@ $("sbody").onclick=e=>{
     if(S.openPlan===id) S.openPlan=null;
     else{if(S.plan!==id){S.plan=id;S.step=0;S.done={};}S.openPlan=id;}
     csave();renderSes();const r=document.querySelector(`.prow[data-po="${id}"]`);if(r&&S.openPlan) window.scrollTo(0,r.getBoundingClientRect().top+window.scrollY-70);return;}
-  else if(b.dataset.step!=null){S.step=+b.dataset.step;top=true;}
+  else if(b.dataset.view&&b.dataset.step==null){S.view=b.dataset.view;}
+  else if(b.dataset.step!=null){S.step=+b.dataset.step;if(b.dataset.view)S.view=b.dataset.view;top=true;}
   else if(b.dataset.alt){const [bi,ci]=b.dataset.alt.split(":");S.alt=S.alt||{};S.alt[S.plan+":"+bi]=+ci;}
   else if(b.dataset.ok){S.done[b.dataset.ok]=!S.done[b.dataset.ok];}
   else if(b.dataset.pick){const k=b.dataset.pick;showSel.has(k)?showSel.delete(k):showSel.add(k);}
