@@ -411,9 +411,12 @@ const oneTop={v:"front",sy:8,dx:-4,hL:[-10,90],hR:[24,104],down:true};
 
 // ---------- SIDE: push-ups ----------
 function pushups(F,handY,drop,opt){opt=opt||{};
-  const S1=onC(F,123,handY-54), hand=[S1[0]+(opt.hx||0),handY], S2=onC(F,123,handY-drop);
+  let S1=onC(F,123,handY-54), hand=[S1[0]+(opt.hx||0),handY], S2=onC(F,123,handY-drop);
+  // on an incline the arms stay square to the body and the chest comes down to the hands, not past them
+  if(opt.hbox||opt.incline){const R=Math.hypot(123,54);hand=[F[0]+Math.sqrt(R*R-(F[1]-handY)**2),handY];
+    S1=tri(F,hand,123,54);S2=tri(F,hand,123,22);}
   const pr=[...(opt.pr||[])];
-  if(opt.hbox) pr.push(box(hand[0]-20,handY+3.5,40));
+  if(opt.hbox) pr.push(box(hand[0]-6,handY+3.5,40));  // hands on the near edge, body stays outside
   if(opt.fbox) pr.push(box(F[0]-20,F[1]+3.5,40));
   if(opt.ring) pr.push(ring("W",opt.rlen||55));
   if(opt.fring) pr.push(ring("F",55));
@@ -757,7 +760,7 @@ const ILL={
  "Band-Assisted Ring Muscle-Up":[R(X(FP.hang,{band:true})),R(X(FP.high,{band:true})),R(FP.support)],
  "Strict Ring Muscle-Up":[R(FP.hang),R(FP.high),R(FP.support)],
  "Weighted Ring Muscle-Up":[R(X(FP.hang,{w:true})),R(X(FP.high,{w:true})),R(X(FP.support,{w:true}))],
- "Incline Ring Push-Up":pushups([20,200],145,18,{ring:true}),
+ "Incline Ring Push-Up":pushups([20,200],145,18,{ring:true,incline:true}),
  "Feet-Elevated Ring Push-Up":pushups([20,172],186,20,{ring:true,fbox:true}),
  "Archer Ring Push-Up":(()=>{const p=pushups([20,200],186,20,{ring:true});return [p[0],X(p[1],{label:"טבעת אחת נפתחת לצד"})];})(),
  "Ring Pseudo Planche Push-Up":PPL.map(fr=>X(fr,{A:[fr.A[0],188],pr:[ring("W",55)]})),
@@ -939,7 +942,11 @@ function build(host,frames){
     frames.forEach(fr=>(fr.pr||[]).forEach((q,i)=>{
       if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-45],[q.at[0],-q.at[1],45],2.6));
       else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
-      else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y;staticBox(q.x+q.w/2,-(q.y+h/2),0,q.w,h,60);});
+      else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y,cx=q.x+q.w/2;
+        // a tall box reads as a solid cube next to the body: draw it as a table/bench (top + four legs)
+        if(h>35&&q.h==null){staticBox(cx,-(q.y+3),0,q.w+6,6,64);
+          for(const dx of [-1,1]) for(const dz of [-1,1]) staticCyl([cx+dx*(q.w/2-2),-(q.y+6),dz*28],[cx+dx*(q.w/2-2),-(GY+4),dz*28],1.8);}
+        else staticBox(cx,-(q.y+h/2),0,q.w,h,60);});
       else if(q.k==="wall") once(["wall",q.x],()=>{const h=GY+4-q.y1;staticBox(q.x,-(q.y1+h/2),0,2,h,130,mWall);});
       else if(q.k==="pole") once(["pole",q.x],()=>staticCyl([q.x,-q.y1,0],[q.x,-q.y2,0],3));
       else if(q.k==="ring") once(["ring",q.atRef||q.at],()=>{
