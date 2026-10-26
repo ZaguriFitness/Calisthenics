@@ -216,6 +216,15 @@ details.tr summary span{color:var(--muted);font-size:.85rem}
 .snext{display:flex;gap:8px;align-items:stretch}
 .snext .nxt{flex:1;margin:0}
 .mv.big{padding:10px 14px}
+.prow{font:inherit;text-align:right;width:100%;display:grid;gap:2px;padding:12px 14px;margin-bottom:8px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.prow b{display:flex;justify-content:space-between;gap:8px;font-family:var(--display);font-weight:400;font-size:1.15rem}
+.prow b small{font-family:var(--body);color:var(--muted);font-size:.85rem}
+.prow span{color:var(--muted);font-size:.9rem}
+.prow[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pbody{margin:-2px 0 18px}
+.pbody .stepc{margin-top:8px}
+.opt>.label{margin:4px 14px 6px}
+.guide3{margin-top:18px}
 .eqsum{color:var(--muted);font-size:.85rem;margin-top:0;margin-bottom:6px}
 .srow{border-top:1px solid var(--line);padding:8px 0 6px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center}
 .srow>.warn,.srow>.sact{grid-column:1/-1}
@@ -1302,7 +1311,7 @@ const KLS=K("ליבה","L-Sit / V-Sit"), KEL=K("סטטיקה","Elbow Lever");
 // step: t title, m minutes, say (what to tell the group), do (actions in order), lad [[label, ladderKey, maxStep?]],
 // groups (split the group between the ladders as stations), pairs, dose (replaces the step target), timer {sec} or {work,rest,rounds}, notes, test
 const INTRO=summary=>({t:"פתיחה",m:2,say:`אהלן חברים! היום: ${summary}.`,
-  do:["מסמנים מי הגיע (בהגדרות למעלה).","שואלים אם למישהו כואב משהו היום. ההערות של כל מתאמן מופיעות כאן למטה."],notes:true});
+  do:["מסמנים מי הגיע (ב\"מי הגיע וציוד\" למעלה).","שואלים אם למישהו כואב משהו היום. ההערות של כל מתאמן מופיעות כאן למטה."],notes:true});
 const JOINTS={t:"חימום מפרקים",m:8,say:"כולם במעגל מולי, עושים איתי.",timer:{sec:480},
   do:["צוואר: 5 סיבובים לכל צד, לאט.","כתפיים: 10 סיבובים קדימה ו-10 אחורה.","ירך ואגן: 10 סיבובים לכל צד.",
     "רגליים: 10 סקוואטים איטיים, ואז 10 לאנג'ים לסירוגין.","שורש כף היד: על ארבע, 10 נדנודים קדימה-אחורה ו-10 לצדדים."]};
@@ -1472,21 +1481,25 @@ function renderSes(){
     $("sbody").innerHTML=`<p class="empty">כדי לבנות אימון צריך קודם להוסיף מתאמנים ולסמן לכל אחד את השלב שלו בכל סולם.</p><button class="primary" data-goto="tr">למסך המתאמנים</button>`;
     return;
   }
-  const p=planById(S.plan);S.plan=p.id;S.step=Math.max(0,Math.min(S.step|0,p.blocks.length-1));
   const chip=(on,attrs,txt)=>`<button class="lad" aria-pressed="${on}" ${attrs}>${txt}</button>`;
   const missing=EQ.filter(e=>!S.avail.includes(e[0])).map(e=>e[1]);
-  const groups=[...new Set(PLANS.map(x=>x.group))];
   const pres=S.present.map(trById);
-  let h=`<details class="opt plan" data-o="set"${isOpen("set",false)?" open":""}>
-      <summary>${esc(p.name)}<span>${p.min} דק׳ · ${S.present.length} מתאמנים${missing.length?" · חסר ציוד":""}</span></summary>
-      <p class="label">איזה אימון</p>
-      ${groups.map(g=>`<p class="label sub2">${g}</p><div class="plist">${PLANS.filter(x=>x.group===g).map(x=>`<button class="pl" data-plan="${x.id}" aria-pressed="${x.id===p.id}"><b>${esc(x.name)}<small>${x.min} דק׳</small></b><span>${esc(x.when)}</span></button>`).join("")}</div>`).join("")}
-      <p class="label">מי מגיע</p><div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
-      <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div>
-      <details class="guide2" data-o="guide"${isOpen("guide",false)?" open":""}><summary>מדריך למאמן</summary><div class="guide">${GUIDE.map(g=>`<p><b>${g[0]}</b>${esc(g[1])}</p>`).join("")}</div></details>
-    </details>`;
-  if(!S.present.length){h+=`<p class="empty">פותחים את ההגדרות למעלה ומסמנים מי הגיע היום.</p>`;$("sbody").innerHTML=h;return;}
-  h+=`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`;
+  // a plain list of workouts; tapping one opens it right there (one open at a time)
+  let h="",g0="";
+  for(const x of PLANS){
+    if(x.group!==g0){g0=x.group;h+=`<p class="label">${esc(g0)}</p>`;}
+    const on=S.openPlan===x.id;
+    h+=`<button class="prow" data-po="${x.id}" aria-expanded="${on}"><b>${esc(x.name)}<small>${x.min} דק׳</small></b><span>${esc(x.when)}</span></button>`;
+    if(!on) continue;
+    const p=x;S.plan=p.id;S.step=Math.max(0,Math.min(S.step|0,p.blocks.length-1));
+    h+=`<div class="pbody">
+      <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>מי הגיע וציוד<span>${S.present.length===CO.trainees.length?`כולם (${S.present.length})`:`${S.present.length} מתוך ${CO.trainees.length}`} · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
+        <p class="label">מי הגיע</p><div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
+        <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>
+      ${S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מסמנים ב"מי הגיע" מי בא היום.</p>`}
+    </div>`;
+  }
+  h+=`<details class="opt guide3" data-o="guide"${isOpen("guide",false)?" open":""}><summary>מדריך למאמן<span>איך מעבירים אימון קבוצתי</span></summary><div class="guide">${GUIDE.map(g=>`<p><b>${g[0]}</b>${esc(g[1])}</p>`).join("")}</div></details>`;
   $("sbody").innerHTML=h;
 }
 $("sbody").addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.o)return;
@@ -1501,7 +1514,10 @@ $("sbody").onclick=e=>{
   let top=false;
   if(b.dataset.p){const id=b.dataset.p;S.present=S.present.includes(id)?S.present.filter(x=>x!==id):[...S.present,id];}
   else if(b.dataset.e){const id=b.dataset.e;S.avail=S.avail.includes(id)?S.avail.filter(x=>x!==id):[...S.avail,id];}
-  else if(b.dataset.plan){if(S.plan!==b.dataset.plan){S.plan=b.dataset.plan;S.step=0;S.done={};}}
+  else if(b.dataset.po){const id=b.dataset.po;
+    if(S.openPlan===id) S.openPlan=null;
+    else{if(S.plan!==id){S.plan=id;S.step=0;S.done={};}S.openPlan=id;}
+    csave();renderSes();const r=document.querySelector(`.prow[data-po="${id}"]`);if(r&&S.openPlan) window.scrollTo(0,r.getBoundingClientRect().top+window.scrollY-70);return;}
   else if(b.dataset.step!=null){S.step=+b.dataset.step;top=true;}
   else if(b.dataset.alt){const [bi,ci]=b.dataset.alt.split(":");S.alt=S.alt||{};S.alt[S.plan+":"+bi]=+ci;}
   else if(b.dataset.ok){S.done[b.dataset.ok]=!S.done[b.dataset.ok];}
