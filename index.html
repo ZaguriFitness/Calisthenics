@@ -982,6 +982,9 @@ function build(host,frames,opt){opt=opt||{};
   if(keys.length>1){
     if(opt.neg){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.15:0.6,move:2.6/(keys.length-1)});
       TL.push({a:keys.length-1,b:0,hold:0.45,move:0.4});}
+    // one-way moves (kick-up, bail, muscle-up...): show only the active part, then snap back to the start
+    else if(opt.fwd){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.25:0.6,move:opt.fast?0.55:1.1});
+      TL.push({a:keys.length-1,b:0,hold:0.6,move:0.4});}
     else{const seq=[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)];
       seq.forEach((k,i)=>TL.push({a:k,b:seq[(i+1)%seq.length],hold:0.7,move:1.15}));}
   }
@@ -1023,11 +1026,13 @@ function fallback(host,ex,ring,msg){
   const m=host.querySelector(".tdmsg");if(m) m.textContent=msg;
   const d=document.createElement("div");d.className="ill";d.innerHTML=ILLV.draw(ex,ring);host.prepend(d);
 }
+// exercises whose point is the active (upward / forward) part only; the way back is not part of the drill
+const ONEWAY=/^(Handstand Kick-Up|Bail —|Wall Walk|Explosive \/ High Pull-Up|Strict Bar Muscle-Up|Weighted Muscle-Up|Strict Ring Muscle-Up|Weighted Ring Muscle-Up|Band-Assisted Ring Muscle-Up|Low Ring Transition|Press to Handstand)/;
 async function mount(host,ex,ring){
   stop();
   try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
   if(!host.isConnected) return;
-  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
+  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
   catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
 }
 return {mount, stop};
