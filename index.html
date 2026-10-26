@@ -898,7 +898,7 @@ function to3d(fr){
 const SEG=[["neck","pelv",8.5],["shL","shR",5],["hpL","hpR",6.5],["shL","elL",4.6],["elL","wrL",4],
   ["shR","elR",4.6],["elR","wrR",4],["hpL","knL",6.2],["knL","ftL",5],["hpR","knR",6.2],["knR","ftR",5]];
 
-function build(host,frames){
+function build(host,frames,opt){opt=opt||{};
   const T=window.THREE, W=()=>host.clientWidth||300;
   const renderer=new T.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));renderer.setSize(W(),HGT);
@@ -977,8 +977,15 @@ function build(host,frames){
     }
   }
   const lerpK=(a,b,t)=>{const o={};for(const n in a){if(!a[n]||!b[n]){o[n]=a[n];continue;}o[n]=[0,1,2].map(i=>a[n][i]+(b[n][i]-a[n][i])*t);}return o;};
-  const seq=keys.length>1?[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)]:[0];
-  const HOLD=0.7, MOVE=1.15, STEP=HOLD+MOVE;
+  // timeline of moves {a,b,hold,move}: normally there and back; a negative shows only the slow lowering, then snaps back to the start
+  const TL=[];
+  if(keys.length>1){
+    if(opt.neg){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.15:0.6,move:2.6/(keys.length-1)});
+      TL.push({a:keys.length-1,b:0,hold:0.45,move:0.4});}
+    else{const seq=[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)];
+      seq.forEach((k,i)=>TL.push({a:k,b:seq[(i+1)%seq.length],hold:0.7,move:1.15}));}
+  }
+  const TOTAL=TL.reduce((t,x)=>t+x.hold+x.move,0);
   // camera framing over every frame
   const all=keys.flatMap(k=>Object.values(k).filter(Boolean));
   const mn=[0,1,2].map(i=>Math.min(...all.map(p=>p[i]))), mx=[0,1,2].map(i=>Math.max(...all.map(p=>p[i])));
@@ -998,10 +1005,11 @@ function build(host,frames){
   if(btn) btn.onclick=()=>{playing=!playing;if(playing){t0=performance.now()-tPaused;loop();}setBtn();};
   function frameAt(sec){
     if(keys.length<2) return keys[0];
-    const total=seq.length*STEP, tt=sec%total, i=Math.floor(tt/STEP), local=tt-i*STEP;
-    const a=keys[seq[i]], b=keys[seq[(i+1)%seq.length]];
-    if(local<HOLD) return a;
-    const u=(local-HOLD)/MOVE, e=u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    let tt=sec%TOTAL, x=TL[0];
+    for(const s of TL){x=s;if(tt<s.hold+s.move) break;tt-=s.hold+s.move;}
+    const a=keys[x.a], b=keys[x.b];
+    if(tt<x.hold) return a;
+    const u=Math.min(1,(tt-x.hold)/x.move), e=opt.neg&&x.b!==0?u:(u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2);
     return lerpK(a,b,e);
   }
   function loop(){if(!alive) return;cancelAnimationFrame(raf);
@@ -1019,7 +1027,7 @@ async function mount(host,ex,ring){
   stop();
   try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
   if(!host.isConnected) return;
-  try{cur=build(host,ILLV.frames3d(ex,ring));host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
+  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
   catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
 }
 return {mount, stop};
