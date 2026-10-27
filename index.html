@@ -898,9 +898,16 @@ function frontJ(fr){
   else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
   return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel};
 }
+// wall walk for the 3D view: the feet climb the wall one step at a time while the hands walk in toward it
+const SIDE3D={"Wall Walk חלקי":(()=>{const FX=15,wall={k:"wall",x:12,y1:20};
+  // arms straight under the shoulders, body straight from the higher foot to the shoulders; the other foot follows a step behind
+  const fr=(yR,yL)=>{const fR=[FX,yR],fL=[FX,yL],hi=yR<=yL?fR:fL;
+    const hx=FX+Math.sqrt(123*123-(146-hi[1])**2), S=[hx,146], a=Math.atan2(S[1]-hi[1],S[0]-hi[0]), H=[hi[0]+73*Math.cos(a),hi[1]+73*Math.sin(a)];
+    return {H,t:a*180/Math.PI,A:[hx,200],L:fR,L2:fL,kb:[1,1],kb2:[1,1],g:1,pr:[wall]};};
+  return [fr(199,199),fr(168,199),fr(168,168),fr(138,168),fr(138,138),fr(108,138),fr(108,108),fr(80,108),fr(80,80),fr(55,80),fr(55,55)];})()};
 function frames3d(ex,r){
   if(RAW3D[ex]) return RAW3D[ex];
-  return (pick(ex,r)||[]).map(fr=>{
+  return (SIDE3D[ex]||pick(ex,r)||[]).map(fr=>{
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
@@ -1044,7 +1051,7 @@ function build(host,frames,opt){opt=opt||{};
     if(opt.neg){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.15:0.6,move:2.6/(keys.length-1)});
       TL.push({a:keys.length-1,b:0,hold:0.45,move:0.4});}
     // one-way moves (kick-up, bail, muscle-up...): show only the active part, then snap back to the start
-    else if(opt.fwd){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.25:0.6,move:opt.fast?0.55:1.1});
+    else if(opt.fwd){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.25:0.6,move:opt.fast?0.55:opt.walk?0.7:1.1});
       TL.push({a:keys.length-1,b:0,hold:0.6,move:0.4});}
     else{const seq=[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)];
       seq.forEach((k,i)=>TL.push({a:k,b:seq[(i+1)%seq.length],hold:0.7,move:1.15}));}
@@ -1093,7 +1100,7 @@ async function mount(host,ex,ring){
   stop();
   try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
   if(!host.isConnected) return;
-  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
+  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex),walk:/^Wall Walk/.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
   catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
 }
 return {mount, stop};
