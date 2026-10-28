@@ -313,6 +313,14 @@ body.noscroll{overflow:hidden}
 #v-lib.hue .step.rg .card{background:linear-gradient(160deg,hsl(calc(var(--h) + 30) 35% 18% / .9),var(--surface) 55%)}
 @media (prefers-color-scheme: light){#v-lib.hue .step.rg .card{background:linear-gradient(160deg,hsl(calc(var(--h) + 30) 60% 93%),var(--surface) 55%)}}
 .step.rg .num{border-style:dashed}
+/* exercise pop-up in the color of its block */
+.mcard.hue{background:linear-gradient(180deg,var(--cs),var(--bg) 220px);border-top:3px solid var(--c)}
+.mcard.hue .mback{border-color:var(--c);color:var(--c)}
+.mcard.hue .mcap{color:var(--c);font-weight:600}
+.mcard.hue .td,.mcard.hue .ill.big{background:linear-gradient(160deg,var(--cs),var(--chalk) 60%);border:1.5px solid var(--cb)}
+.mcard.hue .box{border:1.5px solid var(--cb)}
+.mcard.hue .box b{color:var(--c)}
+.mcard.hue .box.pass{background:var(--cs);border-color:var(--c)}
 </style>
 </head>
 <body>
@@ -1542,7 +1550,7 @@ function openCard(p,bi,ci){
   const ring=!!(c.k&&LAD(c.k)&&LAD(c.k).ci===1);
   let h=`<p class="mcap">${fmt(c.cap)}</p>`;
   if(st){
-    h+=`<h3 class="mtitle"><bdi>${esc(exName(st))}</bdi>${st.he?` | ${esc(st.he)}`:""}</h3>
+    h+=`<h3 class="mtitle"><bdi>${esc(exName(st))}</bdi>${st.he?` | ${esc(st.he)}`:""}${st.ring?RTAG:""}</h3>
       ${ILLV.has(st.ex,ring)?`<div class="td"><div class="tdbar"><span class="tdmsg">טוען תלת-ממד…</span><button class="tdplay" hidden>⏸ עצירה</button></div></div>`:""}
       <p class="how">${esc(st.how)}</p>
       <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(st.pass)}</div>
@@ -1550,6 +1558,8 @@ function openCard(p,bi,ci){
         <div class="box"><b>דגשים</b>${esc(st.cues)}</div><div class="box"><b>טעויות נפוצות</b>${esc(st.mist)}</div></div>
       ${c.k?`<p class="fine">כל מתאמן עושה את השלב שלו בסולם הזה. התרגיל כאן הוא הבסיסי.</p>`:""}`;
   } else h+=`<div class="ill big">${c.svg||""}</div>${c.how?`<p class="how">${esc(c.how)}</p>`:""}`;
+  // the pop-up takes the color of the block the card came from
+  const mc=$("modal").querySelector(".mcard");mc.classList.add("hue");mc.style.setProperty("--h",((PLANS.indexOf(p)*47+188)%360)+bi*28);
   $("mbody").innerHTML=h;$("modal").hidden=false;document.body.classList.add("noscroll");$("mback").focus();
   const td=$("mbody").querySelector(".td");if(td) TD.mount(td,st.ex,ring);
 }
