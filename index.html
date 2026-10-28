@@ -263,6 +263,46 @@ body.noscroll{overflow:hidden}
 .primary{font:inherit;font-weight:700;font-size:1rem;width:100%;padding:13px;border-radius:12px;border:0;background:var(--accent);color:var(--surface);cursor:pointer;margin-top:6px}
 .msg{background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-top:12px}
 .msg p{margin:2px 0}
+/* ---------- color: each movement family has a hue; boxes get a soft tint and a colored edge ---------- */
+:root{--h:188}
+.hue{--c:hsl(var(--h) 62% 38%);--c2:hsl(calc(var(--h) + 35) 62% 45%);--cs:hsl(var(--h) 60% 94%);--cb:hsl(var(--h) 45% 78%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hue{--c:hsl(var(--h) 72% 62%);--c2:hsl(calc(var(--h) + 35) 70% 58%);--cs:hsl(var(--h) 40% 16%);--cb:hsl(var(--h) 38% 32%)}}
+:root[data-theme="dark"] .hue{--c:hsl(var(--h) 72% 62%);--c2:hsl(calc(var(--h) + 35) 70% 58%);--cs:hsl(var(--h) 40% 16%);--cb:hsl(var(--h) 38% 32%)}
+.tab[aria-pressed="true"]{background:linear-gradient(120deg,hsl(188 60% 40%),hsl(268 50% 50%));border-color:transparent;color:#fff}
+.cat[aria-pressed="true"]{background:linear-gradient(120deg,hsl(188 60% 40%),hsl(268 50% 50%));color:#fff}
+.search{width:auto;max-width:220px;padding-inline-start:36px;border-radius:999px;margin:0 0 16px;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23889' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat right 12px center}
+.search:focus{max-width:100%;width:100%;outline:none;border-color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.search{transition:max-width .2s}}
+.track.hue{background:linear-gradient(135deg,var(--cs),var(--surface) 75%);border-color:var(--cb)}
+.track.hue small{color:var(--c)}
+.track.hue[aria-pressed="true"]{background:linear-gradient(135deg,var(--c),var(--c2));border-color:transparent;color:#fff}
+.track.hue[aria-pressed="true"] small{color:#fff;opacity:.9}
+#v-lib.hue .lad{border-color:var(--cb)}
+#v-lib.hue .lad[aria-pressed="true"]{background:var(--cs);border-color:var(--c);color:var(--ink)}
+#v-lib.hue .ladhead h2{color:var(--c)}
+#v-lib.hue .rail::before{background:linear-gradient(var(--c),var(--c2))}
+#v-lib.hue .num{border-color:var(--cb)}
+#v-lib.hue .step.open .num{background:linear-gradient(135deg,var(--c),var(--c2));border-color:transparent;color:#fff}
+#v-lib.hue .card{background:linear-gradient(160deg,var(--cs),var(--surface) 55%);border-color:var(--cb)}
+#v-lib.hue .step.open .card{border-color:var(--c)}
+#v-lib.hue .dots i.on{background:var(--c)}
+#v-lib.hue .box.pass{background:var(--cs)}
+#v-lib.hue .nav a{color:var(--c)}
+.who2{display:flex;align-items:center;gap:10px}
+.av{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--c),var(--c2))}
+.prow.hue{background:linear-gradient(135deg,var(--cs),var(--surface) 70%);border-color:var(--cb);border-inline-start:4px solid var(--c)}
+.prow.hue b small{color:var(--c)}
+.prow.hue[aria-expanded="true"]{background:linear-gradient(135deg,var(--c),var(--c2));color:#fff;border-color:transparent}
+.prow.hue[aria-expanded="true"] span,.prow.hue[aria-expanded="true"] b small{color:#fff;opacity:.92}
+.pbody.hue .seg2 button[aria-pressed="true"]{background:linear-gradient(120deg,var(--c),var(--c2));color:#fff}
+.pbody.hue .stepc{border-color:var(--c)}
+.pbody.hue .sdot[aria-pressed="true"]{background:var(--c);border-color:var(--c)}
+.pbody.hue .tnum{color:var(--c)}
+.sblk{display:grid;gap:6px}
+.sblk .sh{color:var(--c)}
+.sblk .scard{background:linear-gradient(170deg,var(--cs),var(--surface) 60%);border-color:var(--cb);border-top:3px solid var(--c)}
+.sblk .scap i{background:linear-gradient(135deg,var(--c),var(--c2))}
 </style>
 </head>
 <body>
@@ -275,10 +315,10 @@ body.noscroll{overflow:hidden}
     <button class="tab" data-v="ses" aria-pressed="false">אימון קבוצתי</button>
   </nav>
   <section id="v-lib">
-  <input id="q" class="search" type="search" placeholder="חיפוש תרגיל…" autocomplete="off" aria-label="חיפוש תרגיל">
-  <ul class="qres" id="qres" hidden></ul>
-
   <div class="cats" id="cats"></div>
+
+  <input id="q" class="search" type="search" placeholder="חיפוש תרגיל" autocomplete="off" aria-label="חיפוש תרגיל">
+  <ul class="qres" id="qres" hidden></ul>
 
   <p class="label">מסלול</p>
   <div class="tracks" id="tracks"></div>
@@ -1121,12 +1161,18 @@ const firstSentence=s=>{const m=s.match(/^[^.]*\./);return m?m[0]:s};
 function renderCats(){
   $("cats").innerHTML = DATA.map((c,i)=>`<button class="cat" aria-pressed="${i===st.c}" data-i="${i}">${esc(c.name)}</button>`).join("");
 }
+// one hue per movement family; cards, pills and steps take the color of their track
+const HUES={"משיכה אנכית":188,"משיכה אופקית":205,"משיכה":188,"דחיפה אופקית":22,"דחיפה אנכית":40,"דחיפה":22,"תמיכה":40,
+  "עמידת ידיים":268,"רגליים":145,"ליבה":330,"סטטיקה":222,"סטטיקה והפיכות":268};
+const hueOf=name=>HUES[name]!=null?HUES[name]:188;
+const hueStyle=h=>`style="--h:${h}"`;
 function renderTracks(){
   $("tracks").innerHTML = TR().map((t,i)=>{
     const n=t.ladders.reduce((a,l)=>a+l.steps.length,0);
-    return `<button class="track" aria-pressed="${i===st.t}" data-i="${i}">${esc(t.name)}<small>${n} תרגילים</small></button>`}).join("");
+    return `<button class="track hue" ${hueStyle(hueOf(t.name))} aria-pressed="${i===st.t}" data-i="${i}">${esc(t.name)}<small>${n} תרגילים</small></button>`}).join("");
 }
 function renderLadders(){
+  const v=$("v-lib");v.classList.add("hue");v.style.setProperty("--h",hueOf(TR()[st.t].name));
   $("ladders").innerHTML = TR()[st.t].ladders.map((l,i)=>
     `<button class="lad" aria-pressed="${i===st.l}" data-i="${i}">${esc(l.name)}</button>`).join("");
 }
@@ -1283,7 +1329,7 @@ function renderTr(){
     const others=LADS.filter(L=>!keys.includes(L.key));
     const hist=CO.log.flatMap(g=>(g.ch||[]).filter(c=>c.id===tr.id).map(c=>({...c,d:g.d}))).slice(-5).reverse();
     return `<details class="tr" data-id="${tr.id}"${openTr.has(tr.id)?" open":""}>
-      <summary><b>${esc(tr.name)}</b><span>${set} סולמות מוגדרים</span></summary>
+      <summary><span class="who2"><i class="av hue" ${hueStyle((CO.trainees.indexOf(tr)*67+188)%360)}>${esc([...tr.name.trim()][0]||"?")}</i><b>${esc(tr.name)}</b></span><span>${set} סולמות מוגדרים</span></summary>
       <div class="trb">
         <label class="fl">הערות (פציעות, מטרות)<textarea data-f="note" rows="2">${esc(tr.note||"")}</textarea></label>
         ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k);return `<label class="fl lv"><span>${ladLabel(L)}</span>
@@ -1490,15 +1536,15 @@ $("mback").onclick=closeCard;
 $("modal").onclick=e=>{if(e.target===$("modal"))closeCard();};
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeCard();});
 function storyHtml(p,S){
-  let n=0,t0=0,h=`<div class="story">`;
+  let n=0,t0=0,h=`<div class="story" style="--ph:${(PLANS.indexOf(p)*47+188)%360}">`;
   p.blocks.forEach((b,bi)=>{
     const lads=blockLads(p,bi,S);
     const cards=blockCards(p,bi,S);
-    h+=`<p class="sh"><bdi>${t0}–${t0+b.m}</bdi> דק׳ · ${esc(b.t)}</p><div class="sgrid">`;
+    h+=`<div class="hue sblk" style="--h:calc(var(--ph) + ${bi*28})"><p class="sh"><bdi>${t0}–${t0+b.m}</bdi> דק׳ · ${esc(b.t)}</p><div class="sgrid">`;
     cards.forEach((c,ci)=>{n++;
       const pic=c.svg?c.svg:(c.ex&&ILLV.has(c.ex,false)?ILLV.draw(c.ex,false):"");
       h+=`<button class="scard" data-card="${bi}:${ci}"><span class="scap"><i>${n}</i><span>${fmt(c.cap)}</span></span><span class="ill">${pic}</span></button>`;});
-    h+=`</div>`;t0+=b.m;
+    h+=`</div></div>`;t0+=b.m;
   });
   return h+`</div>`;
 }
@@ -1566,10 +1612,11 @@ function renderSes(){
   for(const x of PLANS){
     if(x.group!==g0){g0=x.group;h+=`<p class="label">${esc(g0)}</p>`;}
     const on=S.openPlan===x.id;
-    h+=`<button class="prow" data-po="${x.id}" aria-expanded="${on}"><b>${esc(x.name)}<small>${x.min} דק׳</small></b><span>${esc(x.when)}</span></button>`;
+    const ph=(PLANS.indexOf(x)*47+188)%360;
+    h+=`<button class="prow hue" ${hueStyle(ph)} data-po="${x.id}" aria-expanded="${on}"><b>${esc(x.name)}<small>${x.min} דק׳</small></b><span>${esc(x.when)}</span></button>`;
     if(!on) continue;
     const p=x;S.plan=p.id;S.step=Math.max(0,Math.min(S.step|0,p.blocks.length-1));
-    h+=`<div class="pbody">
+    h+=`<div class="pbody hue" ${hueStyle(ph)}>
       <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>מי הגיע וציוד<span>${S.present.length===CO.trainees.length?`כולם (${S.present.length})`:`${S.present.length} מתוך ${CO.trainees.length}`} · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
         <p class="label">מי הגיע</p><div class="chips">${CO.trainees.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
         <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>
