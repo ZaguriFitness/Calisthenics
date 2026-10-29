@@ -1212,7 +1212,7 @@ function makeModel(M,act){
   grp.updateMatrixWorld(true);mesh.bind(new T.Skeleton(list));
   const rest=restOf(M).R;
   // vertices used to keep the body above the floor: everything except hands and feet
-  const nb=M.meta.bones.map(b=>b.name),skip=new Set(["handL","handR","footL","footR"].map(n=>nb.indexOf(n)));
+  const nb=M.meta.bones.map(b=>b.name),skip=new Set(["handL","handR","footL","footR","fingL","fingR"].map(n=>nb.indexOf(n)).filter(i=>i>=0));
   const si=M.geo.attributes.skinIndex,sw=M.geo.attributes.skinWeight,probe=[];
   for(let i=0;i<si.count;i+=13){let w=0;for(let j=0;j<4;j++) if(skip.has(si.array[i*4+j])) w+=sw.array[i*4+j];if(w<0.2) probe.push(i);}
   return {grp,mesh,bones,rest,probe,uTime,dispose(){mat.dispose();at.dispose();}};
@@ -1283,10 +1283,12 @@ function modelCfg(frames,keys,M){const f00=frames[0]||{};restOf(M);
     const score=sg=>{const c={sg,hoff:cfg.hoff};let sc=0;
       for(const k of keys){const bf=bodyFrame(k,c);
         for(const s of ["L","R"]) LIMBS.forEach((L,li)=>{const K=s==="L"?bf.KL:bf.KR,h=limbHinge(k,K,L,li?bf.Qr:bf.Qt,s);
-          if(h) sc+=(li?1:0.5)*h.sn*h.h.dot(h.hf);});}
+          if(h) sc+=(li?1:0.25)*h.sn*h.h.dot(h.hf);});}
       return sc;};
-    const d=score(1)-score(-1);
-    cfg.sg=Math.abs(d)>0.15?(d>0?1:-1):(head<0?-1:1);
+    // the drawing's own facing (head offset, ~4 units per key) counts as much as a clearly bent knee;
+    // a slight elbow bend cannot overrule it (pike hold)
+    const d=score(1)-score(-1)+(side?0.6*head/4:0);
+    cfg.sg=Math.abs(d)>0.05?(d>0?1:-1):(head<0?-1:1);
     if(lie&&Math.abs(d)<=0.15) cfg.sg=1;
   }
   prepKeys(keys,cfg);return cfg;}
@@ -1503,13 +1505,42 @@ function poseModel(Mo,k,cfg){
   // ---- whole-body placement: shift the root so every touching limb has the drawn direction and the drawn amount
   // of bend, with the model's own lengths (least squares over the contacts, weighted; linear, so one step).
   // With no contact the body stays on the drawn pelvis.
-  const d=new T.Vector3();{let ws=0;
-    const hang=up.y>0.75&&["uarmL","uarmR"].some(n=>tg[n].c&&tg[n].w>0.5&&(tg[n].c.t==="bar"||tg[n].c.t==="ring")&&tg[n].c.p[1]>tg[n].base.y);
-    for(const n in tg){const t=tg[n];if(!t.cT||t.w<0.01) continue;
-      const tw=hang&&n.startsWith("thigh")?0:t.w;
-      const want=Math.max(t.rr.dmin*1.15,Math.min(t.ext,0.995)*(t.rr.a+t.rr.b));
-      d.addScaledVector(t.cT.clone().sub(t.base).addScaledVector(t.dir,-want),tw);ws+=tw;}
-    if(ws) d.multiplyScalar(1/Math.max(1,ws));
+  const hang=up.y>0.75&&["uarmL","uarmR"].some(n=>tg[n].c&&tg[n].w>0.5&&(tg[n].c.t==="bar"||tg[n].c.t==="ring")&&tg[n].c.p[1]>tg[n].base.y);
+  const want=t=>Math.max(t.rr.dmin*1.15,Math.min(t.ext,0.995)*(t.rr.a+t.rr.b));
+  // body shift for a given turn of the upper body about the hips (arms' bases and drawn directions turn with it)
+  const P=v(k.pelv),rot=(x,Q)=>x.clone().sub(P).applyQuaternion(Q).add(P);
+  const lsShift=Q=>{const dd=new T.Vector3();let ws=0;
+    for(const n in tg){const t=tg[n];if(!t.cT||t.w<0.01) continue;const arm=n.startsWith("uarm");
+      const tw=hang&&!arm?0:t.w,b=arm?rot(t.base,Q):t.base,dr=arm?t.dir.clone().applyQuaternion(Q):t.dir;
+      dd.addScaledVector(t.cT.clone().sub(b).addScaledVector(dr,-want(t)),tw);ws+=tw;}
+    if(ws) dd.multiplyScalar(1/Math.max(1,ws));return dd;};
+  // hands and feet both planted in a piked body (pike, downward dog): the model's arms are a little longer than
+  // the drawing's, so with the drawn hip angle straight arms and straight legs cannot both reach. The hip angle
+  // opens or closes a little (upper body turns about the hips) so they stay straight
+  if(["uarmL","uarmR","thighL","thighR"].every(n=>tg[n].c&&tg[n].c.t==="flat"&&tg[n].w>0.99)&&up.y<-0.2&&up.angleTo(v(k["kn"+KL]).sub(v(k["hp"+KL])))<2.6){
+    const hipFlex=up.angleTo(v(k["kn"+KL]).sub(v(k["hp"+KL])));
+    const piked=true,F=v(tg.thighL.c.p).add(v(tg.thighR.c.p)).multiplyScalar(0.5);
+    const lim=piked?0.25:0.2,rotAll=(x,Q)=>x.clone().sub(F).applyQuaternion(Q).add(F);
+    const moved=(n,Q)=>piked?(n.startsWith("uarm")?rot(tg[n].base,Q):tg[n].base):rotAll(tg[n].base,Q);
+    const dirOf=(n,Q)=>piked&&!n.startsWith("uarm")?tg[n].dir:tg[n].dir.clone().applyQuaternion(Q);
+    const shift=Q=>{const dd=new T.Vector3();let ws=0;for(const n in tg){const t=tg[n];
+      dd.addScaledVector(t.cT.clone().sub(moved(n,Q)).addScaledVector(dirOf(n,Q),-want(t)),t.w);ws+=t.w;}return dd.multiplyScalar(1/ws);};
+    const cost=a=>{const Q=new T.Quaternion().setFromAxisAngle(lat,a),dd=shift(Q);let c=a*a*30;
+      for(const n in tg){const t=tg[n];c+=(n.startsWith("thigh")?2:1)*(t.cT.distanceTo(moved(n,Q).add(dd))-want(t))**2;}return c;};
+    let best=0,bc=cost(0);for(let a=-lim;a<=lim+1e-4;a+=0.02){const c=cost(a);if(c<bc){bc=c;best=a;}}
+    if(Math.abs(best)<lim-0.01){const cm=cost(best-0.02),cp=cost(best+0.02),den=cm-2*bc+cp;if(den>1e-9) best+=0.02*(cm-cp)/(2*den);}
+    // only when it actually helps the legs stay straight
+    const legRes=a=>{const Q=new T.Quaternion().setFromAxisAngle(lat,a),dd=shift(Q);let c=0;for(const n of ["thighL","thighR"]){const t=tg[n];c+=Math.max(0,want(t)-t.cT.distanceTo(moved(n,Q).add(dd)));}return c;};
+    if(legRes(best)>legRes(0)-0.5) best=0;
+    if(Math.abs(best)>1e-4){const Q=new T.Quaternion().setFromAxisAngle(lat,best);
+      if(piked){for(const n of ["chest","neck","head","clavL","clavR"]) W[n]=Q.clone().multiply(W[n]);W.spine=slerp(Qr,W.chest,0.5);}
+      else{for(const n of ["root","spine","chest","neck","head","clavL","clavR"]) W[n]=Q.clone().multiply(W[n]);
+        const rw=wpos("root");B.root.position.copy(rotAll(rw,Q)).multiplyScalar(1/MS);}
+      ["root","spine","chest","neck","head","clavL","clavR"].forEach(setLocal);Mo.grp.updateMatrixWorld(true);
+      for(const n in tg){const t=tg[n];if(piked&&!n.startsWith("uarm")) continue;
+        t.base=wpos(n);t.dir.applyQuaternion(Q);t.free=piked?rot(t.free,Q):rotAll(t.free,Q);t.H.applyQuaternion(Q);}}
+    Mo.pitch=best;}
+  const d=lsShift(new T.Quaternion());{
     // (hanging, the feet on a box or the floor take what is left: the knees bend)
     // then make sure every firmly touching limb can actually reach (only pulls, and only by the missing length)
     for(let it=0;it<8;it++){const acc=new T.Vector3();let c=0;
