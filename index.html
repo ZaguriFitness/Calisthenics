@@ -364,6 +364,7 @@ body.noscroll{overflow:hidden}
 .tabs{background:var(--bg)}
 .search{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23A39FC0' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat right 12px center,var(--panel)}
 .search:focus{border-color:var(--v2)}
+.redm{color:#ff4d3d}
 </style>
 </head>
 <body>
@@ -1012,7 +1013,7 @@ function frames3d(ex,r){
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
-    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie};
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1};
   });
 }
 return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), frames3d, GY};
@@ -1021,7 +1022,7 @@ return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), frames3d, GY};
 // ===== 3D mannequin viewer =====
 const TD=(()=>{
 let loading=null, cur=null;
-const HGT=190;
+const HGT=240;
 function load(){
   if(window.THREE) return Promise.resolve();
   if(loading) return loading;
@@ -1064,6 +1065,132 @@ function to3d(fr){
   }
   return k;
 }
+// ---------- anatomy model: skinned mesh driven by the same keypoints as the mannequin; active muscles glow red ----------
+let modelP=null;
+const MS=0.9;                      // model is in cm; 0.9 makes its torso and legs match the drawing units
+function loadModel(){
+  if(modelP) return modelP;
+  const T=window.THREE, base="model/";
+  const img=src=>new Promise((res,rej)=>{const t=new T.TextureLoader().load(base+src,res,undefined,rej);});
+  modelP=Promise.all([fetch(base+"anatomy.json").then(r=>{if(!r.ok)throw 0;return r.json();}),
+      fetch(base+"anatomy.bin").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}),
+      img("anatomy_color.jpg"),img("anatomy_normal.jpg"),img("anatomy_groups.png")])
+    .then(([meta,buf,col,nor,grp])=>{
+      const n=meta.nv,o=meta.off,b=meta.bmin,s=meta.scale;
+      const pq=new Uint16Array(buf,o[0],n*3),nq=new Int8Array(buf,o[1],n*3),uq=new Uint16Array(buf,o[2],n*2),
+        jq=new Uint8Array(buf,o[3],n*4),wq=new Uint8Array(buf,o[4],n*4),iq=new Uint32Array(buf,o[5],meta.ni);
+      const pos=new Float32Array(n*3),nrm=new Float32Array(n*3),uv=new Float32Array(n*2),sw=new Float32Array(n*4);
+      for(let i=0;i<n*3;i++){pos[i]=b[i%3]+pq[i]/65535*s;nrm[i]=nq[i]/127;}
+      for(let i=0;i<n*2;i++) uv[i]=uq[i]/65535;
+      for(let i=0;i<n*4;i++) sw[i]=wq[i]/255;
+      const g=new T.BufferGeometry();
+      g.setAttribute("position",new T.BufferAttribute(pos,3));g.setAttribute("normal",new T.BufferAttribute(nrm,3));
+      g.setAttribute("uv",new T.BufferAttribute(uv,2));g.setAttribute("skinIndex",new T.Uint16BufferAttribute(Array.from(jq),4));
+      g.setAttribute("skinWeight",new T.BufferAttribute(sw,4));g.setIndex(new T.BufferAttribute(iq,1));
+      col.encoding=T.sRGBEncoding;col.anisotropy=4;
+      for(const t of [grp]){t.magFilter=T.NearestFilter;t.minFilter=T.NearestFilter;t.generateMipmaps=false;}
+      return {meta,geo:g,col,nor,grp};
+    }).catch(e=>{modelP=null;throw e;});
+  return modelP;
+}
+// muscle groups named in the exercise text (Hebrew) → glow level: primary 1, secondary 0.45
+const MUSCLE_WORDS=[["רחב גבי","lats"],["תלת-ראשי","triceps"],["דו-ראשי","biceps"],["ברכיאליס","biceps"],["חזה","chest"],
+  ["כתף קדמית","delts_front"],["כתפיים קדמיות","delts_front"],["כתף אחורית","delts_rear"],["כתפיים אחוריות","delts_rear"],
+  ["מייצבי כתף","delts_rear"],["כתף","delts_front"],["כתפיים","delts_side"],["טרפז","traps"],["מעויינים","traps"],
+  ["ישבן","glutes"],["המסטרינג","hamstrings"],["ארבע-ראשי","quads"],["מכופפי ירך","hipflex"],["תאומים","calves"],["סולאוס","calves"],
+  ["אלכסוניים","obliques"],["בטן","abs"],["ישר בטני","abs"],["ליבה","abs"],["זוקפי גב","lats"],["גב תחתון","lats"],["מרובע מותני","obliques"],
+  ["סראטוס","obliques"],["משרתת","obliques"],["אחיזה","forearms"],["אמה","forearms"],["אמות","forearms"],["פרקי כף יד","forearms"],["שורש כף היד","forearms"],
+  ["מקרבים","adductors"],["קרסול","shins"]];
+function muscleAct(step,groups){
+  const a=new Float32Array(32);
+  const add=(txt,v)=>String(txt||"").split(/[,;]/).forEach(part=>{
+    for(const [w,gname] of MUSCLE_WORDS) if(part.includes(w)){const i=groups.indexOf(gname);if(i>0)a[i]=Math.max(a[i],v);
+      if(w==="ליבה"){const j=groups.indexOf("obliques");if(j>0)a[j]=Math.max(a[j],v*0.7);}
+      if(w==="כתף"||w==="כתפיים"){const j=groups.indexOf("delts_side");if(j>0)a[j]=Math.max(a[j],v);}
+      break;}});
+  if(step){add(step.sec,0.32);add(step.prim,1);}
+  return a;
+}
+function makeModel(M,act){
+  const T=window.THREE, bones={}, list=[];
+  for(const bd of M.meta.bones){const bn=new T.Bone();bn.name=bd.name;bones[bd.name]=bn;list.push(bn);
+    const p=bd.parent?M.meta.bones.find(x=>x.name===bd.parent).head:[0,0,0];
+    bn.position.set(bd.head[0]-p[0],bd.head[1]-p[1],bd.head[2]-p[2]);
+    if(bd.parent) bones[bd.parent].add(bn);}
+  const at=new T.DataTexture(new Uint8Array(32*4),32,1,T.RGBAFormat);at.magFilter=at.minFilter=T.NearestFilter;
+  for(let i=0;i<32;i++) at.image.data[i*4]=Math.round((act[i]||0)*255);at.needsUpdate=true;
+  const mat=new T.MeshStandardMaterial({map:M.col,normalMap:M.nor,roughness:0.62,metalness:0,skinning:true});
+  const uTime={value:0};
+  mat.onBeforeCompile=sh=>{
+    sh.uniforms.gMap={value:M.grp};sh.uniforms.aMap={value:at};sh.uniforms.uTime=uTime;
+    sh.fragmentShader="uniform sampler2D gMap;\nuniform sampler2D aMap;\nuniform float uTime;\n"+sh.fragmentShader
+      .replace("#include <map_fragment>","#include <map_fragment>\n diffuseColor.rgb=mix(vec3(0.66,0.60,0.58),diffuseColor.rgb,0.38);")
+      .replace("#include <emissivemap_fragment>",`#include <emissivemap_fragment>
+ float gid=floor(texture2D(gMap,vUv).r*255.0+0.5);
+ float act=texture2D(aMap,vec2((gid+0.5)/32.0,0.5)).r;
+ float pulse=0.82+0.18*sin(uTime*3.2);
+ diffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.78,0.06,0.05),act*0.8);
+ totalEmissiveRadiance+=vec3(1.0,0.1,0.05)*act*0.6*pulse;`);
+  };
+  const mesh=new T.SkinnedMesh(M.geo,mat);mesh.frustumCulled=false;
+  const grp=new T.Group();grp.scale.setScalar(MS);grp.add(bones.root);grp.add(mesh);
+  grp.updateMatrixWorld(true);mesh.bind(new T.Skeleton(list));
+  const rest={};for(const bd of M.meta.bones) rest[bd.name]=new T.Vector3(...bd.head);
+  return {grp,mesh,bones,rest,uTime,dispose(){mat.dispose();at.dispose();}};
+}
+// pose the skeleton from the keypoints of a frame. Bones only rotate (lengths stay the model's own).
+function poseModel(Mo,k,face,anchor){
+  const T=window.THREE,v=a=>new T.Vector3(a[0],a[1],a[2]),B=Mo.bones,R=Mo.rest;
+  const up=v(k.neck).sub(v(k.pelv)).normalize();
+  const basis=(lat,u)=>{const f=new T.Vector3().crossVectors(lat,u).normalize(),l=new T.Vector3().crossVectors(u,f).normalize();
+    return new T.Matrix4().makeBasis(l,u,f);};
+  const q=m=>new T.Quaternion().setFromRotationMatrix(m);
+  // which way the chest faces: the drawings offset the head toward the front of the body; front views have no offset
+  const ho=v(k.head).sub(v(k.neck));ho.addScaledVector(up,-ho.dot(up));
+  const shl=v(k.shL).sub(v(k.shR));
+  let lat;
+  if(ho.length()>1.5&&!face.lie){lat=new T.Vector3().crossVectors(up,ho.normalize());}
+  else lat=shl.clone().multiplyScalar(-1).normalize();
+  // the model's left limbs follow whichever drawn side lies on the model's left
+  const swap=shl.dot(lat)>0, KL=swap?"L":"R", KR=swap?"R":"L";
+  const torso=basis(lat,up), Qt=q(torso);
+  let hipLat=v(k["hp"+KL]).sub(v(k["hp"+KR]));if(hipLat.dot(lat)<0)hipLat.multiplyScalar(-1);
+  const Qr=hipLat.lengthSq()>1?q(basis(hipLat.normalize(),up)):Qt.clone();
+  const hu=v(k.head).sub(v(k.neck)).normalize(),Qh=q(basis(new T.Vector3(1,0,0).applyQuaternion(Qt),hu));
+  // rotation taking (rest dir a, rest hinge h) to (target dir A, target hinge H)
+  const frame=(a,h)=>{const x=a.clone().normalize(),y=h.clone().sub(x.clone().multiplyScalar(h.dot(x))).normalize(),z=new T.Vector3().crossVectors(x,y);
+    return new T.Matrix4().makeBasis(x,y,z);};
+  const map=(a,h,A,H)=>q(frame(A,H).multiply(frame(a,h).transpose()));
+  const W={root:Qr,spine:Qt,chest:Qt,neck:Qh,head:Qh,clavL:Qt,clavR:Qt};
+  const limb=(s,K,b1,b2,b3,j1,j2,j3,bendDir,Qp)=>{
+    const r1=R[b2].clone().sub(R[b1]),r2=(b3?R[b3]:null),rr2=r2?r2.clone().sub(R[b2]):null;
+    const hr=new T.Vector3().crossVectors(r1,bendDir).normalize();
+    const A1=v(k[j2+K]).sub(v(k[j1+K])),A2=v(k[j3+K]).sub(v(k[j2+K]));
+    let H=new T.Vector3().crossVectors(A1,A2);
+    if(H.length()<0.12*A1.length()*A2.length()) H=hr.clone().applyQuaternion(Qp);
+    H.normalize();
+    W[b1]=map(r1,hr,A1,H);W[b2]=map(rr2||r1,hr,A2,H);
+  };
+  for(const s of ["L","R"]){const K=s==="L"?KL:KR;
+    limb(s,K,"uarm"+s,"farm"+s,"hand"+s,"sh","el","wr",new T.Vector3(0,0,1),Qt);W["hand"+s]=W["farm"+s];
+    limb(s,K,"thigh"+s,"shin"+s,"foot"+s,"hp","kn","ft",new T.Vector3(0,0,-1),Qr);W["foot"+s]=W["shin"+s];}
+  // world rotations → local
+  const order=["root","spine","chest","neck","head","clavL","clavR","uarmL","uarmR","farmL","farmR","handL","handR","thighL","thighR","shinL","shinR","footL","footR"];
+  for(const n of order){const b=B[n];if(!b)continue;const p=b.parent&&b.parent.isBone?W[b.parent.name]:null;
+    b.quaternion.copy(p?p.clone().invert().multiply(W[n]):W[n]);}
+  const pel=v(k.pelv);B.root.position.set(pel.x/MS,pel.y/MS,pel.z/MS);Mo.grp.position.set(0,0,0);
+  Mo.grp.updateMatrixWorld(true);
+  // keep the body attached to what holds it: hands on a bar/rings, or feet on the ground
+  if(anchor==="hands"){
+    const d=new T.Vector3();let c=0;
+    for(const s of ["L","R"]){const K=s==="L"?KL:KR,w=new T.Vector3();B["hand"+s].getWorldPosition(w);
+      const dir=v(k["wr"+K]).sub(v(k["el"+K])).normalize();w.addScaledVector(dir,7*MS);d.add(v(k["wr"+K]).sub(w));c++;}
+    Mo.grp.position.copy(d.multiplyScalar(1/c));
+  } else if(anchor==="feet"){
+    let lo=1e9;for(const s of ["L","R"]){const w=new T.Vector3();B["foot"+s].getWorldPosition(w);lo=Math.min(lo,w.y-8*MS);}
+    const kl=Math.min(k.ftL[1],k.ftR[1]);Mo.grp.position.set(0,kl-lo,0);
+  }
+}
 const SEG=[["neck","pelv",8.5],["shL","shR",5],["hpL","hpR",6.5],["shL","elL",4.6],["elL","wrL",4],
   ["shR","elR",4.6],["elR","wrR",4],["hpL","knL",6.2],["knL","ftL",5],["hpR","knR",6.2],["knR","ftR",5]];
 
@@ -1093,6 +1220,12 @@ function build(host,frames,opt){opt=opt||{};
   const joints={};for(const s of SEG) for(const k of [s[0],s[1]]) if(!joints[k]||joints[k].r<s[2]){
     if(joints[k]) scene.remove(joints[k].m);const m=new T.Mesh(sph,mBody);m.scale.setScalar(s[2]);scene.add(m);joints[k]={m,r:s[2]};}
   const head=new T.Mesh(sph,mBody);head.scale.setScalar(10.5);scene.add(head);
+  // anatomy model in place of the mannequin when it has loaded
+  let Mo=null;const f00=frames[0]||{};
+  const mFace={lie:!!f00.lie};
+  const mAnchor=f00.kind==="front"||f00.kind==="raw"||(f00.pr||[]).some(q=>["bar","ring","hbar"].includes(q.k))?"hands":(f00.g?"feet":"none");
+  if(opt.model){try{Mo=makeModel(opt.model,opt.act||new Float32Array(32));scene.add(Mo.grp);
+    for(const s of segs) s.m.visible=false;for(const n in joints) joints[n].m.visible=false;head.visible=false;}catch(e){Mo=null;}}
   // equipment
   const GY=ILLV.GY, dyn=[], seen=new Set();
   const once=(q,fn)=>{const id=JSON.stringify(q);if(!seen.has(id)){seen.add(id);fn();}};
@@ -1129,6 +1262,7 @@ function build(host,frames,opt){opt=opt||{};
   }
   for(const d of dyn) for(const k of ["ring","strap","m","m1","m2"]) if(d[k]) scene.add(d[k]);
   function pose(k){
+    if(Mo) poseModel(Mo,k,mFace,mAnchor);
     for(const s of segs) place(s.m,V(k[s.a]),V(k[s.b]),s.r);
     for(const n in joints) joints[n].m.position.set(...k[n]);
     head.position.set(...k.head);
@@ -1162,7 +1296,7 @@ function build(host,frames,opt){opt=opt||{};
   const all=keys.flatMap(k=>Object.values(k).filter(Boolean));
   const mn=[0,1,2].map(i=>Math.min(...all.map(p=>p[i]))), mx=[0,1,2].map(i=>Math.max(...all.map(p=>p[i])));
   const ctr=V(mn.map((v,i)=>(v+mx[i])/2)), size=Math.max(mx[0]-mn[0],mx[1]-mn[1],110);
-  let az=f0.kind==="front"?0.55:(f0.kind==="raw"?0.35:-0.75), el=0.22, dist=size*(f0.kind==="front"?2.0:2.25);
+  let az=f0.kind==="front"?0.55:(f0.kind==="raw"?0.35:(Mo?0.8*(f0.face||1):-0.75)), el=0.22, dist=size*(f0.kind==="front"?2.0:2.25);
   function camUpdate(){cam.position.set(ctr.x+dist*Math.sin(az)*Math.cos(el),ctr.y+dist*Math.sin(el),ctr.z+dist*Math.cos(az)*Math.cos(el));cam.lookAt(ctr);}
   camUpdate();
   let drag=null;
@@ -1185,11 +1319,11 @@ function build(host,frames,opt){opt=opt||{};
     return lerpK(a,b,e);
   }
   function loop(){if(!alive) return;cancelAnimationFrame(raf);
-    const sec=(performance.now()-t0)/1000;tPaused=sec*1000;pose(frameAt(sec));renderer.render(scene,cam);
+    const sec=(performance.now()-t0)/1000;tPaused=sec*1000;if(Mo)Mo.uTime.value=sec;pose(frameAt(sec));renderer.render(scene,cam);
     if(playing) raf=requestAnimationFrame(loop);}
   pose(keys[0]);renderer.render(scene,cam);if(playing) loop();
   const ro=new ResizeObserver(()=>{renderer.setSize(W(),HGT);cam.aspect=W()/HGT;cam.updateProjectionMatrix();renderer.render(scene,cam);});ro.observe(host);
-  return {stop(){alive=false;cancelAnimationFrame(raf);ro.disconnect();renderer.dispose();cyl.dispose();sph.dispose();tor.dispose();cv.remove();}};
+  return {stop(){alive=false;cancelAnimationFrame(raf);ro.disconnect();if(Mo)Mo.dispose();renderer.dispose();cyl.dispose();sph.dispose();tor.dispose();cv.remove();}};
 }
 function fallback(host,ex,ring,msg){
   const m=host.querySelector(".tdmsg");if(m) m.textContent=msg;
@@ -1201,7 +1335,10 @@ async function mount(host,ex,ring){
   stop();
   try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
   if(!host.isConnected) return;
-  try{cur=build(host,ILLV.frames3d(ex,ring),{neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex),walk:/^Wall Walk/.test(ex)});host.querySelector(".tdmsg").textContent="גוררים כדי לסובב";}
+  let M=null;try{M=await loadModel();}catch(e){M=null;}
+  if(!host.isConnected) return;
+  let step=null;for(const c of DATA)for(const t of c.tracks)for(const l of t.ladders){const x=l.steps.find(z=>z.ex===ex);if(x&&!step)step=x;}
+  try{cur=build(host,ILLV.frames3d(ex,ring),{model:M,act:M?muscleAct(step,M.meta.groups):null,neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex),walk:/^Wall Walk/.test(ex)});host.querySelector(".tdmsg").innerHTML=M?'גוררים כדי לסובב · <b class="redm">אדום</b> = השרירים שעובדים':"גוררים כדי לסובב";}
   catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
 }
 return {mount, stop};
