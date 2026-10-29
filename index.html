@@ -656,7 +656,7 @@ const bar=at=>({k:"bar",at});
 const FP={
   hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
-  top:{v:"front",sy:6,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
+  top:{v:"front",sy:8,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
 };
 const R=o=>X(o,{eq:"rings"});
@@ -1215,6 +1215,12 @@ function to3dPts(fr){
     Object.assign(k,{shL:P(J.sL),shR:P(J.sR),elL:P(J.eL),elR:P(J.eR),wrL:P(J.hL),wrR:P(J.hR),
       hpL:P(J.pL),hpR:P(J.pR),knL:P(J.kL),knR:P(J.kR),ftL:P(J.fL),ftR:P(J.fR),
       neck:P(J.neck),pelv:P([(J.pL[0]+J.pR[0])/2,J.pL[1]]),head:P(J.head)});
+    // a front drawing has no depth. In a real pull-up the body travels slightly behind the bar as it rises, so the
+    // head passes behind it and the bar ends in front of the throat / upper chest; the chest leads, the legs stay
+    // a little forward (slight hollow) and the elbows come down in front of the body. Hands stay on the bar.
+    const sy=J.sL[1]-J.by,f=Math.max(0,Math.min(1,(52-sy)/46)),e=f*f*(3-2*f);
+    if(e>0){const dz={neck:-14,head:-15,shL:-13,shR:-13,pelv:-9,hpL:-9,hpR:-9,knL:-4,knR:-4,ftL:2,ftR:2,elL:3,elR:3};
+      for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
   } else if(fr.lie){const J=fr.J;
     // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
     const dx=J.S[0]-J.H[0],dy=J.S[1]-J.H[1],d=Math.hypot(dx,dy)||1,n=[-dy/d,dx/d];
@@ -1531,7 +1537,11 @@ function poseModel(Mo,k,cfg){
   for(const s of ["L","R"]){const K=s==="L"?KL:KR,rr=rests["uarm"+s];
     const a1=v(k["wr"+K]).sub(v(k["sh"+K])).applyQuaternion(Qt.clone().invert()).normalize();
     // elevation follows how high the arm is raised, protraction how far forward it reaches (no singular swing)
-    const sd=s==="L"?1:-1,el=0.38*Math.max(0,Math.min(1,(a1.y+0.25)/1.25)),pr=0.22*Math.max(-1,Math.min(1,a1.z));
+    // pulling on a bar or rings (hand above the shoulder, elbow bending): the shoulder blades pull down and back,
+    // so the shoulders drop away from the ears instead of shrugging (a dead hang lets them rise)
+    const c0=k._c&&k._c["h"+K],hang=c0&&(c0.t==="bar"||c0.t==="ring")&&c0.p[1]>k["sh"+K][1];
+    const ext=v(k["wr"+K]).distanceTo(v(k["sh"+K]))/((cfg.len&&cfg.len["uarm"+K])||54),pull=hang?Math.max(0,Math.min(1,(0.97-ext)/0.45)):0;
+    const sd=s==="L"?1:-1,el=0.38*Math.max(0,Math.min(1,(a1.y+0.25)/1.25))*(1-pull)-0.12*pull,pr=0.22*Math.max(-1,Math.min(1,a1.z))-0.12*pull;
     const qc=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),sd*el).premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),-sd*pr));
     W["clav"+s]=Qt.clone().multiply(qc);}
   // local rotations of the trunk chain, then the root position: the drawn pelvis point is the hip-joint centre
