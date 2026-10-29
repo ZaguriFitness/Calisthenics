@@ -1139,7 +1139,9 @@ function makeModel(M,act){
   return {grp,mesh,bones,rest,uTime,dispose(){mat.dispose();at.dispose();}};
 }
 // pose the skeleton from the keypoints of a frame. Bones only rotate (lengths stay the model's own).
-function poseModel(Mo,k,face,anchor){
+// rest-pose hand frames measured from the mesh: finger direction and palm normal (palms face the thighs)
+const HAND_F={L:[0.18,-0.97,0.15],R:[-0.18,-0.97,0.15]}, HAND_N={L:[-0.955,-0.21,-0.21],R:[0.955,-0.21,-0.21]};
+function poseModel(Mo,k,face,anchor,grip){
   const T=window.THREE,v=a=>new T.Vector3(a[0],a[1],a[2]),B=Mo.bones,R=Mo.rest;
   const up=v(k.neck).sub(v(k.pelv)).normalize();
   const basis=(lat,u)=>{const f=new T.Vector3().crossVectors(lat,u).normalize(),l=new T.Vector3().crossVectors(u,f).normalize();
@@ -1160,7 +1162,7 @@ function poseModel(Mo,k,face,anchor){
   // rotation taking (rest dir a, rest hinge h) to (target dir A, target hinge H)
   const frame=(a,h)=>{const x=a.clone().normalize(),y=h.clone().sub(x.clone().multiplyScalar(h.dot(x))).normalize(),z=new T.Vector3().crossVectors(x,y);
     return new T.Matrix4().makeBasis(x,y,z);};
-  const map=(a,h,A,H)=>q(frame(A,H).multiply(frame(a,h).transpose()));
+  const map=(a,h,A,H)=>q(frame(A.isVector3?A:v(A),H.isVector3?H:v(H)).multiply(frame(a.isVector3?a:v(a),h.isVector3?h:v(h)).transpose()));
   const W={root:Qr,spine:Qt,chest:Qt,neck:Qh,head:Qh,clavL:Qt,clavR:Qt};
   const limb=(s,K,b1,b2,b3,j1,j2,j3,bendDir,Qp)=>{
     const r1=R[b2].clone().sub(R[b1]),r2=(b3?R[b3]:null),rr2=r2?r2.clone().sub(R[b2]):null;
@@ -1171,8 +1173,23 @@ function poseModel(Mo,k,face,anchor){
     H.normalize();
     W[b1]=map(r1,hr,A1,H);W[b2]=map(rr2||r1,hr,A2,H);
   };
-  for(const s of ["L","R"]){const K=s==="L"?KL:KR;
+  const fwd=new T.Vector3().setFromMatrixColumn(torso,2);
+  const hz=a=>new T.Vector3(a.x,0,a.z);
+  for(const s of ["L","R"]){const K=s==="L"?KL:KR,sg=s==="L"?1:-1;
     limb(s,K,"uarm"+s,"farm"+s,"hand"+s,"sh","el","wr",new T.Vector3(0,0,1),Qt);W["hand"+s]=W["farm"+s];
+    // hands: palm flat on the floor / bars, palm forward on a bar (overhand), palms in on rings; free hands follow the forearm
+    const fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
+    let g=grip;if(g==="auto") g=(k["wr"+K][1]<k["sh"+K][1]-12)?"surface":"free";
+    let F=null,N=null;
+    if(g==="surface"){F=hz(up).add(hz(fwd));if(F.length()<0.2)F=hz(fwd);if(F.length()<0.2)F=new T.Vector3(1,0,0);F.normalize();N=new T.Vector3(0,-1,0);}
+    else if(g==="bar"){F=fa.clone();N=fwd.clone().sub(up);}
+    else if(g==="rings"){F=fa.clone();N=lat.clone().multiplyScalar(-sg);}
+    if(F){N.addScaledVector(F,-N.dot(F));
+      if(N.length()>0.05){const Wh=map(HAND_F[s],HAND_N[s],F,N);W["hand"+s]=Wh;
+        // spread the forearm/hand twist: the forearm takes half, so the wrist does not wring
+        const rel=W["farm"+s].clone().invert().multiply(Wh),ax=R["hand"+s].clone().sub(R["farm"+s]).normalize();
+        const d=ax.x*rel.x+ax.y*rel.y+ax.z*rel.z,tw=new T.Quaternion(ax.x*d,ax.y*d,ax.z*d,rel.w).normalize();
+        W["farm"+s]=W["farm"+s].clone().multiply(new T.Quaternion().slerp(tw,0.5));}}
     limb(s,K,"thigh"+s,"shin"+s,"foot"+s,"hp","kn","ft",new T.Vector3(0,0,-1),Qr);W["foot"+s]=W["shin"+s];}
   // world rotations → local
   const order=["root","spine","chest","neck","head","clavL","clavR","uarmL","uarmR","farmL","farmR","handL","handR","thighL","thighR","shinL","shinR","footL","footR"];
@@ -1187,8 +1204,12 @@ function poseModel(Mo,k,face,anchor){
       const dir=v(k["wr"+K]).sub(v(k["el"+K])).normalize();w.addScaledVector(dir,7*MS);d.add(v(k["wr"+K]).sub(w));c++;}
     Mo.grp.position.copy(d.multiplyScalar(1/c));
   } else if(anchor==="feet"){
-    let lo=1e9;for(const s of ["L","R"]){const w=new T.Vector3();B["foot"+s].getWorldPosition(w);lo=Math.min(lo,w.y-8*MS);}
-    const kl=Math.min(k.ftL[1],k.ftR[1]);Mo.grp.position.set(0,kl-lo,0);
+    // on the ground: whatever touches it (feet, and hands on the floor) sits on it; raise just enough that nothing sinks
+    const ys=["ftL","ftR","wrL","wrR","head"].map(n=>k[n][1]),minY=Math.min(...ys);let d=-1e9;
+    for(const s of ["L","R"]){const K=s==="L"?KL:KR,w=new T.Vector3();
+      if(k["ft"+K][1]<minY+15){B["foot"+s].getWorldPosition(w);d=Math.max(d,k["ft"+K][1]-(w.y-8*MS));}
+      if(k["wr"+K][1]<minY+15){B["hand"+s].getWorldPosition(w);d=Math.max(d,k["wr"+K][1]-(w.y-3*MS));}}
+    if(d>-1e8) Mo.grp.position.set(0,d,0);
   }
 }
 const SEG=[["neck","pelv",8.5],["shL","shR",5],["hpL","hpR",6.5],["shL","elL",4.6],["elL","wrL",4],
@@ -1223,6 +1244,8 @@ function build(host,frames,opt){opt=opt||{};
   // anatomy model in place of the mannequin when it has loaded
   let Mo=null;const f00=frames[0]||{};
   const mFace={lie:!!f00.lie};
+  const prk=(f00.pr||[]).map(q=>q.k);
+  const mGrip=f00.kind==="front"?(f00.J&&f00.J.eq==="rings"?"rings":"bar"):f00.kind==="raw"?"bar":prk.includes("ring")?"rings":prk.includes("bar")?"bar":"auto";
   const mAnchor=f00.kind==="front"||f00.kind==="raw"||(f00.pr||[]).some(q=>["bar","ring","hbar"].includes(q.k))?"hands":(f00.g?"feet":"none");
   if(opt.model){try{Mo=makeModel(opt.model,opt.act||new Float32Array(32));scene.add(Mo.grp);
     for(const s of segs) s.m.visible=false;for(const n in joints) joints[n].m.visible=false;head.visible=false;}catch(e){Mo=null;}}
@@ -1262,7 +1285,7 @@ function build(host,frames,opt){opt=opt||{};
   }
   for(const d of dyn) for(const k of ["ring","strap","m","m1","m2"]) if(d[k]) scene.add(d[k]);
   function pose(k){
-    if(Mo) poseModel(Mo,k,mFace,mAnchor);
+    if(Mo) poseModel(Mo,k,mFace,mAnchor,mGrip);
     for(const s of segs) place(s.m,V(k[s.a]),V(k[s.b]),s.r);
     for(const n in joints) joints[n].m.position.set(...k[n]);
     head.position.set(...k.head);
