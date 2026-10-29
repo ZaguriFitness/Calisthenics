@@ -656,7 +656,7 @@ const bar=at=>({k:"bar",at});
 const FP={
   hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
-  top:{v:"front",sy:8,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
+  top:{v:"front",sy:-8,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
 };
 const R=o=>X(o,{eq:"rings"});
@@ -1218,8 +1218,8 @@ function to3dPts(fr){
     // a front drawing has no depth. In a real pull-up the body travels slightly behind the bar as it rises, so the
     // head passes behind it and the bar ends in front of the throat / upper chest; the chest leads, the legs stay
     // a little forward (slight hollow) and the elbows come down in front of the body. Hands stay on the bar.
-    const sy=J.sL[1]-J.by,f=Math.max(0,Math.min(1,(52-sy)/46)),e=f*f*(3-2*f);
-    if(e>0){const dz={neck:-14,head:-15,shL:-13,shR:-13,pelv:-9,hpL:-9,hpR:-9,knL:-4,knR:-4,ftL:2,ftR:2,elL:3,elR:3};
+    const sy=J.sL[1]-J.by,f=Math.max(0,Math.min(1,(52-sy)/32)),e=f*f*(3-2*f);
+    if(e>0){const dz={neck:-21,head:-35,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
       for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
   } else if(fr.lie){const J=fr.J;
     // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
