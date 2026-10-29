@@ -1201,7 +1201,10 @@ function makeModel(M,act){
 // rest-pose reference frames measured from the mesh (cm, model space; +x = model's left, +z = front)
 const HAND_F={L:[0.18,-0.97,0.15],R:[-0.18,-0.97,0.15]}, HAND_N={L:[-0.955,-0.21,-0.21],R:[0.955,-0.21,-0.21]};
 const PALM={L:[3.2,-10.5,4.7],R:[-3.2,-10.5,4.7]};          // palm centre relative to the wrist (hand bone head)
-const FOOTP={L:[[3,-8.7,-3],[4.3,-8.7,14.5],[4.4,-8.2,20.5]],R:[[-3,-8.7,-3],[-4.3,-8.7,14.5],[-4.4,-8.2,20.5]]}; // heel, ball, toe tip relative to the ankle
+// heel, ball, toe tip, and the top of the foot (instep, toes) relative to the ankle: a foot resting on its top
+// (rear foot of a Bulgarian split squat, kneeling) must stay above the bench / floor too
+const FOOTP={L:[[3,-8.7,-3],[4.3,-8.7,14.5],[4.4,-8.2,20.5],[3,-2.5,5],[4,-4.8,12],[4.4,-6.6,19]],
+  R:[[-3,-8.7,-3],[-4.3,-8.7,14.5],[-4.4,-8.2,20.5],[-3,-2.5,5],[-4,-4.8,12],[-4.4,-6.6,19]]};
 const GROUND=()=>-(ILLV.GY+3.5);
 // what each hand / foot touches in a frame: {t:type, p:support point, n:surface normal, ax:bar axis}
 function contactsOf(fr,k){
@@ -1230,7 +1233,7 @@ function contactsOf(fr,k){
     const p=k[key];if(!p) continue;let best=null,bd=1e9;
     for(const q of supp){let d=1e9,c=null;
       if(q.t==="ring"&&(q.hand||q.foot)){if(isHand?q.hand:q.foot){d=0;c={t:"ring",p:p.slice()};}}
-      else if(q.t==="ring"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"ring",p:V3(q.x,q.y,p[2])};if(d>9)d=1e9;}
+      else if(q.t==="ring"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"ring",p:V3(q.x,q.y-6.5,p[2])};if(d>9)d=1e9;}   // held at its lower tube
       else if(q.t==="bar"&&q.zs){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,(p[2]<0?-1:1)*q.zs),ax:q.ax};if(d>8||p[0]<q.x1||p[0]>q.x2)d=1e9;}
       else if(q.t==="bar"&&q.line){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,p[2]),ax:q.ax};if(d>7)d=1e9;}
       else if(q.t==="bar"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"bar",p:V3(q.x,q.y,p[2]),ax:q.ax};if(d>8)d=1e9;}
@@ -1301,8 +1304,11 @@ function bodyFrame(k,cfg){
 // fingers of a hand flat on the floor / box (world, horizontal): on the elbow-crease side (elbows point back in a
 // push-up: fingers forward); a leaning forearm (planche lean, arms lying beside the body) turns them toward its own
 // direction, through "fingers out" when the two are opposite
-function flatFingers(crease,fa,up,fwd,out){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
+function flatFingers(crease,fa,up,fwd,out,away){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
   let B=hz(crease);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(out);B.normalize();
+  // upside down (pike, handstand) the fingers point away from the head and turn out
+  if(away){const inv=Math.max(0,Math.min(1,(-up.y-0.2)/0.4)),aw=hz(away).normalize().addScaledVector(hz(out).normalize(),0.5);
+    if(inv>0&&aw.lengthSq()>1e-4){aw.normalize();B.multiplyScalar(1-inv).addScaledVector(aw,inv);if(B.lengthSq()<1e-4)B.copy(aw);B.normalize();}}
   const hf=hz(fa),x=Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)),wa=x*x*(3-2*x),F=B.clone();
   if(wa>0){const hn=hf.clone().normalize();let dl=Math.atan2(B.x*hn.z-B.z*hn.x,B.dot(hn));
     if(Math.abs(dl)>2.5){const mid=B.clone().applyAxisAngle(new T.Vector3(0,1,0),-Math.sign(dl)*Math.PI/2);if(mid.dot(out)<0) dl-=Math.sign(dl)*2*Math.PI;}
@@ -1382,7 +1388,7 @@ function prepKeys(keys,cfg){
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
       if(c&&c.t==="flat"){const f=fr[i],H=v(k["_harm"+s]).applyQuaternion(f.Qt).normalize(),fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
-        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1));k["_f"+s]=[F.x,F.y,F.z];}});
+        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1),v(k["wr"+K]).sub(v(k.head)));k["_f"+s]=[F.x,F.y,F.z];}});
     keys.forEach((k,i)=>{if(k["_f"+s]) return;let bj=-1;for(let j=0;j<keys.length;j++) if(keys[j]["_f"+s]&&(bj<0||Math.abs(j-i)<Math.abs(bj-i))) bj=j;
       k["_f"+s]=bj>=0?keys[bj]["_f"+s].slice():[0,0,0];});
     // keys before the first grip take its palm direction too
@@ -1438,7 +1444,7 @@ function poseModel(Mo,k,cfg){
           const orient=(fa,Hs,keep)=>{const hz=a=>new T.Vector3(a.x,0,a.z);let F,N;
           const Wf=map(rr.r2,rr.hr,fa,Hs||H),N0=v(HAND_N[s]).applyQuaternion(Wf),crease=new T.Vector3().crossVectors(H,fa).normalize();
           if(c.t==="flat"){ // palm flat on the floor / box: fingers as decided on the keys (a planted hand does not turn)
-            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn));
+            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)));
             N=new T.Vector3(0,-1,0);}
           else if(c.t==="wall"){N=v(c.n).negate();F=new T.Vector3(0,1,0);}
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
@@ -1474,10 +1480,13 @@ function poseModel(Mo,k,cfg){
   // of bend, with the model's own lengths (least squares over the contacts, weighted; linear, so one step).
   // With no contact the body stays on the drawn pelvis.
   const d=new T.Vector3();{let ws=0;
+    const hang=up.y>0.75&&["uarmL","uarmR"].some(n=>tg[n].c&&tg[n].w>0.5&&(tg[n].c.t==="bar"||tg[n].c.t==="ring")&&tg[n].c.p[1]>tg[n].base.y);
     for(const n in tg){const t=tg[n];if(!t.cT||t.w<0.01) continue;
+      const tw=hang&&n.startsWith("thigh")?0:t.w;
       const want=Math.max(t.rr.dmin*1.15,Math.min(t.ext,0.995)*(t.rr.a+t.rr.b));
-      d.addScaledVector(t.cT.clone().sub(t.base).addScaledVector(t.dir,-want),t.w);ws+=t.w;}
+      d.addScaledVector(t.cT.clone().sub(t.base).addScaledVector(t.dir,-want),tw);ws+=tw;}
     if(ws) d.multiplyScalar(1/Math.max(1,ws));
+    // (hanging, the feet on a box or the floor take what is left: the knees bend)
     // then make sure every firmly touching limb can actually reach (only pulls, and only by the missing length)
     for(let it=0;it<8;it++){const acc=new T.Vector3();let c=0;
       for(const n in tg){const t=tg[n];if(!t.cT||t.w<0.5) continue;const to=t.cT.clone().sub(t.base.clone().add(d)),L=to.length(),mx=(t.rr.a+t.rr.b)*0.995;
@@ -1548,8 +1557,17 @@ function poseModel(Mo,k,cfg){
   // lift the body by the deepest point and solve the limbs again, so hands and feet stay where they are
   if(cfg.g){const pen=GROUND()-lowestPoint(Mo);
     if(pen>0.2){d.y+=pen;B.root.position.y+=pen/MS;Mo.grp.updateMatrixWorld(true);solveLimbs();}}
-  Mo.tg=tg;Mo.d=d;
+  // fingers: closed around a bar / ring / pole, open on the floor, relaxed when free
+  for(const s of ["L","R"]){const fb=B["fing"+s];if(!fb) continue;const t=tg["uarm"+s],grip=t.c&&(t.c.t==="bar"||t.c.t==="ring"||t.c.t==="pole");
+    const th=grip?0.3+1.45*t.w:(t.c&&(t.c.t==="flat"||t.c.t==="wall")?0.3*(1-t.w)+0.05*t.w:0.3);
+    fb.quaternion.setFromAxisAngle(new T.Vector3().crossVectors(v(HAND_F[s]),v(HAND_N[s])).normalize(),th);}
+  Mo.grp.updateMatrixWorld(true);
+  Mo.tg=tg;Mo.d=d;Mo.side={[KL]:"L",[KR]:"R"};
 }
+// where a hand holds something: just in front of the palm, inside the closed fingers (world)
+function gripPoint(Mo,s){const T=window.THREE,q=new T.Quaternion(),p=new T.Vector3();Mo.bones["hand"+s].getWorldQuaternion(q);Mo.bones["hand"+s].getWorldPosition(p);
+  const n=new T.Vector3(...HAND_N[s]).applyQuaternion(q);
+  return {p:p.add(new T.Vector3(...PALM[s]).applyQuaternion(q).multiplyScalar(MS)).addScaledVector(n,2.4),n,f:new T.Vector3(...HAND_F[s]).applyQuaternion(q)};}
 // lowest point of the body without the hands and feet (a fixed sample of vertices, skinned on the CPU)
 function lowestPoint(Mo){const T=window.THREE,m=Mo.mesh,P=m.geometry.attributes.position,v=Mo._v||(Mo._v=new T.Vector3());let lo=1e9;
   for(const i of Mo.probe){v.fromBufferAttribute(P,i);m.boneTransform(i,v);v.applyMatrix4(m.matrixWorld);if(v.y<lo)lo=v.y;}
@@ -1635,8 +1653,15 @@ function build(host,frames,opt){opt=opt||{};
     for(const n in joints) joints[n].m.position.set(...k[n]);
     head.position.set(...k.head);
     for(const d of dyn){
-      if(d.ring){const w=k[d.j];d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
-        place(d.strap,V([w[0],w[1]+6,w[2]]),V([w[0],w[1]+d.len,w[2]]),0.9);}
+      if(d.ring){const w=k[d.j];
+        if(Mo&&Mo.side&&d.j.startsWith("wr")){
+          // the ring hangs in the model's hand: its lower tube through the closed fingers, its plane across the palm
+          const g=gripPoint(Mo,Mo.side[d.j.slice(2)]),c=g.p.clone().add(new T.Vector3(0,6.5,0)),ax=new T.Vector3(g.n.x,0,g.n.z);
+          if(ax.lengthSq()<1e-3) ax.set(g.f.z,0,-g.f.x);
+          d.ring.position.copy(c);d.ring.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),ax.normalize());
+          place(d.strap,c.clone().add(new T.Vector3(0,6,0)),V([c.x,w[1]+d.len,c.z]),0.9);}
+        else{d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
+          place(d.strap,V([w[0],w[1]+6,w[2]]),V([w[0],w[1]+d.len,w[2]]),0.9);}}
       else if(d.band!=null){const a=k["b"+d.band+"a"],b=k["b"+d.band+"b"],v=k["b"+d.band+"v"];
         if(!a){d.m1.visible=d.m2.visible=false;continue;}d.m1.visible=d.m2.visible=true;
         const mid=v?[v[0],v[1]-12,0]:[(a[0]+b[0])/2,(a[1]+b[1])/2,0];place(d.m1,V(a),V(mid),1.6);place(d.m2,V(mid),V(b),1.6);}
