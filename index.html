@@ -15,7 +15,7 @@
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]{display:none!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap">
 <style>
 /* Layout: one track → one ladder → a vertical rail of step cards; one card open at a time */
 :root{
@@ -365,16 +365,110 @@ body.noscroll{overflow:hidden}
 .search{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23A39FC0' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat right 12px center,var(--panel)}
 .search:focus{border-color:var(--v2)}
 .redm{color:#ff4d3d}
+
+/* ================= Design v2: calm dark athletic look =================
+   one family (Rubik), deep night background with soft violet/teal light, glass surfaces, one gradient accent,
+   bottom tab bar within thumb reach, generous spacing, gentle press feedback */
+:root{--body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;--display:"Rubik",system-ui,sans-serif;
+  --r-lg:20px;--r-md:16px;--r-sm:12px;--glass:rgba(255,255,255,.045);--glass-b:rgba(255,255,255,.08);--shadow:0 10px 30px -12px rgba(0,0,0,.55);
+  --grad:linear-gradient(120deg,#8B6CFF 0%,#6F7BFF 45%,#3FD6C8 100%);--tabh:68px}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--glass:rgba(255,255,255,.75);--glass-b:rgba(40,30,90,.10);--shadow:0 10px 30px -14px rgba(40,30,90,.25)}}
+:root[data-theme="light"]{--glass:rgba(255,255,255,.75);--glass-b:rgba(40,30,90,.10);--shadow:0 10px 30px -14px rgba(40,30,90,.25)}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--body);letter-spacing:-.005em;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(900px 520px at 100% -10%,rgba(124,98,245,.22),transparent 60%),
+             radial-gradient(700px 520px at -10% 30%,rgba(63,214,200,.10),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
+.wrap{padding-block:0 calc(var(--tabh) + 36px + env(safe-area-inset-bottom,0px))}
+
+/* header: slim, sticky, glass */
+.apphead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:12px;margin:0 -16px 14px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;
+  background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid var(--glass-b)}
+.apphead .logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 14px rgba(124,98,245,.45))}
+.apphead h1{font-size:1.45rem;font-weight:800;line-height:1.1;letter-spacing:-.01em;padding:0;border:0;background:none;
+  background-image:linear-gradient(90deg,var(--ink),color-mix(in srgb,var(--ink) 70%,#9B7BFF));-webkit-background-clip:text;background-clip:text;color:transparent}
+.apphead h1::before,.apphead h1::after{display:none}
+.apphead .tag{margin:2px 0 0;font-size:.78rem;color:var(--muted);font-weight:500}
+
+/* bottom tab bar */
+.tabs{position:fixed;inset:auto 12px calc(10px + env(safe-area-inset-bottom,0px)) 12px;top:auto;z-index:20;max-width:560px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px;border-radius:24px;border:1px solid var(--glass-b);
+  background:color-mix(in srgb,var(--surface) 70%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:0 18px 40px -12px rgba(0,0,0,.6)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;padding:6px 4px;border:0!important;border-radius:18px;
+  background:transparent!important;color:var(--muted)!important;font-weight:600;font-size:.78rem;letter-spacing:0}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-pressed="true"]{background:var(--grad)!important;color:#fff!important;box-shadow:0 8px 22px -8px rgba(124,98,245,.8)}
+
+/* section labels */
+.label{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:4px 2px 10px;color:var(--muted)}
+
+/* search */
+.search{width:100%!important;max-width:none!important;height:46px;border-radius:999px!important;border:1px solid var(--glass-b)!important;
+  background-color:var(--glass)!important;font-size:1rem;margin:0 0 18px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.search:focus{border-color:#9B7BFF!important;box-shadow:0 0 0 4px rgba(155,123,255,.18)}
+
+/* surfaces */
+.track.hue,.prow.hue,.opt,details.tr,.stepc,.blk,.qres,.timer,#v-lib.hue .card,.sblk .scard,.addrow input,.fl textarea,.fl select,.srow select,#sadd,.box,.dobox{
+  border:1px solid var(--glass-b)!important;box-shadow:var(--shadow)}
+.track.hue,.prow.hue,details.tr,.stepc,.blk,#v-lib.hue .card,.sblk .scard,.opt{background:linear-gradient(160deg,color-mix(in srgb,var(--surface) 92%,#9B7BFF 8%),var(--surface))!important}
+.tracks{gap:10px}
+.track{border-radius:var(--r-md)!important;padding:14px 10px!important;font-weight:600}
+.track.hue[aria-pressed="true"]{background:var(--grad)!important;color:#fff!important;box-shadow:0 14px 30px -12px rgba(124,98,245,.75)}
+.track.hue[aria-pressed="true"] small{color:#fff!important;opacity:.85}
+.lad{border-radius:999px!important;padding:8px 16px!important;border:1px solid var(--glass-b)!important;background:var(--glass)!important;font-weight:500}
+.lad[aria-pressed="true"],#v-lib.hue .lad[aria-pressed="true"]{background:color-mix(in srgb,#9B7BFF 22%,transparent)!important;border-color:#9B7BFF!important;color:var(--ink)!important;font-weight:600}
+.ladhead h2{font-weight:800;font-size:1.6rem;letter-spacing:-.01em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+
+/* ladder rail */
+#v-lib.hue .rail::before,.rail::before{width:3px;border-radius:3px;background:linear-gradient(#9B7BFF,#3FD6C8)!important;opacity:.55}
+.num,#v-lib.hue .num{background:var(--surface)!important;border:2px solid color-mix(in srgb,#9B7BFF 45%,var(--line))!important;font-weight:700}
+#v-lib.hue .step.open .num,.step.open .num{background:var(--grad)!important;border-color:transparent!important;color:#fff;box-shadow:0 0 0 6px rgba(155,123,255,.15)}
+.card,#v-lib.hue .card{border-radius:var(--r-lg)!important}
+#v-lib.hue .step.open .card{border-color:color-mix(in srgb,#9B7BFF 60%,transparent)!important;box-shadow:0 20px 44px -18px rgba(124,98,245,.55)}
+
+/* boxes inside cards */
+.box,.dobox{border-radius:var(--r-md)!important;background:var(--glass)!important}
+.box.pass,#v-lib.hue .box.pass{background:linear-gradient(135deg,rgba(155,123,255,.16),rgba(63,214,200,.10))!important;border-color:rgba(155,123,255,.28)!important}
+.box b{font-weight:600}
+.td,.ill{border-radius:var(--r-lg)!important;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,#9B7BFF 10%,var(--chalk)),var(--chalk))!important;border:1px solid var(--glass-b)}
+
+/* buttons */
+.primary,.addrow button{background:var(--grad)!important;border:0!important;border-radius:var(--r-md)!important;font-weight:700;box-shadow:0 12px 26px -12px rgba(124,98,245,.8)}
+.bk button,.btnlike,.mback{border-radius:999px!important;border:1px solid var(--glass-b)!important;background:var(--glass)!important}
+.addrow input{border-radius:var(--r-md)!important;background:var(--glass)!important}
+
+/* gentle feedback */
+@media (prefers-reduced-motion:no-preference){
+  button,.card,.track,.lad,.tab{transition:transform .15s ease,box-shadow .2s ease,background-color .2s ease}
+  button:active,.track:active,.lad:active,.tab:active{transform:scale(.97)}
+  #v-lib.hue .step.open .card{animation:pop .28s ease}
+  @keyframes pop{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}}
+.modal{background:rgba(5,4,14,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mcard{border-radius:26px 26px 0 0!important;border-top:1px solid var(--glass-b);box-shadow:0 -20px 50px -20px rgba(0,0,0,.7)}
+
+/* empty states and intro text: a calm card with an icon instead of loose grey text */
+.empty,#v-tr>.sub{position:relative;margin:4px 0 16px;padding:16px 18px 16px 16px;padding-inline-start:58px;border-radius:var(--r-lg);border:1px solid var(--glass-b);
+  background:linear-gradient(135deg,rgba(155,123,255,.10),rgba(63,214,200,.06)),var(--glass);color:var(--ink);font-size:.95rem;line-height:1.55}
+.empty::before,#v-tr>.sub::before{content:"";position:absolute;inset-inline-start:16px;top:16px;width:30px;height:30px;border-radius:10px;background:var(--grad);
+  -webkit-mask:var(--ico) center/18px no-repeat,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:var(--ico) center/18px no-repeat exclude,linear-gradient(#000 0 0)}
+.empty,#v-tr>.sub{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 8v5M12 16.5v.5'/%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3C/svg%3E")}
+.fine{color:var(--muted);font-size:.82rem;text-align:center;margin-top:14px}
+.bk{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
 
 <div class="wrap" dir="rtl">
-  <h1>Calisthenics</h1>
+  <header class="apphead">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9B7BFF"/><stop offset="1" stop-color="#3FD6C8"/></linearGradient></defs>
+      <rect width="48" height="48" rx="14" fill="url(#lg)"/><path d="M10 11h28M18 11v12M30 11v12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="18" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/><circle cx="30" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/></svg>
+    <div><h1>Calisthenics</h1><p class="tag">סולמות התקדמות · מתאמנים · אימון קבוצתי</p></div>
+  </header>
   <nav class="tabs" id="tabs" aria-label="מסכים">
-    <button class="tab" data-v="lib" aria-pressed="true">סולמות</button>
-    <button class="tab" data-v="tr" aria-pressed="false">מתאמנים</button>
-    <button class="tab" data-v="ses" aria-pressed="false">אימון קבוצתי</button>
+    <button class="tab" data-v="lib" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h5v-5h5v-5h5V5h3"/></svg><span>סולמות</span></button>
+    <button class="tab" data-v="tr" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.3.2 4 2 4 4.3"/></svg><span>מתאמנים</span></button>
+    <button class="tab" data-v="ses" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 10v3.8l2.6 2M9.5 3h5M19 6.5l1.3-1.3"/></svg><span>אימון קבוצתי</span></button>
   </nav>
   <section id="v-lib">
   <div class="cats" id="cats"></div>
