@@ -1038,7 +1038,17 @@ const JMAP={W:"wr",F:"ft",K:"kn",E:"el",H:"pelv",S:"neck",C:"head"};
 function to3d(fr){const k=to3dPts(fr),c=contactsOf(fr,k);
   k._c=c;k._cw=["hL","hR","fL","fR"].map(n=>c[n]?1:0);return k;}
 // keys between two frames: points move in a straight line; contacts fade in/out with their weights
-function lerpKeys(a,b,t){const o={};
+function lerpKeys(a,b,t){
+  // keys turned about the vertical axis (a pirouette out of a handstand): turn both back, blend, turn by the blended
+  // angle, so the body turns instead of collapsing through the turning axis
+  if(a._ry||b._ry){const ra=a._ry||[0,b._ry[1]],rb=b._ry||[0,a._ry[1]],px=ra[1];
+    const un=(k,r)=>{const o={};for(const n in k){const p=k[n];o[n]=p;if(n[0]==="_"||!Array.isArray(p)||p.length!==3) continue;
+      const c=Math.cos(r),s=Math.sin(r),dx=p[0]-px;o[n]=[px+dx*c+p[2]*s,p[1],-dx*s+p[2]*c];}return o;};
+    const o=lerpKeys0(un(a,ra[0]),un(b,rb[0]),t),r=ra[0]+(rb[0]-ra[0])*t,c=Math.cos(r),s=Math.sin(r);
+    for(const n in o){const p=o[n];if(n[0]==="_"||!Array.isArray(p)||p.length!==3) continue;const dx=p[0]-px;o[n]=[px+dx*c-p[2]*s,p[1],dx*s+p[2]*c];}
+    o._ry=[r,px];return o;}
+  return lerpKeys0(a,b,t);}
+function lerpKeys0(a,b,t){const o={};
   for(const n in a){const x=a[n],y=b[n];
     if(n==="_c"){o._c={};for(const m of ["hL","hR","fL","fR"]){const p=x[m],q=y[m];
         // the same support in both keys: its contact point moves with the hand / foot (rings, walking hands)
@@ -1046,16 +1056,35 @@ function lerpKeys(a,b,t){const o={};
         if(p&&q&&!step) o._c[m]=Object.assign({},p,{p:p.p.map((z,i)=>z+(q.p[i]-z)*t)});
         else o._c[m]=(t<0.5?(p||q):(q||p))||null;
         // a step (foot from the floor onto the wall, a walking hand): let go, move free, then land
-        if(step) o._st=(o._st||[]).concat(m);}continue;}
+        if(step) o._st=(o._st||[]).concat(m);
+        // landing / lifting off: the contact holds until the hand or foot really leaves and starts only when it arrives
+        else if(!p!==!q) o._lf=(o._lf||[]).concat([[m,!!q]]);}continue;}
     if(!x||!y||!Array.isArray(x)){o[n]=x;continue;}o[n]=x.map((q,i)=>q+(y[i]-q)*t);}
+  // limbs turn about their joints between keys (direction and length interpolated around the shoulder / hip),
+  // so a hand swinging from overhead down to the floor goes around the shoulder instead of straight through it
+  for(const D of ["L","R"]) for(const [r0,m0,e0] of [["sh","el","wr"],["hp","kn","ft"]]){const R=r0+D;
+    if(!(a[R]&&b[R]&&a[m0+D]&&b[m0+D]&&a[e0+D]&&b[e0+D])) continue;
+    for(const J of [m0+D,e0+D]){const va=sub3(a[J],a[R]),vb=sub3(b[J],b[R]),la=Math.hypot(...va),lb=Math.hypot(...vb);
+      if(la<1e-6||lb<1e-6) continue;const d=slerpDir(va.map(x=>x/la),vb.map(x=>x/lb),t),l=la+(lb-la)*t;
+      o[J]=[o[R][0]+d[0]*l,o[R][1]+d[1]*l,o[R][2]+d[2]*l];}}
   // bend planes between two keys: carry the first key's plane along with the limb's direction and turn it about
   // that direction toward the second key's plane. It stays perpendicular to the limb all the way, so the IK never
   // sees a plane lying along the arm (which made the elbow flip sides mid-move).
+  // the in-between direction is the limb's real one (from the interpolated points, in the parent's frame)
+  let bf=null;
   for(const n in o){if(!/^_h(arm|leg)[LR]$/.test(n)) continue;const un="_u"+n.slice(2),ua=a[un],ub=b[un];if(!ua||!ub) continue;
-    const ha=a[n],hb=b[n],u=nrm3(o[un]=lerp3(ua,ub,t));
+    const ha=a[n],hb=b[n],li=n[2]==="l",s=n.slice(-1);
+    if(!bf) bf=bodyFrame(o,{sg:a._sg||1});
+    const K=s==="L"?bf.KL:bf.KR,r0=o[(li?"hp":"sh")+K],e0=o[(li?"ft":"wr")+K];
+    let u=slerpDir(nrm3(ua),nrm3(ub),t);
+    if(r0&&e0){const q=(li?bf.Qr:bf.Qt).clone().invert(),w=new window.THREE.Vector3(e0[0]-r0[0],e0[1]-r0[1],e0[2]-r0[2]);
+      if(w.lengthSq()>1e-6){w.applyQuaternion(q).normalize();u=[w.x,w.y,w.z];}}
+    o[un]=u;
     const Ha=transport(ha,nrm3(ua),nrm3(ub)),dl=Math.atan2(dot3(cross3(Ha,hb),nrm3(ub)),dot3(Ha,hb));
     o[n]=rot3(transport(ha,nrm3(ua),u),u,dl*t);}
-  if(o._st&&o._cw){const ix={hL:0,hR:1,fL:2,fR:3};for(const m of o._st){const i=ix[m];o._cw[i]=t<0.5?a._cw[i]*(1-2*t):b._cw[i]*(2*t-1);}delete o._st;}
+  const ix={hL:0,hR:1,fL:2,fR:3},sm=(e0,e1,x)=>{const y=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return y*y*(3-2*y);};
+  if(o._st&&o._cw){for(const m of o._st){const i=ix[m];o._cw[i]=t<0.5?a._cw[i]*(1-2*t):b._cw[i]*(2*t-1);}delete o._st;}
+  if(o._lf&&o._cw){for(const [m,land] of o._lf){const i=ix[m];o._cw[i]=land?b._cw[i]*sm(0.55,1,t):a._cw[i]*(1-sm(0,0.45,t));}delete o._lf;}
   return o;}
 function to3dPts(fr){
   if(fr.kind==="raw") return Object.assign({},fr.K);
@@ -1063,6 +1092,7 @@ function to3dPts(fr){
   // optional turn around the vertical axis (e.g. a pirouette out of a handstand)
   const rot=fr.rotY?fr.rotY*Math.PI/180:0, px=fr.pivot?fr.pivot[0]:0;
   const P=rot?(p,z)=>{const q=P0(p,z),dx=q[0]-px;return [px+dx*Math.cos(rot)-q[2]*Math.sin(rot),q[1],dx*Math.sin(rot)+q[2]*Math.cos(rot)];}:P0, k={};
+  if(rot) k._ry=[rot,px];
   if(fr.kind==="front"){const J=fr.J;
     Object.assign(k,{shL:P(J.sL),shR:P(J.sR),elL:P(J.eL),elR:P(J.eR),wrL:P(J.hL),wrR:P(J.hR),
       hpL:P(J.pL),hpR:P(J.pR),knL:P(J.kL),knR:P(J.kR),ftL:P(J.fL),ftR:P(J.fR),
@@ -1248,6 +1278,9 @@ const sub3=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot3=(a,b)=>a[0]*b[0]+a[1]*b[
   nrm3=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}, lerp3=(a,b,t)=>a.map((x,i)=>x+(b[i]-x)*t),
   // rotate v about unit axis k by angle a (Rodrigues)
   rot3=(v,k,a)=>{const c=Math.cos(a),s=Math.sin(a),kv=cross3(k,v),d=dot3(k,v)*(1-c);return [v[0]*c+kv[0]*s+k[0]*d,v[1]*c+kv[1]*s+k[1]*d,v[2]*c+kv[2]*s+k[2]*d];},
+  // unit direction between unit a and unit b (great circle)
+  slerpDir=(a,b,t)=>{const c=Math.max(-1,Math.min(1,dot3(a,b))),th=Math.acos(c);if(th<1e-4) return nrm3(lerp3(a,b,t));
+    let ax=cross3(a,b);if(Math.hypot(...ax)<1e-6) ax=Math.abs(a[0])<0.9?cross3(a,[1,0,0]):cross3(a,[0,1,0]);return rot3(a,nrm3(ax),th*t);},
   // carry v along the shortest rotation that takes unit a to unit b
   transport=(v,a,b)=>{const ax=cross3(a,b),sn=Math.hypot(ax[0],ax[1],ax[2]),cs=dot3(a,b);if(sn<1e-6) return v.slice();return rot3(v,ax.map(x=>x/sn),Math.atan2(sn,cs));};
 // torso (Qt) and pelvis (Qr) orientation of a keypoint frame; lat = the model's left
@@ -1258,17 +1291,30 @@ function bodyFrame(k,cfg){
   let lat=v(k.shR).sub(v(k.shL)).multiplyScalar(cfg.sg);lat.addScaledVector(up,-lat.dot(up));
   if(lat.lengthSq()<1e-4) lat=new T.Vector3(1,0,0);lat.normalize();
   let hl=v(k.hpR).sub(v(k.hpL)).multiplyScalar(cfg.sg);hl.addScaledVector(up,-hl.dot(up));
-  if(hl.lengthSq()<0.25||hl.dot(lat)<0.2*hl.length()) hl=lat.clone();hl.normalize();
+  // hips follow their own line, faded toward the shoulders' when it is short or turned too far from them (no switch)
+  {const L=hl.length(),c=L>1e-6?hl.dot(lat)/L:0,x=Math.max(0,Math.min(1,(c-0.2)/0.5))*Math.max(0,Math.min(1,(L-0.5)/2)),w=x*x*(3-2*x);
+   hl=L>1e-6?lat.clone().lerp(hl.multiplyScalar(1/L),w):lat.clone();}hl.normalize();
   const mt=basis(lat,up);
   return {up,lat,fwd:new T.Vector3().crossVectors(lat,up).normalize(),Qt:new T.Quaternion().setFromRotationMatrix(mt),
     Qr:new T.Quaternion().setFromRotationMatrix(basis(hl,up)),KL:cfg.sg>0?"R":"L",KR:cfg.sg>0?"L":"R"};
 }
+// fingers of a hand flat on the floor / box (world, horizontal): on the elbow-crease side (elbows point back in a
+// push-up: fingers forward); a leaning forearm (planche lean, arms lying beside the body) turns them toward its own
+// direction, through "fingers out" when the two are opposite
+function flatFingers(crease,fa,up,fwd,out){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
+  let B=hz(crease);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(out);B.normalize();
+  const hf=hz(fa),x=Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)),wa=x*x*(3-2*x),F=B.clone();
+  if(wa>0){const hn=hf.clone().normalize();let dl=Math.atan2(B.x*hn.z-B.z*hn.x,B.dot(hn));
+    if(Math.abs(dl)>2.5){const mid=B.clone().applyAxisAngle(new T.Vector3(0,1,0),-Math.sign(dl)*Math.PI/2);if(mid.dot(out)<0) dl-=Math.sign(dl)*2*Math.PI;}
+    F.applyAxisAngle(new T.Vector3(0,1,0),-dl*wa);}
+  return F.addScaledVector(hz(out).normalize(),0.15).normalize();}
 // fingers on a bar: hanging below it they continue the forearm up and over; supporting on top of it (forearm
 // pointing down) they point forward over the bar. Blended by the forearm's slope so it never flips.
 function barFingers(fa,ax,fwd,upW){const T=window.THREE,pj=a=>a.clone().addScaledVector(ax,-a.dot(ax));
   const fh=pj(fa),fs=pj(fwd);if(fs.lengthSq()<1e-4)fs.copy(pj(upW));fs.normalize();
-  const x=Math.max(0,Math.min(1,(fa.dot(upW)+0.35)/0.7)),b=x*x*(3-2*x);
-  const F=fs.clone().multiplyScalar(1-b);if(fh.lengthSq()>1e-6)F.addScaledVector(fh.normalize(),b);
+  const x=Math.max(0,Math.min(1,(fa.dot(upW)+0.75)/1.5)),b=x*x*(3-2*x);
+  // (the forearm's part across the bar keeps its length: a forearm lying along the bar has no say, and cannot flip it)
+  const F=fs.clone().multiplyScalar(1-b).addScaledVector(fh,b);
   if(F.lengthSq()<1e-4)F.copy(fs);return F.normalize();}
 // rest geometry of the limbs (model space, cm)
 const LIMBS=[["uarm","farm","hand","sh","el","wr",[0,0,1]],["thigh","shin","foot","hp","kn","ft",[0,0,-1]]];
@@ -1297,8 +1343,12 @@ function prepKeys(keys,cfg){
     // across the keys first, so a plane near the limit never jumps from one side to the other.
     const lim=li?40*Math.PI/180:0;let prev=null;
     keys.forEach((k,i)=>{let h=hs[i].h;
+      // a straight limb takes the plane of the nearest bent key, carried along the change of limb direction
+      // (no bent key at all: the first key's natural plane, carried from key to key) - never a plane that
+      // depends on the arm's direction alone, which spins for raised arms
+      const tv=(x,a,b)=>{const r=transport([x.x,x.y,x.z],[a.x,a.y,a.z],[b.x,b.y,b.z]);return new T.Vector3(r[0],r[1],r[2]);};
       if(!h){let bj=-1;for(let j=0;j<keys.length;j++) if(hs[j].h&&(bj<0||Math.abs(j-i)<Math.abs(bj-i))) bj=j;
-        h=bj>=0?hs[bj].h:hs[i].hf;}
+        h=bj>=0?tv(hs[bj].h,hs[bj].u,hs[i].u):(i&&hs[i-1].hFinal?tv(hs[i-1].hFinal,hs[i-1].u,hs[i].u):hs[i].hf);}
       const u=hs[i].u,pj=a=>a.clone().addScaledVector(u,-a.dot(u)),hn=pj(hs[i].hn).normalize(),hp=pj(h);
       if(lim&&hp.lengthSq()>1e-6&&hn.lengthSq()>0.5){hp.normalize();
         let ph=Math.atan2(new T.Vector3().crossVectors(hn,hp).dot(u),hn.dot(hp));
@@ -1311,7 +1361,7 @@ function prepKeys(keys,cfg){
       if(!li&&c&&c.t==="flat"){const ol=x=>new T.Vector3().crossVectors(u,x),out=new T.Vector3(s==="L"?1:-1,0,0);
         if(ol(h).y>0.05){let best=null;for(let a=5;a<=180&&!best;a+=5) for(const sg of [1,-1]){const hh=h.clone().applyAxisAngle(u,sg*a*Math.PI/180),o2=ol(hh);
           if(o2.y<=0.05&&o2.dot(out)>=-0.05){best=hh;break;}}if(best) h=best;}}
-      k["_h"+(li?"leg":"arm")+s]=[h.x,h.y,h.z];k["_u"+(li?"leg":"arm")+s]=[u.x,u.y,u.z];});
+      hs[i].hFinal=h.clone();k._sg=cfg.sg;k["_h"+(li?"leg":"arm")+s]=[h.x,h.y,h.z];k["_u"+(li?"leg":"arm")+s]=[u.x,u.y,u.z];});
   });
   // bar grip: which way the palm faces is chosen once (neutral forearm + overhand) and then kept from key to key,
   // so the hand never flips over while the forearm turns around the bar (muscle-up transition)
@@ -1320,14 +1370,21 @@ function prepKeys(keys,cfg){
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K],iq=fr[i].Qt.clone().invert();
       if(c&&c.t==="bar"){const fa=v(k["wr"+K]).sub(v(k["el"+K])).applyQuaternion(iq).normalize(),ax=v(c.ax).applyQuaternion(iq).normalize();
         const F=barFingers(fa,ax,new T.Vector3(0,0,1),new T.Vector3(0,1,0).applyQuaternion(iq)),n1=new T.Vector3().crossVectors(F,ax).normalize();
-        let sg;if(prev) sg=n1.dot(prev)>=0?1:-1;
+        // compared and stored in world space: the hand stays on the bar while the body turns around it (skin the cat)
+        const n1w=n1.clone().applyQuaternion(fr[i].Qt);let sg;if(prev) sg=n1w.dot(prev)>=0?1:-1;
         else{const Wf=new T.Quaternion().setFromRotationMatrix(new T.Matrix4());   // forearm frame from the bend plane
           const h=v(k["_harm"+s]),fx=a=>{const x=a[0].clone().normalize(),y=a[1].clone().addScaledVector(x,-a[1].dot(x)).normalize();return new T.Matrix4().makeBasis(x,y,new T.Vector3().crossVectors(x,y));};
           Wf.setFromRotationMatrix(fx([fa,h]).multiply(fx([rest.r2,rest.hr]).transpose()));
           const N0=v(HAND_N[s]).applyQuaternion(Wf),pref=new T.Vector3(0,-1,1).normalize();
           sg=(n1.dot(N0)+0.5*n1.dot(pref))>=0?1:-1;}
-        prev=n1.multiplyScalar(sg);}
+        prev=n1w.multiplyScalar(sg);}
       k["_g"+s]=prev?[prev.x,prev.y,prev.z]:[0,0,0];});
+    // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
+    keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
+      if(c&&c.t==="flat"){const f=fr[i],H=v(k["_harm"+s]).applyQuaternion(f.Qt).normalize(),fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
+        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1));k["_f"+s]=[F.x,F.y,F.z];}});
+    keys.forEach((k,i)=>{if(k["_f"+s]) return;let bj=-1;for(let j=0;j<keys.length;j++) if(keys[j]["_f"+s]&&(bj<0||Math.abs(j-i)<Math.abs(bj-i))) bj=j;
+      k["_f"+s]=bj>=0?keys[bj]["_f"+s].slice():[0,0,0];});
     // keys before the first grip take its palm direction too
     const first=keys.find(k=>k["_g"+s][0]||k["_g"+s][1]||k["_g"+s][2]);if(first) keys.forEach(k=>{if(!(k["_g"+s][0]||k["_g"+s][1]||k["_g"+s][2])) k["_g"+s]=first["_g"+s].slice();});}
 }
@@ -1380,30 +1437,27 @@ function poseModel(Mo,k,cfg){
           // grips that depend on the forearm are redone with the solved forearm in solveLimbs
           const orient=(fa,Hs,keep)=>{const hz=a=>new T.Vector3(a.x,0,a.z);let F,N;
           const Wf=map(rr.r2,rr.hr,fa,Hs||H),N0=v(HAND_N[s]).applyQuaternion(Wf),crease=new T.Vector3().crossVectors(H,fa).normalize();
-          if(c.t==="flat"){ // palm flat, fingers on the crease side (elbows point back in a push-up, fingers forward)
-            // an inclined forearm (planche lean, arms lying beside the body) turns the fingers toward its own direction;
-            // the turn is an angle in the floor plane and, when the two are opposite, it goes through "fingers out",
-            // so the hand never spins through 180° in one step
-            let B=hz(crease);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}B.normalize();
-            const hf=hz(fa),x=Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)),wa=x*x*(3-2*x),out=lat.clone().multiplyScalar(sgn);
-            F=B.clone();
-            if(wa>0){const hn=hf.clone().normalize();let dl=Math.atan2(B.x*hn.z-B.z*hn.x,B.dot(hn));
-              if(Math.abs(dl)>2.5){const mid=B.clone().applyAxisAngle(new T.Vector3(0,1,0),-Math.sign(dl)*Math.PI/2);if(mid.dot(out)<0) dl-=Math.sign(dl)*2*Math.PI;}
-              F.applyAxisAngle(new T.Vector3(0,1,0),-dl*wa);}
-            F.addScaledVector(out,0.15).normalize();N=new T.Vector3(0,-1,0);}
+          if(c.t==="flat"){ // palm flat on the floor / box: fingers as decided on the keys (a planted hand does not turn)
+            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn));
+            N=new T.Vector3(0,-1,0);}
           else if(c.t==="wall"){N=v(c.n).negate();F=new T.Vector3(0,1,0);}
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
           else if(c.t==="pole"){F=fa.clone();N=v(c.p).sub(p3);N.y=0;if(N.lengthSq()<1e-4)N=fwd.clone();}
           else { // bar: fingers wrap around it, palm toward the bar; overhand unless the forearm is turned the other way
             const ax=v(c.ax||[0,0,1]);F=barFingers(fa,ax,fwd,new T.Vector3(0,1,0));
-            const n1=new T.Vector3().crossVectors(F,ax).normalize(),g=v(k["_g"+s]||[0,0,0]).applyQuaternion(Qt);
+            const n1=new T.Vector3().crossVectors(F,ax).normalize(),g=v(k["_g"+s]||[0,0,0]);
             N=n1.dot(g.lengthSq()>0.01?g:fwd.clone().sub(up))>=0?n1:n1.negate();}
           N.addScaledVector(F,-N.dot(F));if(N.lengthSq()<1e-4)N=fwd.clone().addScaledVector(F,-fwd.dot(F));N.normalize();
           t.Qc=map(v(HAND_F[s]),v(HAND_N[s]),F,N);t.F=F;t.N=N;
           const pc=v(c.p);
           if(c.t==="flat") pc.y+=c.bar?1.6:1.8; else if(c.t==="wall") pc.addScaledVector(v(c.n),1.8);
           else pc.addScaledVector(N,-(c.t==="ring"?3.2:4.2)).addScaledVector(F,-2.2);   // the bar sits at the base of the fingers
-          if(!keep) t.cT=pc.sub(v(PALM[s]).applyQuaternion(t.Qc).multiplyScalar(MS));};
+          if(keep) return;
+          // rings and poles turn with the hand: the wrist sits a palm-length short of the grip along the line from the
+          // shoulder, so the target does not depend on the hand's own twist (which follows the solved forearm)
+          if(c.t==="ring"||c.t==="pole"){const L0=((cfg.len&&cfg.len["uarm"+K])||54)*0.48,x=Math.max(0,Math.min(1,(A2.length()/L0-0.35)/0.35)),q=x*x*(3-2*x);
+            const dirF=v(c.p).sub(p1).normalize().lerp(A2.clone().normalize(),q).normalize();t.cT=v(c.p).addScaledVector(dirF,-10.2*MS);}
+          else t.cT=pc.sub(v(PALM[s]).applyQuaternion(t.Qc).multiplyScalar(MS));};
           t.orient=orient;orient(A2.length()>0.45*rr.b/MS*MS?A2.clone().normalize():p3.clone().sub(p1).normalize());
         } else { // foot: sole on the support, ankle placed so the lowest point of the foot touches it
           const n=v(c.n||[0,1,0]),Wsh=map(rr.r2,rr.hr,A2,H),th=footAngle(Wsh,rr,n,1);
@@ -1431,7 +1485,10 @@ function poseModel(Mo,k,cfg){
       if(!c) break;d.add(acc.multiplyScalar(1/c));}}
   if(d.lengthSq()>0){B.root.position.addScaledVector(d,1/MS);Mo.grp.updateMatrixWorld(true);}
   // ---- two-bone IK per limb with the model's lengths and the drawn bend plane
-  const ik=(S,Wt,a,b,H,dmin)=>{const D=Wt.clone().sub(S);let dd=D.length();const u=D.normalize();
+  const ik=(S,Wt,a,b,H,dmin,ud)=>{const D=Wt.clone().sub(S);let dd=D.length();const u=D.normalize();
+    // a target closer than the fully bent limb: the direction to it is meaningless and swings around the joint;
+    // fade to the drawn joint → hand direction instead
+    if(ud&&dd<dmin*1.3){const x=Math.max(0,Math.min(1,(dd-0.4*dmin)/(0.9*dmin))),q=x*x*(3-2*x);u.multiplyScalar(q).addScaledVector(ud,1-q).normalize();}
     dd=Math.max(dmin,Math.min(dd,(a+b)*0.9995));
     let hp=H.clone().addScaledVector(u,-H.dot(u));if(hp.lengthSq()<1e-6){hp=new T.Vector3(0,0,1).cross(u);if(hp.lengthSq()<1e-6)hp=new T.Vector3(1,0,0);}
     hp.normalize();const p=new T.Vector3().crossVectors(u,hp).normalize(),ca=Math.max(-1,Math.min(1,(a*a+dd*dd-b*b)/(2*a*dd))),sa=Math.sqrt(1-ca*ca);
@@ -1439,8 +1496,11 @@ function poseModel(Mo,k,cfg){
   const solveLimbs=()=>{for(const s of ["L","R"]) LIMBS.forEach((L,li)=>{
     // a hand / foot that is not standing on the floor may still swing near it: if any part of it would go
     // under the floor, the limb is solved again with its end raised by that much
-    let lift=0;for(let pass=0;pass<2;pass++){solveOne(s,L,li,lift);
-      if(!cfg.g||tg[L[0]+s].w>=0.99) break;const lo=endLowest(s,li);if(lo>GROUND()-0.3) break;lift=GROUND()-lo+0.3;}});
+    // a foot standing on a flat support is re-solved once so its lowest point (heel, ball or toes, depending on how
+    // the ankle turned on the solved shin) sits exactly on the support
+    let lift=0;for(let pass=0;pass<2;pass++){solveOne(s,L,li,lift);const t=tg[L[0]+s];
+      if(li&&t.c&&t.c.t==="flat"&&t.w>=0.99){const e=t.c.p[1]-endLowest(s,li);if(Math.abs(e)<0.3) break;lift+=e;continue;}
+      if(!cfg.g||t.w>=0.99) break;const lo=endLowest(s,li);if(lo>GROUND()-0.3) break;lift=GROUND()-lo+0.3;}});
   ["uarmL","uarmR","farmL","farmR","handL","handR","thighL","thighR","shinL","shinR","footL","footR"].forEach(setLocal);
   Mo.grp.updateMatrixWorld(true);};
   // lowest point of a hand (palm and fingers) or a foot (heel, ball, toes) from the end bone's position and rotation
@@ -1451,11 +1511,10 @@ function poseModel(Mo,k,cfg){
     const Wt=t.cT?t.free.clone().add(d).lerp(t.cT,t.w):t.free.clone().add(d);Wt.y+=lift;
     // a free hand / foot never goes through the floor (the model's limbs are a little longer than the drawing's)
     if(cfg.g&&t.w<0.5) Wt.y=Math.max(Wt.y,GROUND()+(li?8.5:4));
-    let r=ik(S,Wt,rr.a,rr.b,t.H,rr.dmin);
-    // grips that follow the forearm (rings, pole): orient the hand on the solved forearm and solve once more
+    let r=ik(S,Wt,rr.a,rr.b,t.H,rr.dmin,t.dir);
+    // grips that follow the forearm (rings, pole): orient the hand on the solved forearm
     // (a bar grip keeps the palm direction chosen per animation in prepKeys)
-    if(!li&&t.c&&t.w>0.001&&(t.c.t==="ring"||t.c.t==="pole")){t.orient(r.Wp.clone().sub(r.E).normalize(),r.H);
-      const W2=t.free.clone().add(d).lerp(t.cT,t.w);r=ik(S,W2,rr.a,rr.b,t.H,rr.dmin);t.orient(r.Wp.clone().sub(r.E).normalize(),r.H,true);}
+    if(!li&&t.c&&t.w>0.001&&(t.c.t==="ring"||t.c.t==="pole")) t.orient(r.Wp.clone().sub(r.E).normalize(),r.H,true);
     W[L[0]+s]=map(rr.r1,rr.hr,r.E.clone().sub(S),r.H);W[L[1]+s]=map(rr.r2,rr.hr,r.Wp.clone().sub(r.E),r.H);
     const Wl=W[L[1]+s];
     if(!li){let Qh2=Wl.clone();
@@ -1463,23 +1522,23 @@ function poseModel(Mo,k,cfg){
         // blend from the free hand (in line with the forearm) to the grip; the blend keeps the same side of the
         // quaternion sphere as the previous frame, so a grip ~180° away is reached the same way every frame
         const rq=Wl.clone().invert().multiply(t.Qc),RQ=Mo._rq||(Mo._rq={});
-        if(RQ[s]&&rq.dot(RQ[s])<0) rq.set(-rq.x,-rq.y,-rq.z,-rq.w);RQ[s]=rq.clone();
+        if(RQ[s]?rq.dot(RQ[s])<0:rq.w<0) rq.set(-rq.x,-rq.y,-rq.z,-rq.w);RQ[s]=rq.clone();   // first frame: the short way
         const ang=2*Math.acos(Math.max(-1,Math.min(1,rq.w))),sn=Math.sqrt(Math.max(0,1-rq.w*rq.w));
         const part=sn>1e-6?new T.Quaternion().setFromAxisAngle(new T.Vector3(rq.x/sn,rq.y/sn,rq.z/sn),ang*t.w):new T.Quaternion();
         Qh2=Wl.clone().multiply(part);
         // spread the wrist twist: the forearm takes half of it (pronation/supination), so the wrist does not wring
         const rel=Wl.clone().invert().multiply(Qh2),ax=rr.r2.clone().normalize(),dd=ax.x*rel.x+ax.y*rel.y+ax.z*rel.z;
-        // twist angle, unwrapped against the previous frame so it never jumps from +180° to -180°;
-        // the forearm takes half of it, at most ~95° (the rest of the range belongs to the wrist)
+        // twist angle, unwrapped against the previous frame so it never jumps from +180° to -180° (reset when the
+        // hand lets go); the forearm takes half of it, at most ~95° (the rest of the range belongs to the wrist)
         let phi=2*Math.atan2(dd,rel.w);const P=Mo._phi||(Mo._phi={}),pp=P[s];
         if(pp!=null){while(phi-pp>Math.PI)phi-=2*Math.PI;while(phi-pp<-Math.PI)phi+=2*Math.PI;}
-        if(Math.abs(phi)>1.3*Math.PI) phi-=Math.sign(phi)*2*Math.PI;P[s]=phi;t.phi=phi*180/Math.PI;
+        P[s]=phi;t.phi=phi*180/Math.PI;
         const sh=Math.max(-1.66,Math.min(1.66,phi*0.5));W[L[1]+s]=Wl.clone().multiply(new T.Quaternion().setFromAxisAngle(ax,sh));}
       else{if(Mo._phi) Mo._phi[s]=null;if(Mo._rq) Mo._rq[s]=null;}
       W[L[2]+s]=Qh2;}
     else {// feet: flat on what they stand on, pointed when free; a free foot close to the floor turns flat too
       const nf=cfg.g&&t.w<0.5?Math.max(0,Math.min(1,(GROUND()+24-r.Wp.y)/14)):0;
-      const n=t.c&&t.w>=nf?v(t.c.n||[0,1,0]):(nf>0?new T.Vector3(0,1,0):up),th=footAngle(Wl,rr,n,Math.max(t.c?t.w:0,nf));
+      const thF=footAngle(Wl,rr,new T.Vector3(0,1,0),nf),th=t.c?thF+(footAngle(Wl,rr,v(t.c.n||[0,1,0]),1)-thF)*t.w:thF;
       W[L[2]+s]=new T.Quaternion().setFromAxisAngle(rr.hr.clone().applyQuaternion(Wl).normalize(),th).multiply(Wl);}
     // the end bone's world position follows from the solved joint (needed by endLowest before the pose is applied)
     t.endPos=r.Wp.clone();
@@ -1501,7 +1560,7 @@ function footAngle(Wsh,rr,n,w){const T=window.THREE;
   // positive angle about the hinge = toes down (plantar flexion): range 25° up to 50° down
   let th=Math.atan2(ax.dot(new T.Vector3().crossVectors(s,t)),s.dot(t)-ax.dot(s)*ax.dot(t));
   // the sole cannot face the support (plank, push-up): stand on the balls of the feet, toes tucked
-  const a=Math.abs(th),b=a<=1?0:a>=1.35?1:(a-1)/0.35,bs=b*b*(3-2*b);
+  const a=Math.abs(th),b=a<=0.9?0:a>=1.9?1:(a-0.9),bs=b*b*(3-2*b);
   th=Math.max(-0.45,Math.min(0.9,th));th+=(-0.3-th)*bs;
   const free=0.35;return free+(th-free)*w;}
 const SEG=[["neck","pelv",8.5],["shL","shR",5],["hpL","hpR",6.5],["shL","elL",4.6],["elL","wrL",4],
