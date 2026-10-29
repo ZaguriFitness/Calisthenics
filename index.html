@@ -1578,7 +1578,6 @@ function build(host,frames,opt){opt=opt||{};
   const mEq=new T.MeshStandardMaterial({color:css("--muted"),roughness:0.6});
   const mWall=new T.MeshStandardMaterial({color:css("--muted"),roughness:1,transparent:true,opacity:0.25});
   const mAcc=new T.MeshStandardMaterial({color:css("--accent"),roughness:0.5});
-  const mGround=new T.MeshStandardMaterial({color:css("--muted"),roughness:1,transparent:true,opacity:0.18});
   const keys=frames.map(to3d);
   const cyl=new T.CylinderGeometry(1,1,1,14), sph=new T.SphereGeometry(1,16,12), tor=new T.TorusGeometry(6.5,1.6,10,24);
   const V=p=>new T.Vector3(p[0],p[1],p[2]);
@@ -1603,7 +1602,6 @@ function build(host,frames,opt){opt=opt||{};
   const f0=frames[0];
   if(f0.kind==="raw"){
     for(const q of f0.props3d||[]) if(q.pole) staticCyl([q.pole[0],q.pole[1],0],[q.pole[0],q.pole[2],0],3);
-    if(f0.g){const g=new T.Mesh(new T.CylinderGeometry(115,115,1,40),mGround);g.position.set(-40,-GY-4,0);scene.add(g);}
   } else if(f0.kind==="front"){const J=f0.J;
     if(J.eq==="bar"){const x1=Math.min(-75,J.hL[0]-15),x2=Math.max(75,J.hR[0]+15);staticCyl([x1,-J.by,0],[x2,-J.by,0],2.6);}
     else for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:"wr"+s,len:60,axis:"z"});
@@ -1629,7 +1627,6 @@ function build(host,frames,opt){opt=opt||{};
       else if(q.k==="band") once(["band",i],()=>dyn.push({band:i,m1:new T.Mesh(cyl,mAcc),m2:new T.Mesh(cyl,mAcc)}));
       else if(q.k==="wt") once(["wt",i],()=>dyn.push({wt:i,m:new T.Mesh(tor,mAcc)}));
     }));
-    if(frames.some(f=>f.g)){const g=new T.Mesh(new T.CylinderGeometry(115,115,1,40),mGround);g.position.set(0,-GY-4,0);scene.add(g);dyn.push({ground:g});}
   }
   for(const d of dyn) for(const k of ["ring","strap","m","m1","m2"]) if(d[k]) scene.add(d[k]);
   function pose(k){
@@ -1638,8 +1635,7 @@ function build(host,frames,opt){opt=opt||{};
     for(const n in joints) joints[n].m.position.set(...k[n]);
     head.position.set(...k.head);
     for(const d of dyn){
-      if(d.ground){d.ground.position.x=(k.pelv[0]+k.head[0])/2;}
-      else if(d.ring){const w=k[d.j];d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
+      if(d.ring){const w=k[d.j];d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
         place(d.strap,V([w[0],w[1]+6,w[2]]),V([w[0],w[1]+d.len,w[2]]),0.9);}
       else if(d.band!=null){const a=k["b"+d.band+"a"],b=k["b"+d.band+"b"],v=k["b"+d.band+"v"];
         if(!a){d.m1.visible=d.m2.visible=false;continue;}d.m1.visible=d.m2.visible=true;
