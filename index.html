@@ -1755,6 +1755,29 @@ function build(host,frames,opt){opt=opt||{};
   const mEq=new T.MeshStandardMaterial({color:css("--muted"),roughness:0.6});
   const mWall=new T.MeshStandardMaterial({color:css("--muted"),roughness:1,transparent:true,opacity:0.25});
   const mAcc=new T.MeshStandardMaterial({color:css("--accent"),roughness:0.5});
+  const mBand=new T.MeshStandardMaterial({color:0xF0883E,roughness:0.45});   // resistance band: a flat elastic loop
+  // a band as a soft tube through the given points
+  const bandMesh=(m,pts)=>{if(m.geometry) m.geometry.dispose();m.geometry=new T.TubeGeometry(new T.CatmullRomCurve3(pts,false,"centripetal"),72,0.85,6,false);m.visible=true;};
+  // where the band meets the body: on the model when it is shown, otherwise on the drawn points
+  const bodyPt=(k,which)=>{if(Mo){const w=new T.Vector3(),g=n=>{Mo.bones[n].getWorldPosition(w);return w.clone();};
+      if(which==="hips") return {c:g("thighL").add(g("thighR")).multiplyScalar(0.5),lat:g("thighL").sub(g("thighR")).normalize(),hw:14};
+      if(which==="chest") return {c:g("chest").lerp(g("neck"),0.45),lat:g("uarmL").sub(g("uarmR")).normalize(),hw:15};
+      if(which==="knees"){const a=g("shinL"),b=g("shinR");return {c:a.clone().add(b).multiplyScalar(0.5),lat:a.clone().sub(b).normalize(),hw:a.distanceTo(b)/2+6};}
+      if(which==="feet"){const a=g("footL"),b=g("footR");return {c:a.clone().add(b).multiplyScalar(0.5).add(new T.Vector3(0,-6,0)),lat:a.clone().sub(b).normalize(),hw:a.distanceTo(b)/2+6};}
+      if(which==="hands"){const a=g("handL"),b=g("handR");return {c:a.add(b).multiplyScalar(0.5),lat:new T.Vector3(0,0,1),hw:3};}}
+    const P2=(n1,n2)=>V(k[n1]).add(V(k[n2])).multiplyScalar(0.5),L=(n1,n2)=>V(k[n1]).sub(V(k[n2])).normalize();
+    if(which==="hips") return {c:V(k.pelv),lat:L("hpL","hpR"),hw:13};
+    if(which==="chest") return {c:V(k.neck).lerp(V(k.pelv),0.2),lat:L("shL","shR"),hw:14};
+    if(which==="knees") return {c:P2("knL","knR"),lat:L("knL","knR"),hw:V(k.knL).distanceTo(V(k.knR))/2+5};
+    if(which==="feet") return {c:P2("ftL","ftR").add(new T.Vector3(0,-6,0)),lat:L("ftL","ftR"),hw:V(k.ftL).distanceTo(V(k.ftR))/2+5};
+    return {c:P2("wrL","wrR"),lat:new T.Vector3(0,0,1),hw:3};};
+  // a loop band from two anchor points around the far side of a body part (the side away from the anchors)
+  const loopPts=(A1,A2,b)=>{const mid=A1.clone().add(A2).multiplyScalar(0.5),wrap=b.c.clone().sub(mid).normalize();
+    let lat=b.lat.clone();if(lat.lengthSq()<1e-4) lat.set(0,0,1);
+    if(lat.dot(A1.clone().sub(A2))<0) lat.negate();
+    const r=Math.max(4,b.hw*0.45),s1=b.c.clone().addScaledVector(lat,b.hw),s2=b.c.clone().addScaledVector(lat,-b.hw);
+    return [A1,s1.clone().addScaledVector(wrap,r*0.4),s1.clone().addScaledVector(wrap,r).addScaledVector(lat,-b.hw*0.25),b.c.clone().addScaledVector(wrap,r*1.25),
+      s2.clone().addScaledVector(wrap,r).addScaledVector(lat,b.hw*0.25),s2.clone().addScaledVector(wrap,r*0.4),A2];};
   const keys=frames.map(to3d);
   const cyl=new T.CylinderGeometry(1,1,1,14), sph=new T.SphereGeometry(1,16,12), tor=new T.TorusGeometry(6.5,1.6,10,24);
   const V=p=>new T.Vector3(p[0],p[1],p[2]);
@@ -1783,7 +1806,7 @@ function build(host,frames,opt){opt=opt||{};
     if(J.eq==="bar"){const x1=Math.min(-75,J.hL[0]-15),x2=Math.max(75,J.hR[0]+15);staticCyl([x1,-J.by,0],[x2,-J.by,0],2.6);}
     else for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:"wr"+s,len:60,axis:"z"});
     if(J.box){const y=Math.max(J.fL[1],J.fR[1])+4;staticBox(0,-(y+13),0,52,26,40);}
-    if(frames.some(f=>f.J.band)) dyn.push({fband:true,m1:new T.Mesh(cyl,mAcc),m2:new T.Mesh(cyl,mAcc),by:J.by});
+    if(frames.some(f=>f.J.band)) dyn.push({fband:true,m:new T.Mesh(new T.BufferGeometry(),mBand),by:J.by,rings:J.eq==="rings"});
     if(frames.some(f=>f.J.w)) dyn.push({fw:true,m:new T.Mesh(tor,mAcc)});
     if(frames.some(f=>f.J.towel)) dyn.push({towel:true,m:new T.Mesh(cyl,mAcc),by:J.by});
   } else {
@@ -1801,7 +1824,8 @@ function build(host,frames,opt){opt=opt||{};
         if(q.atRef&&JMAP[q.atRef]&&(q.atRef==="W"||q.atRef==="F")){for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:JMAP[q.atRef]+s,len:q.len||55,axis:"x"});}
         else for(const z of [-14,14]){const m=new T.Mesh(tor,mEq);m.position.set(q.at[0],-q.at[1],z);m.rotation.y=Math.PI/2;scene.add(m);
           staticCyl([q.at[0],-q.at[1]+6,z],[q.at[0],-q.at[1]+(q.len||55),z],0.9);}});
-      else if(q.k==="band") once(["band",i],()=>dyn.push({band:i,m1:new T.Mesh(cyl,mAcc),m2:new T.Mesh(cyl,mAcc)}));
+      else if(q.k==="band") once(["band",i],()=>dyn.push({band:i,kind:q.viaRef==="K"?"knees":q.toRef==="H"?"hips":q.toRef==="S"?"chest":q.toRef==="W"?"hands":"line",
+        bars:(fr.pr||[]).some(z=>z.k==="hbar"),m:new T.Mesh(new T.BufferGeometry(),mBand)}));
       else if(q.k==="wt") once(["wt",i],()=>dyn.push({wt:i,m:new T.Mesh(tor,mAcc)}));
     }));
   }
@@ -1821,11 +1845,19 @@ function build(host,frames,opt){opt=opt||{};
           place(d.strap,c.clone().add(new T.Vector3(0,6,0)),V([c.x,w[1]+d.len,c.z]),0.9);}
         else{d.ring.position.set(w[0],w[1]-1,w[2]);d.ring.rotation.y=d.axis==="x"?Math.PI/2:0;
           place(d.strap,V([w[0],w[1]+6,w[2]]),V([w[0],w[1]+d.len,w[2]]),0.9);}}
-      else if(d.band!=null){const a=k["b"+d.band+"a"],b=k["b"+d.band+"b"],v=k["b"+d.band+"v"];
-        if(!a){d.m1.visible=d.m2.visible=false;continue;}d.m1.visible=d.m2.visible=true;
-        const mid=v?[v[0],v[1]-12,0]:[(a[0]+b[0])/2,(a[1]+b[1])/2,0];place(d.m1,V(a),V(mid),1.6);place(d.m2,V(mid),V(b),1.6);}
+      else if(d.band!=null){const a=k["b"+d.band+"a"],b=k["b"+d.band+"b"];
+        if(!a){d.m.visible=false;continue;}
+        if(d.kind==="knees"){
+          // a band tied across between the two bars (or the two ring straps); the knees rest on it and it sags below them
+          const bp=bodyPt(k,"knees"),y=a[1],zz=d.bars?21:Math.max(12,Math.abs(k.wrL[2]-k.wrR[2])/2);
+          bandMesh(d.m,loopPts(new T.Vector3(bp.c.x,y,zz),new T.Vector3(bp.c.x,y,-zz),Object.assign(bp,{lat:new T.Vector3(0,0,1)})));}
+        else if(d.kind==="hands"){const bp=bodyPt(k,"hands"),A=V(a);bandMesh(d.m,[A,A.clone().lerp(bp.c,0.5).add(new T.Vector3(0,-2,0)),bp.c]);}
+        else if(d.kind==="line") bandMesh(d.m,[V(a),V(a).lerp(V(b),0.5).add(new T.Vector3(0,-6,0)),V(b)]);
+        else {// looped over the bar / anchor, two strands down to the body part and around it
+          const bp=bodyPt(k,d.kind),A=V(a),l=bp.lat.clone().multiplyScalar(2.5);bandMesh(d.m,loopPts(A.clone().add(l),A.clone().sub(l),bp));}}
       else if(d.wt!=null){const w=k["w"+d.wt];if(w){d.m.visible=true;d.m.position.set(...w);}else d.m.visible=false;}
-      else if(d.fband){const fL=k.ftL,fR=k.ftR;place(d.m1,V([-6,-d.by,0]),V([fL[0],fL[1]-6,0]),1.4);place(d.m2,V([6,-d.by,0]),V([fR[0],fR[1]-6,0]),1.4);}
+      else if(d.fband){// looped over the bar (or the rings' straps) between the hands, both feet stand in the loop
+        const bp=bodyPt(k,"feet"),y=-d.by;bandMesh(d.m,loopPts(new T.Vector3(-3,y+1,0),new T.Vector3(3,y+1,0),bp));}
       else if(d.fw){const p=k.pelv;d.m.position.set(p[0],p[1]-14,4);}
       else if(d.towel){const w=k.wrR;place(d.m,V([w[0],-d.by,0]),V(w),1.4);}
     }
