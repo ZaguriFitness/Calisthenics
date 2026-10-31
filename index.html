@@ -577,7 +577,7 @@ function sideFrame(fr){
   return {svg:out.back+out.body+out.front,pts,ground:!!fr.g};
 }
 // ---------- front view ----------
-const GRIP=24;   // pull-up grip: hands a little wider than the shoulders
+const GRIP=28;   // pull-up grip: hands a little wider than the shoulders
 function ik2(s,h,down,cx){
   // pulling up: the elbows come down and out to the sides (not tucked against the ribs)
   const pref = down ? [s[0]<cx?-0.9:0.9, 1] : [s[0]<cx?-1:1, 0];
@@ -658,7 +658,7 @@ const bar=at=>({k:"bar",at});
 const FP={
   hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true,scap:-1},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
-  top:{v:"front",sy:0,down:true}, c2b:{v:"front",sy:-8,grip:27,down:true},
+  top:{v:"front",sy:0,down:true}, c2b:{v:"front",sy:-8,grip:30,down:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
 };
 const R=o=>X(o,{eq:"rings"});
