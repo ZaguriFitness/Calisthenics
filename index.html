@@ -537,7 +537,7 @@ function sideJ(p){
     if(L) return ik(H,L,37,36,pref||[1,0]);
     const K=add(H,37,th); return [K,add(K,36,sh)];
   };
-  const J={H,S,C};
+  const J={H,S,C,wz:p.wz};
   [J.E,J.W]=arm(p.A,p.ua,p.fa,p.eb);
   [J.K,J.F]=leg(p.L,p.th,p.sh,p.kb);
   if(p.A2||p.ua2!=null) [J.E2,J.W2]=arm(p.A2,p.ua2,p.fa2,p.eb2||p.eb);
@@ -1028,7 +1028,9 @@ const ILL={
  "False Grip Pull-Up":[R(FP.hang),R(X(FP.top,{label:"טבעות לחזה"}))],
  "High False Grip Pull-Up":[R(FP.hang),R(X(FP.c2b,{grip:22,label:"טבעות לעצם החזה"}))],
  "Archer Ring Pull-Up":[R(X(FP.hang,{grip:46})),R(X(archTop(1),{label:"משיכה לצד אחד"}))],
- "Low Ring Transition":[X(ROW_BK[0],{pr:[ring("W",55)]}),{H:[92,150],t:-88,A:[96,154],L:[118,200],kb:[1,-0.4],g:1,pr:[ring("W",55)],label:"מעל הטבעות"}],
+ // rings at hip height, sitting under them: lean back on straight arms, pull the rings to the chest, then
+ // bring the chest over the rings into the bottom of a dip, the feet on the floor helping
+ "Low Ring Transition":[{H:[50,194],t:-60.0,A:[102,104],L:[120,199],g:1,pr:[ring("W",55)],wz:21,label:"ישיבה מתחת לטבעות, ידיים ישרות"},{H:[76.9,139],t:-70.0,A:[102,104],L:[118,199],g:1,pr:[ring("W",55)],wz:21,kb:[1,-0.3],eb:[-1,0.6],label:"משיכת הטבעות לחזה"},{H:[99,131.5],t:-82.0,A:[102,104],L:[112,199],g:1,pr:[ring("W",55)],wz:21,kb:[1,-0.3],eb:[-1,0.3],label:"חזה מעל הטבעות, כמו בדיפס"}],
  "Ring Muscle-Up Negative":[R(X(FP.support,{label:"מעל הטבעות"})),R(FP.high),R(X(FP.hang,{label:"ירידה איטית"}))],
  "Band-Assisted Ring Muscle-Up":[R(X(FP.hang,{band:true})),R(X(FP.high,{band:true})),R(FP.support)],
  "Strict Ring Muscle-Up":[R(FP.hang),R(FP.high),R(FP.support)],
@@ -1255,7 +1257,7 @@ function to3dPts(fr){
       hpL:Q(J.H,9),hpR:Q(J.H,-9),knL:Q(J.K,6),knR:Q(J.K,-6),ftL:Q(J.F,4),ftR:Q(J.F,-4),
       neck:P(J.S),pelv:P(J.H),head:P(J.C)});
   } else {const J=fr.J;
-    Object.assign(k,{shL:P(J.S,14),shR:P(J.S,-14),elL:P(J.E,14),elR:P(J.E2||J.E,-14),wrL:P(J.W,14),wrR:P(J.W2||J.W,-14),
+    Object.assign(k,{shL:P(J.S,14),shR:P(J.S,-14),elL:P(J.E,14),elR:P(J.E2||J.E,-14),wrL:P(J.W,J.wz||14),wrR:P(J.W2||J.W,-(J.wz||14)),
       hpL:P(J.H,9),hpR:P(J.H,-9),knL:P(J.K,9),knR:P(J.K2||J.K,-9),ftL:P(J.F,9),ftR:P(J.F2||J.F,-9),
       neck:P(J.S),pelv:P(J.H),head:P(J.C)});
     // moving equipment points (bands / weights) are carried as extra keys so they animate with the body
