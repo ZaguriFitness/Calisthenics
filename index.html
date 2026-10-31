@@ -1359,8 +1359,8 @@ function loadModel(){
   if(modelP) return modelP;
   const T=window.THREE, base="model/";
   const img=src=>new Promise((res,rej)=>{const t=new T.TextureLoader().load(base+src,res,undefined,rej);});
-  modelP=Promise.all([fetch(base+"anatomy.json?v=3").then(r=>{if(!r.ok)throw 0;return r.json();}),
-      fetch(base+"anatomy.bin?v=3").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}),
+  modelP=Promise.all([fetch(base+"anatomy.json?v=4").then(r=>{if(!r.ok)throw 0;return r.json();}),
+      fetch(base+"anatomy.bin?v=4").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}),
       img("anatomy_color.jpg"),img("anatomy_normal.jpg"),img("anatomy_groups.png")])
     .then(([meta,buf,col,nor,grp])=>{
       const n=meta.nv,o=meta.off,b=meta.bmin,s=meta.scale;

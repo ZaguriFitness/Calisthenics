@@ -71,6 +71,20 @@ for i, n in enumerate(names):
 armb = [names.index(x + s) for x in ('uarm', 'farm', 'hand') for s in 'LR']
 torso_core = np.abs(V[:, 0]) < 19.5
 for i in armb: allowed[torso_core & (V[:, 1] < 126), i] = False
+# the side of the chest below the armpit (latissimus, serratus) belongs to the trunk: a vertex further from the upper
+# arm's axis toward the trunk than the arm's own surface does not follow the arm (with it, raising or pulling back the
+# arm dragged a flap of the back out from the side like a wing); likewise the middle of the back (shoulder blades
+# follow the clavicle bone, not the arm)
+for s in 'LR':
+    sg = 1 if s == 'L' else -1
+    a0 = J['uarm' + s]['head']; a1 = J['farm' + s]['head']; d = (a1 - a0) / np.linalg.norm(a1 - a0)
+    nin = np.array((-d[1] * sg, d[0] * sg, 0.0)) if False else np.array((-abs(d[1]) * sg, -abs(d[0]), 0.0))
+    nin /= np.linalg.norm(nin)
+    o = (V - a0) @ nin; tt = (V - a0) @ d / np.linalg.norm(a1 - a0)
+    trunk = (o > 5.0) & (tt > -0.3) & (tt < 1.0) & (V[:, 0] * sg > 0)
+    back = (V[:, 2] < -2) & (np.abs(V[:, 0]) < 15) & (V[:, 1] < 145)
+    for i in [names.index(x + s) for x in ('uarm', 'farm', 'hand')]:
+        allowed[trunk | back, i] = False
 legb = [names.index(x + s) for x in ('thigh', 'shin', 'foot') for s in 'LR']
 for i in legb: allowed[V[:, 1] > 100, i] = False
 for i, n in enumerate(names):
