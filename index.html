@@ -730,8 +730,10 @@ const POLE={k:"pole",x:130,y1:55,y2:200};
 const LUNGE_B={H:[62,150],t:-90,L:[96,200],kb:[1,-0.2],L2:[22,199],kb2:[0.2,1],A:[64,154],g:1};
 const SPLIT_T={H:[60,132],t:-90,L:[96,200],L2:[22,199],kb2:[0.2,1],A:[62,136],g:1};
 const BENCH=box(2,163.5,40);
-const PIS_T={H:[80,127],t:-90,L:[80,200],L2:[110,180],kb2:[1,0],ua:0,fa:0,g:1};
-const PIS_B={H:[60,176],t:-55,L:[82,200],kb:[1,-0.6],ua:-5,fa:-5,g:1};
+// arms straight forward for balance, shoulder-width apart (not crossed in front of the chest)
+const ARMSFWD=k=>{for(const [s,sg] of [["L",1],["R",-1]]){const S=k["sh"+s],W=k["wr"+s];k["wr"+s]=[W[0],W[1],S[2]-sg*2];K3.mid(k,s);}};
+const PIS_T={H:[80,127],t:-90,L:[80,200],L2:[110,180],kb2:[1,0],ua:0,fa:0,g:1,post:ARMSFWD};
+const PIS_B={H:[60,176],t:-55,L:[82,200],kb:[1,-0.6],ua:-5,fa:-5,g:1,post:ARMSFWD};
 PIS_B.L2=add(PIS_B.H,73,-8);
 const GB_D={H:[78,192],t:180,L:[120,200],kb:[0.2,-1],A:[96,199],eb:[0,-1],g:1};
 const GB_U={H:[82,163],t:144.5,L:[120,200],kb:[0.2,-1],A:[92,199],eb:[0,-1],g:1};
@@ -758,7 +760,8 @@ const RC_F=[140,176];
 const RC=(t,o)=>{o=o||{};const H=add(RC_F,73,-140),pad=o.pad==="high"?add(H,7,-140):add(H,9,40);
   return X({H,t,L:RC_F,A:o.head?add(add(H,50,t),16,t):add(H,36,t),eb:o.head?[0,-1]:[0,1],g:1,
     pr:[box(RC_F[0]-6,RC_F[1]+1,22,null),box(pad[0]-9,pad[1]+3,18,8),{k:"pole",x:pad[0]+4,y1:pad[1]+11,y2:200}]},o.x);};
-const DF=(dir)=>{const S=[45,170],H=add(S,50,dir);return {H,t:dir+180,L:add(H,73,dir),A:[8,176],eb:[0.3,-1],g:1,pr:[box(0,176.5,72)]};};
+// dragon flag: lying on a bench, both hands grip its end behind the head (its edge is held like a bar)
+const DF=(dir)=>{const S=[45,170],H=add(S,50,dir);return {H,t:dir+180,L:add(H,73,dir),A:[1,178],eb:[0.3,-1],g:1,pr:[box(0,176.5,72),X(bar([0,178.5]),{half:30,r:2.2})],post:k=>K3.z(k,{wrL:8,wrR:-8})};};
 const RC1=X(LIE,{th:-90,sh:0,A:[90,199],eb:[0,-1]});
 const RC2={H:[100,182],t:165,th:-125,sh:-25,A:[92,199],eb:[0,-1],g:1};
 const HANGB=[100,40];
@@ -964,7 +967,7 @@ const ILL={
  "Side Lunge":[STAND,{H:[58,164],t:-62,L:[80,200],kb:[1,-0.3],L2:[66,200],kb2:[0,1],ua:0,fa:0,g:1,label:"צעד לצד, אגן לאחור"}],
  "Reverse Nordic Curl":[X(NORD(-90),{pr:[],A:null,ua:0,fa:0,label:"זקוף על הברכיים"}),X(NORD(-128),{pr:[],A:null,ua:-38,fa:-38,label:"נטייה לאחור בקו ישר"})],
  "Bulgarian Split Squat":[{H:[66,130],t:-90,L:[96,200],L2:[22,160],kb2:[0.3,1],A:[68,134],g:1,pr:[BENCH]},{H:[64,160],t:-82,L:[96,200],kb:[1,-0.3],L2:[22,160],kb2:[0,1],A:[70,164],g:1,pr:[BENCH]}],
- "Assisted Pistol Squat":[X(PIS_T,{A:[130,108],ua:null,fa:null,pr:[POLE]}),X(PIS_B,{A:[130,140],ua:null,fa:null,pr:[POLE]})],
+ "Assisted Pistol Squat":[X(PIS_T,{A:[130,108],ua:null,fa:null,pr:[POLE],post:null}),X(PIS_B,{A:[130,140],ua:null,fa:null,pr:[POLE],post:null})],
  "Shrimp Squat":[X(STAND,{L2:[58,158],kb2:[0,1],A2:[58,158]}),{H:[72,166],t:-65,L:[86,200],kb:[1,-0.3],L2:[38,176],kb2:[0.2,1],A2:[38,176],ua:-10,fa:-10,g:1}],
  // sissy squat: on the balls of the feet, knees travel forward and down while knees-hips-head stay in one line leaning back
  "Supported Sissy Squat":[X(CALF(9),{A:[100,118],ua2:0,fa2:0,pr:[{k:"pole",x:100,y1:55,y2:200,z:32}],label:"על קצות האצבעות, יד על עמוד"}),{H:[88.8,146.5],t:-130,L:[80,190],kb:[1,-0.5],A:[100,130],ua2:0,fa2:0,g:1,toe:true,pr:[{k:"pole",x:100,y1:55,y2:200,z:32}],label:"ברכיים קדימה, גוף ישר לאחור"}],
@@ -974,7 +977,7 @@ const ILL={
  "Assisted Dragon Squat":[X(STAND,{L2:[72,194],kb2:[0,1],A:[130,108],pr:[POLE]}),{H:[66,171],t:-68,L:[84,200],kb:[1,-0.6],L2:[126,193],kb2:[-1,0],A:[130,140],g:1,pr:[POLE]}],
  "Dragon Squat Negative":[X(STAND,{L2:[72,194],kb2:[0,1],A:null,ua:0,fa:0}),{H:[66,171],t:-68,L:[84,200],kb:[1,-0.6],L2:[126,193],kb2:[-1,0],ua:-5,fa:-5,g:1}],
  "Dragon Squat":[X(STAND,{L2:[72,194],kb2:[0,1],A:null,ua:0,fa:0}),{H:[66,171],t:-68,L:[84,200],kb:[1,-0.6],L2:[126,193],kb2:[-1,0],ua:-5,fa:-5,g:1}],
- "Weighted Pistol Squat":[X(PIS_T,{pr:[{k:"wt",at:"W",dx:4}]}),X(PIS_B,{pr:[{k:"wt",at:"W",dx:4}]})],
+ "Weighted Pistol Squat":[X(PIS_T,{pr:[{k:"wt",at:"W",dx:4}],post:null}),X(PIS_B,{pr:[{k:"wt",at:"W",dx:4}],post:null})],
  "Glute Bridge":[GB_D,GB_U],
  "Single-Leg Glute Bridge":[X(GB_D,{L2:add(GB_D.H,73,-40)}),X(GB_U,{L2:add(GB_U.H,73,-35.5)})],
  "Single-Leg RDL":[X(STAND,{L2:[70,190],kb2:[0,1]}),{H:[80,128],t:0,L:[80,200],L2:add([80,128],73,180),A:[130,182],g:1}],
@@ -1930,7 +1933,7 @@ function build(host,frames,opt){opt=opt||{};
     if(frames.some(f=>f.J.towel)) dyn.push({towel:true,m:new T.Mesh(cyl,mAcc),by:J.by});
   } else {
     frames.forEach(fr=>(fr.pr||[]).forEach((q,i)=>{
-      if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-45],[q.at[0],-q.at[1],45],BAR_R));
+      if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-(q.half||45)],[q.at[0],-q.at[1],q.half||45],q.r||BAR_R));
       else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
       else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y,cx=q.x+q.w/2;
         // a tall box reads as a solid cube next to the body: draw it as a table/bench (top + four legs)
