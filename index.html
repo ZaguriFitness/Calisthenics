@@ -537,7 +537,9 @@ function sideJ(p){
     if(L) return ik(H,L,37,36,pref||[1,0]);
     const K=add(H,37,th); return [K,add(K,36,sh)];
   };
-  const J={H,S,C,wz:p.wz};
+  const J={H,S,C};
+  // hands this far out to the sides in 3D (rings beside the ribs); not a drawn point
+  if(p.wz) Object.defineProperty(J,"wz",{value:p.wz});
   [J.E,J.W]=arm(p.A,p.ua,p.fa,p.eb);
   [J.K,J.F]=leg(p.L,p.th,p.sh,p.kb);
   if(p.A2||p.ua2!=null) [J.E2,J.W2]=arm(p.A2,p.ua2,p.fa2,p.eb2||p.eb);
