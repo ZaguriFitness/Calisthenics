@@ -29,17 +29,20 @@ for s, sg in (('L', 1), ('R', -1)):
     j('thigh' + s, 'root', (9.5 * sg, 89, 1))
     j('shin' + s, 'thigh' + s, (13.3 * sg, 48, -1))
     j('foot' + s, 'shin' + s, (17.2 * sg, 9, -6.5))
-# one finger joint per hand at the knuckles (52% of the way from the wrist to the fingertips), so the hand can
-# close around a bar or a ring; the thumb stays on the hand bone
+# two finger joints per hand: at the knuckles (52% of the way from the wrist to the fingertips) and at the middle
+# joints (45% of the way on from the knuckles), so the fingers can wrap around a bar or a ring; the thumb stays on
+# the hand bone
 HAND_A = {s: np.array((44.5 * sg, 98, 3.5)) for s, sg in (('L', 1), ('R', -1))}
 HAND_B = {s: np.array((48.5 * sg, 76, 8.5)) for s, sg in (('L', 1), ('R', -1))}
-KNUCKLE = 0.52
+KNUCKLE, MIDJ = 0.52, 0.52 + 0.48 * 0.45
 for s in 'LR':
     j('fing' + s, 'hand' + s, HAND_A[s] + (HAND_B[s] - HAND_A[s]) * KNUCKLE)
+    j('ftip' + s, 'fing' + s, HAND_A[s] + (HAND_B[s] - HAND_A[s]) * MIDJ)
 TAIL = {'head': (0, 179.5, 0.5)}
 for s, sg in (('L', 1), ('R', -1)):
     TAIL['hand' + s] = (48.5 * sg, 76, 8.5)
-    TAIL['fing' + s] = (48.5 * sg, 76, 8.5)
+    TAIL['fing' + s] = tuple(HAND_A[s] + (HAND_B[s] - HAND_A[s]) * MIDJ)
+    TAIL['ftip' + s] = (48.5 * sg, 76, 8.5)
     TAIL['foot' + s] = (20 * sg, 1, 12)
 names = list(J)
 kids = {n: [c for c in names if J[c]['parent'] == n] for n in names}
@@ -73,7 +76,7 @@ for i in legb: allowed[V[:, 1] > 100, i] = False
 for i, n in enumerate(names):
     if n in ('root', 'spine', 'chest', 'neck', 'head', 'clavL', 'clavR'):
         allowed[(np.abs(V[:, 0]) > 28) | (V[:, 1] < 60), i] = False
-fingb = [names.index('fing' + s) for s in 'LR']
+fingb = [names.index(f + s) for f in ('fing', 'ftip') for s in 'LR']
 for i in fingb: allowed[:, i] = False
 Dm = np.where(allowed, D, 1e6)
 W = 1.0 / np.maximum(Dm, 0.5) ** 4
@@ -109,7 +112,11 @@ for s in 'LR':
     f = np.clip((t - 0.45) / 0.15, 0, 1); f = f * f * (3 - 2 * f)
     f[sd < -6.0] = 0                                      # thumb
     W[:, fi] = W[:, hi] * f; W[:, hi] *= 1 - f
-print('finger vertices', int((W[:, names.index('fingL')] > 0.5).sum()), int((W[:, names.index('fingR')] > 0.5).sum()))
+    # the outer part of the fingers (beyond the middle joints) moves on to the fingertip bone
+    ti = names.index('ftip' + s); g = np.clip((t - (MIDJ - 0.05)) / 0.1, 0, 1); g = g * g * (3 - 2 * g)
+    g[sd < -6.0] = 0
+    W[:, ti] = W[:, fi] * g; W[:, fi] *= 1 - g
+print('finger vertices', *[int((W[:, names.index(f + s)] > 0.5).sum()) for f in ('fing', 'ftip') for s in 'LR'])
 # keep the 4 largest influences
 idx = np.argsort(-W, 1)[:, :4]; w4 = np.take_along_axis(W, idx, 1)
 w4 /= w4.sum(1, keepdims=True)

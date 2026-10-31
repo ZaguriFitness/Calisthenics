@@ -1254,13 +1254,15 @@ function to3dPts(fr){
 }
 // ---------- anatomy model: skinned mesh driven by the same keypoints as the mannequin; active muscles glow red ----------
 let modelP=null;
+const FING_K=1.4, FING_M=1.6;   // finger curl in a grip at the knuckles / middle joints (radians, on top of the relaxed curl)
+const BAR_R=1.7, BAR_N=4.4, BAR_F=0.4;   // bar radius (a real ~3.5 cm bar); bar centre vs the palm point (palm normal, fingers)
 const MS=0.9;                      // model is in cm; 0.9 makes its torso and legs match the drawing units
 function loadModel(){
   if(modelP) return modelP;
   const T=window.THREE, base="model/";
   const img=src=>new Promise((res,rej)=>{const t=new T.TextureLoader().load(base+src,res,undefined,rej);});
-  modelP=Promise.all([fetch(base+"anatomy.json").then(r=>{if(!r.ok)throw 0;return r.json();}),
-      fetch(base+"anatomy.bin").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}),
+  modelP=Promise.all([fetch(base+"anatomy.json?v=3").then(r=>{if(!r.ok)throw 0;return r.json();}),
+      fetch(base+"anatomy.bin?v=3").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}),
       img("anatomy_color.jpg"),img("anatomy_normal.jpg"),img("anatomy_groups.png")])
     .then(([meta,buf,col,nor,grp])=>{
       const n=meta.nv,o=meta.off,b=meta.bmin,s=meta.scale;
@@ -1324,7 +1326,7 @@ function makeModel(M,act){
   grp.updateMatrixWorld(true);mesh.bind(new T.Skeleton(list));
   const rest=restOf(M).R;
   // vertices used to keep the body above the floor: everything except hands and feet
-  const nb=M.meta.bones.map(b=>b.name),skip=new Set(["handL","handR","footL","footR","fingL","fingR"].map(n=>nb.indexOf(n)).filter(i=>i>=0));
+  const nb=M.meta.bones.map(b=>b.name),skip=new Set(["handL","handR","footL","footR","fingL","fingR","ftipL","ftipR"].map(n=>nb.indexOf(n)).filter(i=>i>=0));
   const si=M.geo.attributes.skinIndex,sw=M.geo.attributes.skinWeight,probe=[];
   for(let i=0;i<si.count;i+=13){let w=0;for(let j=0;j<4;j++) if(skip.has(si.array[i*4+j])) w+=sw.array[i*4+j];if(w<0.2) probe.push(i);}
   return {grp,mesh,bones,rest,probe,uTime,dispose(){mat.dispose();at.dispose();}};
@@ -1603,7 +1605,8 @@ function poseModel(Mo,k,cfg){
           t.Qc=map(v(HAND_F[s]),v(HAND_N[s]),F,N);t.F=F;t.N=N;
           const pc=v(c.p);
           if(c.t==="flat") pc.y+=c.bar?1.6:1.8; else if(c.t==="wall") pc.addScaledVector(v(c.n),1.8);
-          else pc.addScaledVector(N,-(c.t==="ring"?3.2:4.2)).addScaledVector(F,-2.2);   // the bar sits at the base of the fingers
+          else if(c.t==="ring") pc.addScaledVector(N,-3.2).addScaledVector(F,-2.2);
+          else pc.addScaledVector(N,-BAR_N).addScaledVector(F,BAR_F);   // the bar lies across the base of the fingers, in the palm
           if(keep) return;
           // rings and poles turn with the hand: the wrist sits a palm-length short of the grip along the line from the
           // shoulder, so the target does not depend on the hand's own twist (which follows the solved forearm)
@@ -1733,9 +1736,11 @@ function poseModel(Mo,k,cfg){
   if(cfg.g){const pen=GROUND()-lowestPoint(Mo);
     if(pen>0.2){d.y+=pen;B.root.position.y+=pen/MS;Mo.grp.updateMatrixWorld(true);solveLimbs();}}
   // fingers: closed around a bar / ring / pole, open on the floor, relaxed when free
+  // (knuckles and middle joints: around a bar the fingers go over the top and down its far side)
   for(const s of ["L","R"]){const fb=B["fing"+s];if(!fb) continue;const t=tg["uarm"+s],grip=t.c&&(t.c.t==="bar"||t.c.t==="ring"||t.c.t==="pole");
-    const th=grip?0.3+1.45*t.w:(t.c&&(t.c.t==="flat"||t.c.t==="wall")?0.3*(1-t.w)+0.05*t.w:0.3);
-    fb.quaternion.setFromAxisAngle(new T.Vector3().crossVectors(v(HAND_F[s]),v(HAND_N[s])).normalize(),th);}
+    const flat=t.c&&(t.c.t==="flat"||t.c.t==="wall"),ax=new T.Vector3().crossVectors(v(HAND_F[s]),v(HAND_N[s])).normalize();
+    const th=grip?0.25+FING_K*t.w:(flat?0.25*(1-t.w)+0.05*t.w:0.25), th2=grip?0.2+FING_M*t.w:(flat?0.2*(1-t.w):0.2);
+    fb.quaternion.setFromAxisAngle(ax,th);if(B["ftip"+s]) B["ftip"+s].quaternion.setFromAxisAngle(ax,th2);}
   Mo.grp.updateMatrixWorld(true);
   Mo.tg=tg;Mo.d=d;Mo.side={[KL]:"L",[KR]:"R"};
 }
@@ -1819,7 +1824,7 @@ function build(host,frames,opt){opt=opt||{};
   if(f0.kind==="raw"){
     for(const q of f0.props3d||[]) if(q.pole) staticCyl([q.pole[0],q.pole[1],0],[q.pole[0],q.pole[2],0],3);
   } else if(f0.kind==="front"){const J=f0.J;
-    if(J.eq==="bar"){const x1=Math.min(-75,J.hL[0]-15),x2=Math.max(75,J.hR[0]+15);staticCyl([x1,-J.by,0],[x2,-J.by,0],2.6);}
+    if(J.eq==="bar"){const x1=Math.min(-75,J.hL[0]-15),x2=Math.max(75,J.hR[0]+15);staticCyl([x1,-J.by,0],[x2,-J.by,0],BAR_R);}
     else for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:"wr"+s,len:60,axis:"z"});
     if(J.box){const y=Math.max(J.fL[1],J.fR[1])+4;staticBox(0,-(y+13),0,52,26,40);}
     if(frames.some(f=>f.J.band)) dyn.push({fband:true,m:new T.Mesh(new T.BufferGeometry(),mBand),by:J.by,rings:J.eq==="rings"});
@@ -1827,7 +1832,7 @@ function build(host,frames,opt){opt=opt||{};
     if(frames.some(f=>f.J.towel)) dyn.push({towel:true,m:new T.Mesh(cyl,mAcc),by:J.by});
   } else {
     frames.forEach(fr=>(fr.pr||[]).forEach((q,i)=>{
-      if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-45],[q.at[0],-q.at[1],45],2.6));
+      if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-45],[q.at[0],-q.at[1],45],BAR_R));
       else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
       else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y,cx=q.x+q.w/2;
         // a tall box reads as a solid cube next to the body: draw it as a table/bench (top + four legs)
@@ -1925,7 +1930,7 @@ function build(host,frames,opt){opt=opt||{};
   return {stop(){alive=false;cancelAnimationFrame(raf);ro.disconnect();if(Mo)Mo.dispose();renderer.dispose();cyl.dispose();sph.dispose();tor.dispose();cv.remove();},
     // for tests: show one moment of the timeline from a chosen angle
     shot(sec,a,e){playing=false;cancelAnimationFrame(raf);if(a!=null){az=a;el=e;camUpdate();}pose(frameAt(sec));renderer.render(scene,cam);return cv.toDataURL("image/png");},
-    total:TOTAL,az0:az};
+    get Mo(){return Mo;},total:TOTAL,az0:az};
 }
 function fallback(host,ex,ring,msg){
   const m=host.querySelector(".tdmsg");if(m) m.textContent=msg;
