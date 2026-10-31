@@ -577,12 +577,14 @@ function sideFrame(fr){
   return {svg:out.back+out.body+out.front,pts,ground:!!fr.g};
 }
 // ---------- front view ----------
+const GRIP=24;   // pull-up grip: hands a little wider than the shoulders
 function ik2(s,h,down,cx){
-  const pref = down ? [0,1] : [s[0]<cx?-1:1, 0];
+  // pulling up: the elbows come down and out to the sides (not tucked against the ribs)
+  const pref = down ? [s[0]<cx?-0.9:0.9, 1] : [s[0]<cx?-1:1, 0];
   return ik(s,h,28,26,pref)[0];
 }
 function frontFrame(fr){
-  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||30, pts=[], out={back:"",body:"",front:""};
+  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||GRIP, pts=[], out={back:"",body:"",front:""};
   const sL=[bx-14,by+sy], sR=[bx+14,by+sy];
   const hL=fr.hL||[-grip,by], hR=fr.hR||[grip,by];
   const eL=(fr.stL||fr.straight)?null:ik2(sL,hL,fr.dnL!=null?fr.dnL:fr.down,bx);
@@ -656,7 +658,7 @@ const bar=at=>({k:"bar",at});
 const FP={
   hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true,scap:-1},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
-  top:{v:"front",sy:-8,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
+  top:{v:"front",sy:0,down:true}, c2b:{v:"front",sy:-8,grip:27,down:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
 };
 const R=o=>X(o,{eq:"rings"});
@@ -1118,7 +1120,7 @@ const RAW3D={
 const pick=(ex,ringCat)=>(ringCat&&RING_SAME[ex])||ILL[ex];
 // ---------- joint data for the 3D viewer ----------
 function frontJ(fr){
-  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||30;
+  const by=90, sy=fr.sy, bx=fr.dx||0, grip=fr.grip||GRIP;
   const sL=[bx-14,by+sy], sR=[bx+14,by+sy], hL=fr.hL||[-grip,by], hR=fr.hR||[grip,by];
   const mid=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
   const eL=(fr.stL||fr.straight)?mid(sL,hL):ik2(sL,hL,fr.dnL!=null?fr.dnL:fr.down,bx);
@@ -1234,8 +1236,17 @@ function to3dPts(fr){
     // head passes behind it and the bar ends in front of the throat / upper chest; the chest leads, the legs stay
     // a little forward (slight hollow) and the elbows come down in front of the body. Hands stay on the bar.
     const sy=J.sL[1]-J.by,f=Math.max(0,Math.min(1,(52-sy)/32)),e=f*f*(3-2*f);
-    if(e>0){const dz={neck:-21,head:-35,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
+    // (chin over the bar, shoulders below it: the head only needs to clear the bar; higher pulls lean further back)
+    const hb=Math.max(0,Math.min(1,(sy+8)/16));
+    if(e>0){const dz={neck:-21+6*hb,head:-35+17*hb,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
       for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
+    // bent arms: the elbow found in 3D, coming down and out to the side (a little in front of the body), so it
+    // stays away from the ribs at the top of a pull-up instead of folding in front of the chest
+    // (only while the shoulders are below or near the bar; higher, toward the muscle-up, the elbows go back)
+    if(sy>-12) for(const s of ["L","R"]){const S=k["sh"+s],W=k["wr"+s],d=[W[0]-S[0],W[1]-S[1],W[2]-S[2]],L=Math.hypot(...d);
+      if(L>0.93*54||L<1e-3) continue;const u=d.map(x=>x/L),D=Math.min(L,53.9),a=(28*28-26*26+D*D)/(2*D),h=Math.sqrt(Math.max(0,28*28-a*a));
+      const pole=[s==="L"?-1:1,-1,0],pd=pole.map((x,i)=>x-u[i]*(pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2])),pl=Math.hypot(...pd)||1;
+      k["el"+s]=S.map((x,i)=>x+u[i]*a+pd[i]/pl*h);}
   } else if(fr.lie){const J=fr.J;
     // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
     const dx=J.S[0]-J.H[0],dy=J.S[1]-J.H[1],d=Math.hypot(dx,dy)||1,n=[-dy/d,dx/d];
