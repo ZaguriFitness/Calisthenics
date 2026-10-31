@@ -1940,7 +1940,7 @@ async function mount(host,ex,ring){
   let M=null;try{M=await loadModel();}catch(e){M=null;}
   if(!host.isConnected) return;
   let step=null;for(const c of DATA)for(const t of c.tracks)for(const l of t.ladders){const x=l.steps.find(z=>z.ex===ex);if(x&&!step)step=x;}
-  try{cur=build(host,ILLV.frames3d(ex,ring),{model:M,act:M?muscleAct(step,M.meta.groups):null,neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex),walk:/^Wall Walk/.test(ex)});host.querySelector(".tdmsg").innerHTML=M?'גוררים כדי לסובב · <b class="redm">אדום</b> = השרירים שעובדים':"גוררים כדי לסובב";}
+  try{cur=build(host,ILLV.frames3d(ex,ring),{model:M,act:M?muscleAct(step,M.meta.groups):null,neg:/Negative/i.test(ex),fwd:ONEWAY.test(ex),fast:/Explosive/.test(ex),walk:/^Wall Walk/.test(ex)});/* no hint text under the 3D view (the user asked never to show it) */host.querySelector(".tdmsg").textContent="";}
   catch(e){fallback(host,ex,ring,"התלת-ממד לא נתמך במכשיר הזה, מוצג איור רגיל");}
 }
 return {mount, stop, dbg:{load,loadModel,makeModel,poseModel,to3d,modelCfg,lerpKeys,build}};
