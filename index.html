@@ -654,7 +654,7 @@ const bar=at=>({k:"bar",at});
 
 // ---------- FRONT (bar / rings) ----------
 const FP={
-  hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true},
+  hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true,scap:-1},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
   top:{v:"front",sy:-8,down:true}, c2b:{v:"front",sy:-8,grip:32,down:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
@@ -824,7 +824,7 @@ const ILL={
  // ----- PULL: vertical (front) -----
  "Assisted Hang — תלייה עם תמיכת רגליים":[X(FP.feetBox,{label:"החזקה, רגליים על ארגז"})],
  "Active Hang":[X(FP.active,{label:"החזקה, שכמות למטה"})],
- "Scapular Pull-Up":[X(FP.hang,{label:"תלייה רפויה"}),X(FP.active,{label:"שכמות למטה"})],
+ "Scapular Pull-Up":[X(FP.hang,{scap:1,label:"תלייה רפויה"}),X(FP.active,{label:"שכמות למטה"})],
  "Negative Pull-Up":[X(FP.top,{label:"התחלה למעלה"}),X(FP.hang,{label:"ירידה איטית"})],
  "Band-Assisted Pull-Up — מתח עם גומייה":[X(FP.hang,{band:true}),X(FP.top,{band:true})],
  "Pull-Up":[FP.hang,FP.top],
@@ -1020,7 +1020,7 @@ const ILL={
  "Archer Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה לצד אחד"})];})(),
  "One-Arm Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה ביד אחת"})];})(),
  "Ring Active Hang":[R(X(FP.active,{label:"החזקה, שכמות למטה"}))],
- "Ring Scapular Pull-Up":[R(X(FP.hang,{label:"תלייה רפויה"})),R(X(FP.active,{label:"שכמות למטה"}))],
+ "Ring Scapular Pull-Up":[R(X(FP.hang,{scap:1,label:"תלייה רפויה"})),R(X(FP.active,{label:"שכמות למטה"}))],
  "False Grip Hang":[R(X(FP.hang,{label:"החזקה, אחיזת פולס גריפ"}))],
  "Ring Pull-Up":[R(FP.hang),R(FP.top)],
  "False Grip Pull-Up":[R(FP.hang),R(X(FP.top,{label:"טבעות לחזה"}))],
@@ -1128,7 +1128,7 @@ function frontJ(fr){
   if(fr.legs==="box"){kL=[bx-11,pL[1]+28];kR=[bx+11,pR[1]+28];fL=[bx-10,kL[1]+22];fR=[bx+10,kR[1]+22];}
   else if(fr.legs==="tuck"){kL=[bx-12,pL[1]-6];kR=[bx+12,pR[1]-6];fL=[bx-9,pL[1]+14];fR=[bx+9,pR[1]+14];}
   else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
-  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel};
+  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel,scap:fr.scap};
 }
 // wall walk for the 3D view: the feet climb the wall one step at a time while the hands walk in toward it
 const SIDE3D={"Wall Walk חלקי":(()=>{const FX=15,wall={k:"wall",x:12,y1:20};
@@ -1227,6 +1227,9 @@ function to3dPts(fr){
     Object.assign(k,{shL:P(J.sL),shR:P(J.sR),elL:P(J.eL),elR:P(J.eR),wrL:P(J.hL),wrR:P(J.hR),
       hpL:P(J.pL),hpR:P(J.pR),knL:P(J.kL),knR:P(J.kR),ftL:P(J.fL),ftR:P(J.fR),
       neck:P(J.neck),pelv:P([(J.pL[0]+J.pR[0])/2,J.pL[1]]),head:P(J.head)});
+    // scapular pull-up / active hang: the arms stay straight and only the shoulder blades move
+    // (1 = relaxed hang, shoulders up by the ears; -1 = shoulder blades pulled down)
+    if(J.scap!=null) k._scap=[J.scap];
     // a front drawing has no depth. In a real pull-up the body travels slightly behind the bar as it rises, so the
     // head passes behind it and the bar ends in front of the throat / upper chest; the chest leads, the legs stay
     // a little forward (slight hollow) and the elbows come down in front of the body. Hands stay on the bar.
@@ -1559,7 +1562,9 @@ function poseModel(Mo,k,cfg){
     // so the shoulders drop away from the ears instead of shrugging (a dead hang lets them rise)
     const c0=k._c&&k._c["h"+K],hang=c0&&(c0.t==="bar"||c0.t==="ring")&&c0.p[1]>k["sh"+K][1];
     const ext=v(k["wr"+K]).distanceTo(v(k["sh"+K]))/((cfg.len&&cfg.len["uarm"+K])||54),pull=hang?Math.max(0,Math.min(1,(0.97-ext)/0.45)):0;
-    const sd=s==="L"?1:-1,el=0.38*Math.max(0,Math.min(1,(a1.y+0.25)/1.25))*(1-pull)-0.12*pull,pr=0.22*Math.max(-1,Math.min(1,a1.z))-0.12*pull;
+    let el=0.38*Math.max(0,Math.min(1,(a1.y+0.25)/1.25))*(1-pull)-0.12*pull,pr=0.22*Math.max(-1,Math.min(1,a1.z))-0.12*pull;
+    if(k._scap){const u=(k._scap[0]+1)/2;el=-0.12+0.5*u;pr=-0.1*(1-u);}
+    const sd=s==="L"?1:-1;
     const qc=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),sd*el).premultiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),-sd*pr));
     W["clav"+s]=Qt.clone().multiply(qc);}
   // local rotations of the trunk chain, then the root position: the drawn pelvis point is the hip-joint centre
@@ -1579,7 +1584,7 @@ function poseModel(Mo,k,cfg){
       const p1=v(k[L[3]+K]),p2=v(k[L[4]+K]),p3=v(k[L[5]+K]),A1=p2.clone().sub(p1),A2=p3.clone().sub(p2);
       const H=v(k["_h"+(li?"leg":"arm")+s]||[1,0,0]).applyQuaternion(li?Qr:Qt).normalize();
       // free limb: drawn direction from the joint, drawn amount of bend, model's own length
-      const ext=Math.min(0.999,p3.distanceTo(p1)/((cfg.len&&cfg.len[L[0]+K])||(A1.length()+A2.length())||1));
+      const ext=!li&&k._scap?0.995:Math.min(0.999,p3.distanceTo(p1)/((cfg.len&&cfg.len[L[0]+K])||(A1.length()+A2.length())||1));
       const free=base.clone().addScaledVector(p3.clone().sub(p1).normalize(),ext*(rr.a+rr.b));
       const c=C[(li?"f":"h")+K], w=c?(CW[(li?2:0)+(K==="L"?0:1)]||0):0;
       const t={base,H,free,c,w,rr,A2,ext,dir:p3.clone().sub(p1).normalize()};
