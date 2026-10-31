@@ -1399,7 +1399,11 @@ function modelCfg(frames,keys,M){const f00=frames[0]||{};restOf(M);
       return sc;};
     // the drawing's own facing (head offset, ~4 units per key) counts as much as a clearly bent knee;
     // a slight elbow bend cannot overrule it (pike hold)
-    const d=score(1)-score(-1)+(side?0.6*head/4:0);
+    // a clearly flexed hip folds the thighs toward the chest (pike, tuck, L-sit): the chest faces the legs' side
+    let hip=0;{const c1={sg:1,hoff:cfg.hoff};for(const k of keys){const bf=bodyFrame(k,c1),dn=nrm3(sub3(k.pelv,k.neck)),f=[bf.fwd.x,bf.fwd.y,bf.fwd.z];
+      for(const s of ["L","R"]){const th=nrm3(sub3(k["kn"+s],k["hp"+s])),fl=Math.acos(Math.max(-1,Math.min(1,dot3(th,dn))));
+        const w=Math.max(0,Math.min(1,(fl-0.5)/0.5));hip+=w*Math.sign(dot3(th,f));}}}
+    const d=score(1)-score(-1)+(side?0.6*head/4:0)+hip;
     cfg.sg=Math.abs(d)>0.05?(d>0?1:-1):(head<0?-1:1);
     if(lie&&Math.abs(d)<=0.15) cfg.sg=1;
   }
