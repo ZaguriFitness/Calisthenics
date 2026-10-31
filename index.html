@@ -721,7 +721,7 @@ const HSB=(W,low,e)=>X({H:[W[0]+2,low-50],t:88,A:W,eb:[-1,0],L:[W[0]+3,low-123],
 const WALLR={k:"wall",x:114,y1:10};
 const HLINE=(W,a)=>{const S=add(W,54,a),H=add(S,50,a);return {H,t:a+180,A:W,L:add(H,73,a),g:1};};
 const CUSH=box(84,193,26,10.5);
-const PAR=(x,y)=>box(x-10,(y==null?186:y)+3.5,20);
+const PAR=(x,y)=>X(box(x-10,(y==null?186:y)+3.5,20),{par:true});   // parallettes: in 3D one handle under each hand
 
 // ---------- SIDE: standing / legs ----------
 const STAND={H:[80,127],t:-90,L:[80,200],A:[83,131],g:1};
@@ -750,7 +750,7 @@ const FPL=(()=>{const F=[20,199],S=onC(F,123,172),a=Math.atan2(S[1]-F[1],S[0]-F[
 const KPL={H:[90,188],t:Math.atan2(172-188,137-90)*180/Math.PI,th:Math.atan2(199-188,55-90)*180/Math.PI,sh:-160,A:[163,199],eb:[0,1],g:1};
 const LIE={H:[95,192],t:180,g:1};
 const DBUG1=X(LIE,{A:[45,138],th:-90,sh:0});
-const DBUG2=X(LIE,{A:[-4,182],A2:[45,138],L:[166,186],th2:-90,sh2:0});
+const DBUG2=X(LIE,{A:[45,138],A2:[-4,182],th:-90,sh:0,L2:[166,186]});   // right arm and left leg
 const HOL=(t,la,e)=>X({H:[85,192],t,L:add([85,192],73,la),ua:t,fa:t,g:1},e);
 
 // ---------- Roman chair (45°) — feet on the footplate, figure faces left ----------
@@ -762,6 +762,9 @@ const DF=(dir)=>{const S=[45,170],H=add(S,50,dir);return {H,t:dir+180,L:add(H,73
 const RC1=X(LIE,{th:-90,sh:0,A:[90,199],eb:[0,-1]});
 const RC2={H:[100,182],t:165,th:-125,sh:-25,A:[92,199],eb:[0,-1],g:1};
 const HANGB=[100,40];
+// toes to the bar: the shoulders stay under the bar on straight arms, the body leans back and the hips come forward
+// and up, so the straight legs fold up in front of the chest
+const TTB={H:[117,135],t:-120,L:[106,62]};
 const HG=(e)=>X({H:[90,142],t:-90,A:HANGB,pr:[bar(HANGB)]},e);
 const CHAIR=(e)=>X({H:[80,145],t:-90,ua:90,fa:0,pr:[{k:"hbar",y:127,x1:72,x2:114},{k:"pole",x:70,y1:80,y2:200}],g:1},e);
 const SIT=(e)=>X({H:[70,194],t:-88,L:[143,199],A:[66,199],g:1},e);
@@ -823,6 +826,67 @@ const RO=(a,ringPt)=>{const K=[60,198],H=add(K,37,a),S=add(H,50,a);
 const SRO=(a,ringPt)=>{const F=[40,200];return {H:add(F,73,a),t:a,L:F,A:ringPt,g:1,pr:[ring("W",55)]};};
 const RHG=(e)=>X({H:[90,142],t:-90,A:HANGB,pr:[ring("W",55)]},e);
 
+// ---------- 3D-only adjustments of a side drawing ----------
+// a frame's post(k) edits the 3D keys (x, y up, z toward the viewer). The drawn arm A / leg L is the model's
+// left (z > 0), A2 / L2 its right (z < 0).
+const v3s=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], v3n=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];},
+  v3r=(v,k,a)=>{const c=Math.cos(a),s=Math.sin(a),kv=[k[1]*v[2]-k[2]*v[1],k[2]*v[0]-k[0]*v[2],k[0]*v[1]-k[1]*v[0]],d=(k[0]*v[0]+k[1]*v[1]+k[2]*v[2])*(1-c);
+    return [v[0]*c+kv[0]*s+k[0]*d,v[1]*c+kv[1]*s+k[1]*d,v[2]*c+kv[2]*s+k[2]*d];};
+const K3={
+  z:(k,o)=>{for(const n in o) if(k[n]) k[n]=[k[n][0],k[n][1],o[n]];},
+  set:(k,o)=>{for(const n in o) k[n]=o[n].slice();},
+  mid:(k,s)=>{const S=k["sh"+s],W=k["wr"+s];k["el"+s]=S.map((x,i)=>(x+W[i])/2);},
+  // the hand slides out along z (a bar, the floor) until the arm is straight
+  reach:(k,s,sg,L)=>{const S=k["sh"+s],W=k["wr"+s],d=Math.hypot(W[0]-S[0],W[1]-S[1]),dz=Math.sqrt(Math.max(0,(L||52)**2-d*d));
+    k["wr"+s]=[W[0],W[1],S[2]+sg*dz];K3.mid(k,s);},
+  // body shifted toward one side: upper body by a, hips by b
+  lean:(k,a,b)=>{for(const n of ["neck","head","shL","shR","elL","elR"]) if(k[n]) k[n]=[k[n][0],k[n][1],k[n][2]+a];
+    for(const n of ["pelv","hpL","hpR"]) if(k[n]) k[n]=[k[n][0],k[n][1],k[n][2]+b];},
+  // points turned about the vertical axis through p (degrees)
+  rotY:(k,names,deg,p)=>{const r=deg*Math.PI/180,c=Math.cos(r),sn=Math.sin(r);
+    for(const n of names){const q=k[n];if(!q) continue;const dx=q[0]-p[0],dz=q[2]-p[2];k[n]=[p[0]+dx*c+dz*sn,q[1],p[2]-dx*sn+dz*c];}},
+  // straight legs opened to the sides by deg each (straddle)
+  straddle:(k,deg)=>{const a=deg*Math.PI/180;
+    for(const [s,sg] of [["L",1],["R",-1]]){const H=k["hp"+s];for(const n of ["kn"+s,"ft"+s]){const q=k[n],v=[q[0]-H[0],q[1]-H[1],q[2]-H[2]],L=Math.hypot(...v);
+      k[n]=[H[0]+v[0]*Math.cos(a),H[1]+v[1]*Math.cos(a),H[2]+v[2]+sg*L*Math.sin(a)];}}},
+  // whole body rolled about its long axis (feet → neck) so the model's left side faces the floor (side plank):
+  // then lifted so the lowest point stays where it was
+  roll:(k,deg)=>{const F=k.ftL.map((x,i)=>(x+k.ftR[i])/2),u=v3n(v3s(k.neck,F)),a=deg*Math.PI/180,y0=Math.min(k.ftL[1],k.ftR[1]);
+    for(const n in k){const q=k[n];if(n[0]==="_"||!Array.isArray(q)||q.length!==3) continue;
+      const r=v3r(v3s(q,F),u,a);k[n]=[F[0]+r[0],F[1]+r[1],F[2]+r[2]];}
+    const dy=y0-Math.min(k.ftL[1],k.ftR[1]);
+    for(const n in k){const q=k[n];if(n[0]==="_"||!Array.isArray(q)||q.length!==3) continue;k[n]=[q[0],q[1]+dy,q[2]];}},
+  // one hand taps the opposite shoulder (s = the moving hand)
+  // (dw: hand from the shoulder joint toward its front, de: elbow from between the shoulders, out to the side)
+  tap:(k,s,dw,de)=>{const o=s==="L"?"R":"L",T=k["sh"+o],S=k["sh"+s];
+    k["wr"+s]=[T[0]+dw[0],T[1]+dw[1],T[2]*0.6];k["el"+s]=[(S[0]+T[0])/2+de[0],(S[1]+T[1])/2+de[1],S[2]*1.5];},
+};
+
+const ARCH0=k=>{K3.z(k,{wrL:32,wrR:-32});K3.mid(k,"L");K3.mid(k,"R");};
+const ARCH1=k=>{K3.lean(k,16,7);K3.z(k,{wrL:32});K3.reach(k,"R",-1);};
+const APU0=k=>{K3.z(k,{wrL:34,wrR:-34});};
+const APU1=k=>{K3.lean(k,15,6);K3.z(k,{wrL:34});K3.reach(k,"R",-1);};
+const DIAM=k=>K3.z(k,{wrL:4,wrR:-4});
+const STRAD=k=>K3.straddle(k,32);
+const WIDEFT0=k=>K3.z(k,{ftL:12,ftR:-12,knL:11,knR:-11});
+const WIDEFT=k=>K3.z(k,{ftL:30,ftR:-30,knL:20,knR:-20});
+// side plank: rolled onto the left side, the left forearm on the floor under the shoulder pointing the way the
+// chest faces, the right arm straight up (up: the top leg lifted sideways too)
+const SIDEPL=(legUp)=>k=>{K3.roll(k,90);
+  // the lower shoulder stays a forearm's height (upper arm vertical) above the floor: the body tilts up from the feet
+  {const F=k.ftL,N=k.neck,L=Math.hypot(N[0]-F[0],N[2]-F[2])||1,dy=(-196+27)-k.shL[1];
+   for(const n in k){const q=k[n];if(n[0]==="_"||!Array.isArray(q)||q.length!==3||n==="ftL"||n==="ftR") continue;
+     const f=Math.max(0,Math.min(1.2,Math.hypot(q[0]-F[0],q[2]-F[2])/L));k[n]=[q[0],q[1]+dy*f,q[2]];}}
+  const S=k.shL,E=[S[0],-196,S[2]];k.elL=E;k.wrL=[E[0]+3,-197,E[2]-25];
+  k.wrR=[k.shR[0],k.shR[1]+52,k.shR[2]];K3.mid(k,"R");
+  if(legUp){const H=k.hpR,d=v3n(v3s(k.ftL,k.hpL)),d2=v3n([d[0],d[1]+0.6,d[2]]);k.knR=H.map((x,i)=>x+d2[i]*37);k.ftR=H.map((x,i)=>x+d2[i]*73);}};
+// pallof press: the anchor stands beside the body; both hands hold the band together in front of the chest
+const PALLOF=k=>{const W=k.wrL.map((x,i)=>(x+k.wrR[i])/2);k.b1a=[84,W[1],75];K3.z(k,{wrL:3,wrR:-3});k.b1b=[W[0],W[1],0];K3.mid(k,"L");K3.mid(k,"R");
+  for(const s of ["L","R"]){const S=k["sh"+s],Wr=k["wr"+s],d=Math.hypot(Wr[0]-S[0],Wr[1]-S[1],Wr[2]-S[2]);if(d<46){const e=k["el"+s];k["el"+s]=[e[0]-4,e[1]-14,e[2]+(s==="L"?8:-8)];}}};
+// free hand resting on the hip / lower back
+const ONEFREE=k=>{const H=k.hpR;k.wrR=[H[0]+4,H[1]+4,H[2]-8];k.elR=[(k.shR[0]+H[0])/2-6,(k.shR[1]+H[1])/2,k.shR[2]-12];};
+const BACKHAND=k=>{const P=k.pelv;k.wrR=[P[0]+4,P[1]+9,P[2]-2];k.elR=[(k.shR[0]+P[0])/2,(k.shR[1]+P[1])/2+14,k.shR[2]-8];};
+
 // ================= exercise → frames =================
 const ILL={
  // ----- PULL: vertical (front) -----
@@ -849,7 +913,8 @@ const ILL={
  "Australian Row — ברכיים כפופות":ROW_BK,
  "Australian Row — רגליים ישרות":ROW_ST,
  "Feet-Elevated Australian Row":ROW_FE,
- "Archer Row":[ROW_ST[0],X(ROW_ST[1],{label:"משיכה ביד אחת"})],
+ // archer: very wide grip; the body travels to the pulling hand while the other arm stays straight out to the side
+ "Archer Row":[X(ROW_ST[0],{post:ARCH0}),X(ROW_ST[1],{post:ARCH1,label:"משיכה לצד אחד"})],
  "Tuck Front Lever Row":[FL(L_T),FLROW(L_T)],
  "Advanced Tuck Front Lever Row":[FL(L_AT),FLROW(L_AT)],
  "Front Lever Row":[FL(LEG_FULL([50,92])),FLROW(LEG_FULL([74,60]))],
@@ -860,13 +925,15 @@ const ILL={
  "Negative Push-Up":[X(PU[0],{label:"התחלה למעלה"}),X(PU[1],{label:"ירידה איטית"})],
  "Push-Up":PU,
  "Knee Push-Up — שכיבות סמיכה על הברכיים":KNEEPU,
- "Diamond Push-Up":[X(PU[0],{label:"ידיים צמודות"}),PU[1]],
+ "Diamond Push-Up":[X(PU[0],{post:DIAM,label:"ידיים צמודות"}),X(PU[1],{post:DIAM})],
  "Decline Push-Up":DECL,
- "Archer Push-Up":[PU[0],X(PU[1],{label:"ירידה לצד אחד"})],
+ "Archer Push-Up":[X(PU[0],{post:APU0}),X(PU[1],{post:APU1,label:"ירידה לצד אחד"})],
  "Ring Push-Up":pushups([20,200],186,20,{ring:true}),
  "Pseudo Planche Push-Up":PPL,
- "Assisted One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:[150,176],eb2:[0,-1]},pr:[box(140,179.5,30)]}),
- "One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:"x"}}).map(fr=>{const J=fr;J.A2=add(J.H,4,J.t);return J;}),
+ // the helping hand rests on a low box out to the side
+ "Assisted One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:[134,176],eb2:[0,-1]},pr:[X(box(122,179.5,24),{z:-36,d:22})]}).map(fr=>X(fr,{post:k=>{WIDEFT(k);K3.z(k,{wrL:8});k.wrR=[k.wrR[0],k.wrR[1],-36];K3.mid(k,"R");}})),
+ // feet wide, the working hand under the chest, the free hand on the lower back
+ "One-Arm Push-Up":pushups([20,200],200,22,{extra:{A2:"x"}}).map(fr=>{const J=fr;J.A2=add(J.H,4,J.t);J.post=k=>{WIDEFT(k);K3.z(k,{wrL:8});BACKHAND(k);};return J;}),
  // ----- PUSH vertical: dips -----
  "Support Hold — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,pr:[{k:"hbar",y:134,x1:55,x2:135}],label:"החזקה, רגליים על הקרקע"}],
  "Parallel Bar Support Hold":[dipTop()],
@@ -925,10 +992,10 @@ const ILL={
  "Single-Leg Calf Raise":[X(CALF(25),{toe:false,L2:[62,135],kb2:[0,1],pr:[box(50,178.5,60)]}),X(CALF(34),{L2:[62,126],kb2:[0,1],pr:[box(50,178.5,60)]})],
  // ----- CORE -----
  "Bird Dog":[{H:[83,163],t:Math.atan2(146-163,130-83)*180/Math.PI,A:[130,200],th:90,sh:180,g:1,label:"על ארבע"},
-   {H:[83,163],t:Math.atan2(146-163,130-83)*180/Math.PI,A:[130,200],ua2:-8,fa2:-8,th:90,sh:180,th2:178,sh2:178,g:1,label:"יד ורגל נגדיות"}],
- "Pallof Press — עם גומייה":[X(STAND,{A:null,ua:62,fa:-12,pr:[{k:"pole",x:150,y1:60,y2:200},{k:"band",from:[150,135],to:"W"}],label:"ידיים בחזה"}),
-   X(STAND,{A:null,ua:-4,fa:-4,pr:[{k:"pole",x:150,y1:60,y2:200},{k:"band",from:[150,135],to:"W"}],label:"דחיפה קדימה"})],
- "Plank Shoulder Taps":(()=>{const p=PU[0],S=add(p.H,50,p.t);return [X(p,{label:"שכיבת סמיכה"}),X(p,{A2:[S[0]-2,S[1]+14],eb2:[0,1],label:"נגיעה בכתף"})];})(),
+   {H:[83,163],t:Math.atan2(146-163,130-83)*180/Math.PI,A:[130,200],ua2:-8,fa2:-8,th:178,sh:178,th2:90,sh2:180,g:1,label:"יד ורגל נגדיות"}],
+ "Pallof Press — עם גומייה":[X(STAND,{A:null,ua:62,fa:-12,pr:[{k:"pole",x:150,x3:84,z:75,y1:60,y2:200},{k:"band",from:[150,135],to:"W"}],post:PALLOF,label:"ידיים בחזה"}),
+   X(STAND,{A:null,ua:-4,fa:-4,pr:[{k:"pole",x:150,x3:84,z:75,y1:60,y2:200},{k:"band",from:[150,135],to:"W"}],post:PALLOF,label:"דחיפה קדימה"})],
+ "Plank Shoulder Taps":(()=>{const p=PU[0],S=add(p.H,50,p.t);return [X(p,{post:WIDEFT0,label:"שכיבת סמיכה"}),X(p,{A2:[S[0]-2,S[1]+14],eb2:[0,1],post:k=>{WIDEFT0(k);K3.tap(k,"R",[7,-10],[-2,-16]);},label:"נגיעה בכתף הנגדית"})];})(),
  "Dead Bug":[DBUG1,X(DBUG2,{label:"יד ורגל נגדיות"})],
  "Knee Plank":[KPL],
  "Hollow Body Tuck Hold":[{H:[85,193],t:198,L:[96,160],kb:[-0.6,-0.8],A:[98,170],g:1}],
@@ -941,8 +1008,10 @@ const ILL={
  "Hanging Knee Raise — עם תמיכה":[CHAIR({L:add([80,145],73,92)}),CHAIR({L:[112,140],kb:[1,-1]})],
  "Hanging Knee Raise":[HG({L:add([90,142],73,92)}),HG({L:[118,150],kb:[1,-1]})],
  "Hanging Leg Raise":[HG({L:add([90,142],73,92)}),HG({L:add([90,142],73,-2)})],
- "Toes-to-Bar":[HG({L:add([90,142],73,92)}),HG({H:[80,128],t:-76,L:[102,48]})],
- "Hanging Windshield Wipers":[HG({H:[80,128],t:-76,L:[104,52],label:"רגליים למעלה, סיבוב מצד לצד"})],
+ "Toes-to-Bar":[HG({L:add([90,142],73,92)}),HG(TTB)],
+ // legs up by the bar, swung from one side to the other about the body's long axis
+ "Hanging Windshield Wipers":(()=>{const up=HG(X(TTB,{L:[113,68]})),sw=d=>k=>K3.rotY(k,["hpL","hpR","knL","knR","ftL","ftR"],d,k.pelv);
+   return [X(up,{sg:1,label:"רגליים למעלה"}),X(up,{post:sw(55),label:"לצד אחד"}),X(up,{post:sw(-55),label:"לצד השני"})];})(),
  "Seated Leg Lift — Compression Lift":[SIT(),SIT({L:add([70,194],73,-12)})],
  "Tuck L-Sit":[LS({L:TUCKL,kb:[1,-1]})],
  "One-Leg L-Sit":[LS({L:add([78,170],73,0),L2:TUCKL,kb2:[1,-1]})],
@@ -950,9 +1019,9 @@ const ILL={
  "V-Sit Progression":[LS({H:[84,168],t:-100,A:[72,176],L:add([84,168],73,-30),pr:[PAR(72,176)]})],
  "V-Sit":[LS({H:[88,166],t:-112,A:[66,176],L:add([88,166],73,-60),pr:[PAR(66,176)]})],
  "Manna Progression":[LS({H:[95,160],t:-130,A:[52,176],L:add([95,160],73,-78),pr:[PAR(52,176)]})],
- "Side Plank — ברכיים כפופות":[X(KPL,{A2:add(add(KPL.H,50,KPL.t),54,-90),label:"החזקה על הצד"})],
- "Side Plank":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),label:"החזקה על הצד"})],
- "Side Plank + הרמת רגל":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90)}),X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),L2:add(FPL.H,73,FPL.t-28),label:"הרמת רגל"})],
+ "Side Plank — ברכיים כפופות":[X(KPL,{A2:add(add(KPL.H,50,KPL.t),54,-90),post:SIDEPL(),label:"החזקה על הצד"})],
+ "Side Plank":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),post:SIDEPL(),label:"החזקה על הצד"})],
+ "Side Plank + הרמת רגל":[X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),post:SIDEPL()}),X(FPL,{A2:add(add(FPL.H,50,FPL.t),54,-90),L2:add(FPL.H,73,FPL.t-28),post:SIDEPL(true),label:"הרמת רגל"})],
  // ----- STATICS: handstand -----
  "Bear Hold":[BEAR],
  "Wall Handstand Lean":[{H:[100,96],t:90,A:[100,200],L:[27,96],kb:[0,-1],g:1,pr:[{k:"wall",x:24,y1:40}],label:"אגן מעל הידיים, רגליים על הקיר"}],
@@ -976,14 +1045,14 @@ const ILL={
  "Elevated Plank to Pike Walk":(()=>{const F=[47,96],pr=[box(22,99.5,40)],a=Math.atan2(146-96,Math.sqrt(123*123-50*50)),S=[47+123*Math.cos(a),146];
    const PW=(x,lb)=>{const W=[x,200],H=tri(F,W,73,104);return {H,t:Math.atan2(W[1]-H[1],W[0]-H[0])*180/Math.PI,A:W,L:F,g:1,pr,label:lb};};
    return [{H:add(F,73,a*180/Math.PI),t:a*180/Math.PI,A:[S[0],200],L:F,g:1,pr,label:"שכיבת סמיכה, רגליים על ארגז"},PW(140,"הליכה עם הידיים לאחור"),{H:[120,96],t:90,A:[120,200],L:F,g:1,pr,label:"אגן מעל הידיים"}];})(),
- "Elevated Pike Shoulder Taps":[{H:[120,96],t:90,A:[120,200],L:[47,96],g:1,pr:[box(22,99.5,40)],label:"פייק על ארגז"},{H:[122,96],t:90,A:[120,200],A2:[116,160],eb2:[1,0],L:[47,96],g:1,pr:[box(22,99.5,40)],label:"נגיעה בכתף"}],
+ "Elevated Pike Shoulder Taps":[{H:[120,96],t:90,A:[120,200],L:[47,96],g:1,pr:[box(22,99.5,40)],label:"פייק על ארגז"},{H:[122,96],t:90,A:[120,200],A2:[116,160],eb2:[1,0],L:[47,96],g:1,pr:[box(22,99.5,40)],post:k=>K3.tap(k,"R",[-6,-3],[-6,-18]),label:"נגיעה בכתף הנגדית"}],
  "Back-to-Wall Handstand — גב לקיר":[
    {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"בעיטה עדינה"},
    X(HLINE([128,200],-84),{pr:[{k:"wall",x:142,y1:10}],label:"עקבים נשענים על הקיר"})],
  "Wall Toe Pulls — שחרור רגליים מהקיר":[
    X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"בטן לקיר"}),
    X(HLINE([104,200],-90),{pr:[{k:"wall",x:85,y1:10}],label:"רגליים משתחררות מהקיר"})],
- "Handstand Shoulder Taps":[HS([100,200],{label:"עמידת ידיים"}),HS([100,200],{H:[103,96],A2:[90,146],eb2:[-1,0.3],label:"העברת משקל ונגיעה בכתף"})],
+ "Handstand Shoulder Taps":[HS([100,200],{label:"עמידת ידיים"}),HS([100,200],{H:[103,96],A2:[90,146],eb2:[-1,0.3],post:k=>K3.tap(k,"R",[-6,-3],[-6,-18]),label:"נגיעה בכתף הנגדית"})],
  "Pike Float":[{H:[76,127],t:Math.atan2(148-127,118-76)*180/Math.PI,A:[118,200],L:[74,200],g:1,face:-1,label:"קיפול, ידיים לרצפה"},{H:[106.5,104.0],t:60.7,A:[118,200],L:[96.4,176.3],g:1,label:"כפות הרגליים מתרוממות"}],
  "Press to Handstand Progression":(()=>{const W=[118,200];
    return [{H:[76,127],t:Math.atan2(148-127,118-76)*180/Math.PI,A:W,L:[74,200],g:1,face:-1,label:"קיפול, ידיים לרצפה"},
@@ -994,15 +1063,15 @@ const ILL={
  "Tuck Front Lever":[FL(L_T,{label:"החזקה"})],
  "Tuck Front Lever Raise":[X({H:[104,142],t:-90,A:FLB,th:180,sh:90,face:-1,pr:[bar(FLB)]},{label:"תלייה מקופלת"}),FL(L_T,{label:"עלייה בידיים ישרות"})],
  "Advanced Tuck Front Lever":[FL(L_AT,{label:"החזקה"})],
- "One-Leg Front Lever":[FL(X(LEG_FULL([50,92]),{th2:-90,sh2:180}),{label:"החזקה"})],
- "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{label:"החזקה, רגליים פתוחות"})],
+ "One-Leg Front Lever":[FL(X(LEG_FULL([50,92]),{th2:-45,sh2:150}),{label:"החזקה, רגל אחת מקופלת לחזה"})],
+ "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{post:STRAD,label:"החזקה, רגליים פתוחות"})],
  "Full Front Lever":[FL(LEG_FULL([50,92]),{label:"החזקה"})],
  // ----- STATICS: back lever -----
  "Skin-the-Cat — טווח מותאם":[INVT({label:"היפוך מקופל"}),GER({label:"המשך סיבוב לאחור"})],
  "Tuck Back Lever":[BL(BL_T,{label:"החזקה"})],
  "Tuck Back Lever Raise":[INVT({H:[108,49],A:BLB,th:135,sh:-60,pr:[ring("W",55)],label:"תלייה הפוכה מקופלת"}),BL(BL_T,{pr:[ring("W",55)],label:"ירידה לאופק"})],
  "Advanced Tuck Back Lever":[BL(BL_AT,{label:"החזקה"})],
- "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{label:"החזקה, רגליים פתוחות"})],
+ "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{post:STRAD,label:"החזקה, רגליים פתוחות"})],
  "Full Back Lever":[BL(LEG_FULL([95,72]),{label:"החזקה"})],
  // ----- STATICS: planche -----
  "Elbow Lever Lean":[X(ELB({L:[6,199]}),{H:[76,166],t:-3,label:"קצות רגליים על הרצפה"})],
@@ -1013,7 +1082,7 @@ const ILL={
  "Planche Lean":[(()=>{const F=[20,200],S=onC(F,123,148),a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:[S[0]-24,200],g:1,label:"החזקה, כתפיים לפני הידיים"};})()],
  "Tuck Planche":[PLAN(15,{th:60,sh:200,label:"החזקה"})],
  "Advanced Tuck Planche":[PLAN(5,{th:90,sh:180,label:"החזקה"})],
- "Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,185),L2:add(add(PLS,-50,5),73,178),label:"החזקה, רגליים פתוחות"})],
+ "Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),L2:add(add(PLS,-50,5),73,182),post:STRAD,label:"החזקה, רגליים פתוחות"})],
  "Full Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),label:"החזקה"})],
  // ----- STATICS: human flag -----
  "Human Flag Progression — Tuck":[FLAG({L:[118,152],kb:[1,0.6],label:"החזקה, ברכיים כפופות"})],
@@ -1024,8 +1093,10 @@ const ILL={
  "Ring Row — 45°":RROW([160,200],[118,100]),
  "Ring Row — גוף מקביל":RROW([170,200],[100,150]),
  "Feet-Elevated Ring Row":RROW([170,165],[100,118],{pr:[box(150,168.5,40)]}),
- "Archer Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה לצד אחד"})];})(),
- "One-Arm Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [r[0],X(r[1],{label:"משיכה ביד אחת"})];})(),
+ "Archer Ring Row":(()=>{const r=RROW([165,200],[105,132]);return [X(r[0],{post:ARCH0}),X(r[1],{post:ARCH1,label:"משיכה לצד אחד"})];})(),
+ // one ring (the two tied together) in front of the middle of the chest, one hand on it, the free hand on the hip
+ "One-Arm Ring Row":(()=>{const r=RROW([165,200],[105,132]),one=(fr,st)=>X(fr,{pr:[ring("W",60)].map(q=>X(q,{one:"L"})),post:k=>{K3.z(k,{wrL:5});if(st) K3.mid(k,"L"); else k.wrL=[k.wrL[0]+5,k.wrL[1]+7,k.wrL[2]];ONEFREE(k);}});
+   return [one(r[0],true),X(one(r[1]),{label:"משיכה ביד אחת"})];})(),
  "Ring Active Hang":[R(X(FP.active,{label:"החזקה, שכמות למטה"}))],
  "Ring Scapular Pull-Up":[R(X(FP.hang,{scap:1,label:"תלייה רפויה"})),R(X(FP.active,{label:"שכמות למטה"}))],
  "False Grip Hang":[R(X(FP.hang,{label:"החזקה, אחיזת פולס גריפ"}))],
@@ -1042,7 +1113,7 @@ const ILL={
  "Weighted Ring Muscle-Up":[R(X(FP.hang,{w:true})),R(X(FP.high,{w:true})),R(X(FP.support,{w:true}))],
  "Incline Ring Push-Up":pushups([20,200],145,18,{ring:true,incline:true}),
  "Feet-Elevated Ring Push-Up":pushups([20,172],186,20,{ring:true,fbox:true}),
- "Archer Ring Push-Up":(()=>{const p=pushups([20,200],186,20,{ring:true});return [p[0],X(p[1],{label:"טבעת אחת נפתחת לצד"})];})(),
+ "Archer Ring Push-Up":(()=>{const p=pushups([20,200],186,20,{ring:true});return [X(p[0],{post:k=>K3.z(k,{wrL:16,wrR:-16})}),X(p[1],{post:APU1,label:"טבעת אחת נפתחת לצד"})];})(),
  "Ring Pseudo Planche Push-Up":PPL.map(fr=>X(fr,{A:[fr.A[0],188],pr:[ring("W",55)]})),
  "Ring Dip Negative":[X(ringTop(),{label:"התחלה למעלה"}),X(ringBot(),{label:"ירידה איטית"})],
  "Band-Assisted Ring Dip":[ringTop([{k:"band",from:[60,100],to:[130,100],via:"K"}]),ringBot([{k:"band",from:[60,100],to:[130,100],via:"K"}])],
@@ -1061,7 +1132,7 @@ const ILL={
  "Standing Ring Rollout":[SRO(-78,[66,150]),SRO(-25,[200,98])],
  "Ring Hanging Knee Raise":[RHG({L:add([90,142],73,92)}),RHG({L:[118,150],kb:[1,-1]})],
  "Ring Hanging Leg Raise":[RHG({L:add([90,142],73,92)}),RHG({L:add([90,142],73,-2)})],
- "Ring Toes-to-Rings":[RHG({L:add([90,142],73,92)}),RHG({H:[80,128],t:-76,L:[102,48]})],
+ "Ring Toes-to-Rings":[RHG({L:add([90,142],73,92)}),RHG(X(TTB,{L:[108,62]}))],
  "Skin-the-Cat — רגליים על הקרקע":[INVT({pr:[ring("W",55)],label:"היפוך מקופל"}),GER({pr:[ring("W",55)],L:[132,206],th:null,sh:null,label:"רגליים לקרקע מאחור"})],
  "Inverted Tuck Hang":[INVT({pr:[ring("W",55)],label:"החזקה"})],
  "Inverted Hang":[INV({pr:[ring("W",55)],label:"החזקה"})],
@@ -1073,7 +1144,7 @@ const ILL={
  "Freestanding Ring Handstand":[{H:[100,46],t:90,A:[100,150],L:[100,-27],pr:[ring("W",60)],label:"החזקה"}],
  "Wide Ring Support":[R({v:"front",sy:-46,grip:34,straight:true,label:"החזקה, ידיים מעט פתוחות"})],
  "Band-Assisted Iron Cross":[R({v:"front",sy:0,grip:68,straight:true,label:"החזקה עם גומייה"})],
- "Iron Cross Negative":[R(X(FP.support,{label:"התחלה בתמיכה"})),R({v:"front",sy:0,grip:68,straight:true,label:"פתיחה איטית לצלב"})],
+ "Iron Cross Negative":[R(X(FP.support,{label:"התחלה בתמיכה"})),R({v:"front",sy:-26,grip:61,straight:true,label:"הידיים נפתחות לצדדים"}),R({v:"front",sy:0,grip:68,straight:true,label:"מנח הצלב"})],
  "Iron Cross":[R({v:"front",sy:0,grip:68,straight:true,label:"החזקה"})],
 };
 // ring versions that share a calisthenics name get rings automatically when the exercise is in the rings category
@@ -1083,11 +1154,11 @@ const RING_SAME={
  "Ring Support Hold":[X(ringTop(),{label:"החזקה"})],
  "Tuck Front Lever":[FL(L_T,{pr:[ring("W",55)],label:"החזקה"})],
  "Advanced Tuck Front Lever":[FL(L_AT,{pr:[ring("W",55)],label:"החזקה"})],
- "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{pr:[ring("W",55)],label:"החזקה, רגליים פתוחות"})],
+ "Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{pr:[ring("W",55)],post:STRAD,label:"החזקה, רגליים פתוחות"})],
  "Full Front Lever":[FL(LEG_FULL([50,92]),{pr:[ring("W",55)],label:"החזקה"})],
  "Tuck Back Lever":[BL(BL_T,{pr:[ring("W",55)],label:"החזקה"})],
  "Advanced Tuck Back Lever":[BL(BL_AT,{pr:[ring("W",55)],label:"החזקה"})],
- "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{pr:[ring("W",55)],label:"החזקה, רגליים פתוחות"})],
+ "Straddle Back Lever":[BL(X(LEG_FULL([95,72]),{L2:add([95,72],73,172)}),{pr:[ring("W",55)],post:STRAD,label:"החזקה, רגליים פתוחות"})],
  "Full Back Lever":[BL(LEG_FULL([95,72]),{pr:[ring("W",55)],label:"החזקה"})],
 };
 
@@ -1137,7 +1208,7 @@ function frontJ(fr){
   if(fr.legs==="box"){kL=[bx-11,pL[1]+28];kR=[bx+11,pR[1]+28];fL=[bx-10,kL[1]+22];fR=[bx+10,kR[1]+22];}
   else if(fr.legs==="tuck"){kL=[bx-12,pL[1]-6];kR=[bx+12,pR[1]-6];fL=[bx-9,pL[1]+14];fR=[bx+9,pR[1]+14];}
   else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
-  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel,scap:fr.scap};
+  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel,scap:fr.scap,sup:!!fr.straight&&sy<40};
 }
 // wall walk for the 3D view: the feet climb the wall one step at a time while the hands walk in toward it
 const SIDE3D={"Wall Walk חלקי":(()=>{const FX=15,wall={k:"wall",x:12,y1:20};
@@ -1152,7 +1223,7 @@ function frames3d(ex,r){
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
-    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1};
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg};
   });
 }
 return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), frames3d, GY};
@@ -1242,7 +1313,8 @@ function to3dPts(fr){
     // a front drawing has no depth. In a real pull-up the body travels slightly behind the bar as it rises, so the
     // head passes behind it and the bar ends in front of the throat / upper chest; the chest leads, the legs stay
     // a little forward (slight hollow) and the elbows come down in front of the body. Hands stay on the bar.
-    const sy=J.sL[1]-J.by,f=Math.max(0,Math.min(1,(52-sy)/32)),e=f*f*(3-2*f);
+    // (not for straight-arm holds above the hands: support, iron cross; and fading out toward the support of a muscle-up)
+    const sy=J.sL[1]-J.by,f=J.sup?0:Math.max(0,Math.min(1,(52-sy)/32))*Math.max(0,Math.min(1,(sy+46)/20)),e=f*f*(3-2*f);
     // (chin over the bar, shoulders below it: the head only needs to clear the bar; higher pulls lean further back)
     const hb=Math.max(0,Math.min(1,(sy+8)/16));
     if(e>0){const dz={neck:-21+6*hb,head:-35+17*hb,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
@@ -1271,6 +1343,8 @@ function to3dPts(fr){
       if(q.k==="wt"){k["w"+i]=P([q.at[0]+(q.dx||0),q.at[1]+(q.dy||0)]);}
     });
   }
+  // left/right differences a side drawing cannot show (archer, one arm, straddle, shoulder taps ...)
+  if(fr.post) fr.post(k);
   return k;
 }
 // ---------- anatomy model: skinned mesh driven by the same keypoints as the mannequin; active muscles glow red ----------
@@ -1378,10 +1452,10 @@ function contactsOf(fr,k){
   } else {
     for(const q of fr.pr||[]){
       if(q.k==="bar") supp.push({t:"bar",ax:[0,0,1],x:q.at[0],y:-q.at[1]});
-      else if(q.k==="ring"){if(q.atRef==="W") supp.push({t:"ring",hand:true}); else if(q.atRef==="F") supp.push({t:"ring",foot:true});
+      else if(q.k==="ring"){if(q.atRef==="W") supp.push({t:"ring",hand:true,one:q.one}); else if(q.atRef==="F") supp.push({t:"ring",foot:true});
         else supp.push({t:"ring",x:q.at[0],y:-q.at[1]});}
       else if(q.k==="hbar") supp.push({t:"bar",ax:[1,0,0],y:-q.y,x1:q.x1-3,x2:q.x2+3,zs:21});
-      else if(q.k==="box") supp.push({t:"flat",y:-q.y,x1:q.x-4,x2:q.x+q.w+4});
+      else if(q.k==="box") supp.push({t:"flat",y:-q.y,x1:q.x-4,x2:q.x+q.w+4,z1:q.d?(q.z||0)-q.d/2-4:null,z2:q.d?(q.z||0)+q.d/2+4:null});
       else if(q.k==="pad"){const a=q.at;supp.push({t:"flat",y:-(a[1]+3),x1:a[0]-12,x2:a[0]+12});}
       else if(q.k==="wall") supp.push({t:"wall",x:q.x,y1:-ILLV.GY,y2:-q.y1});
       else if(q.k==="pole") supp.push({t:"pole",x:q.x,y1:-q.y2,y2:-q.y1,z:q.z||0});
@@ -1391,12 +1465,12 @@ function contactsOf(fr,k){
   for(const s of ["L","R"]) for(const [nm,key,isHand] of [["h"+s,"wr"+s,true],["f"+s,"ft"+s,false]]){
     const p=k[key];if(!p) continue;let best=null,bd=1e9;
     for(const q of supp){let d=1e9,c=null;
-      if(q.t==="ring"&&(q.hand||q.foot)){if(isHand?q.hand:q.foot){d=0;c={t:"ring",p:p.slice()};}}
+      if(q.t==="ring"&&(q.hand||q.foot)){if(isHand?q.hand&&(!q.one||q.one===s):q.foot){d=0;c={t:"ring",p:p.slice()};}}
       else if(q.t==="ring"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"ring",p:V3(q.x,q.y-6.5,p[2])};if(d>9)d=1e9;}   // held at its lower tube
       else if(q.t==="bar"&&q.zs){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,(p[2]<0?-1:1)*q.zs),ax:q.ax};if(d>8||p[0]<q.x1||p[0]>q.x2)d=1e9;}
       else if(q.t==="bar"&&q.line){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,p[2]),ax:q.ax};if(d>7)d=1e9;}
       else if(q.t==="bar"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"bar",p:V3(q.x,q.y,p[2]),ax:q.ax};if(d>8)d=1e9;}
-      else if(q.t==="flat"){const h=p[1]-q.y, inX=q.x1==null||(p[0]>=q.x1&&p[0]<=q.x2);
+      else if(q.t==="flat"){const h=p[1]-q.y, inX=(q.x1==null||(p[0]>=q.x1&&p[0]<=q.x2))&&(q.z1==null||(p[2]>=q.z1&&p[2]<=q.z2));
         // a foot point is the ankle (drawn ~4 above the floor), a hand point sits on the surface
         if(inX&&h>-4&&h<(isHand?8:10)){d=Math.abs(h-(isHand?0:4.5));c={t:"flat",p:V3(p[0],q.y,p[2]),n:[0,1,0],bar:!!q.bar};}}
       else if(q.t==="wall"){const dx=p[0]-q.x;if(Math.abs(dx)<9&&p[1]>q.y1-2&&p[1]<q.y2+4){d=Math.abs(dx);const sg=(k.pelv[0]-q.x)>=0?1:-1;/* the side the body is on */c={t:"wall",p:V3(q.x+sg,p[1],p[2]),n:[sg,0,0]};}}
@@ -1429,6 +1503,7 @@ function modelCfg(frames,keys,M){const f00=frames[0]||{};restOf(M);
     const d=score(1)-score(-1)+(side?0.6*head/4:0)+hip;
     cfg.sg=Math.abs(d)>0.05?(d>0?1:-1):(head<0?-1:1);
     if(lie&&Math.abs(d)<=0.15) cfg.sg=1;
+    if(f00.sg) cfg.sg=f00.sg;   // a facing fixed by the exercise (legs swung to the sides confuse the guess)
   }
   prepKeys(keys,cfg);return cfg;}
 // drawn bend plane of one limb in its parent's frame (h), how bent it is (sn) and the natural plane for that direction (hf)
@@ -1859,13 +1934,16 @@ function build(host,frames,opt){opt=opt||{};
       else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
       else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y,cx=q.x+q.w/2;
         // a tall box reads as a solid cube next to the body: draw it as a table/bench (top + four legs)
-        if(h>35&&q.h==null){staticBox(cx,-(q.y+3),0,q.w+6,6,64);
+        if(q.par){for(const dz of [-15,15]){const top=-(q.y+1.6);staticCyl([q.x-4,top,dz],[q.x+q.w+4,top,dz],1.6);
+            for(const dx of [q.x-2,q.x+q.w+2]) staticCyl([dx,top,dz],[dx,-(GY+4),dz],1.4);
+            staticCyl([q.x-6,-(GY+3),dz],[q.x+q.w+6,-(GY+3),dz],1.4);}}
+        else if(h>35&&q.h==null){staticBox(cx,-(q.y+3),0,q.w+6,6,64);
           for(const dx of [-1,1]) for(const dz of [-1,1]) staticCyl([cx+dx*(q.w/2-2),-(q.y+6),dz*28],[cx+dx*(q.w/2-2),-(GY+4),dz*28],1.8);}
-        else staticBox(cx,-(q.y+h/2),0,q.w,h,60);});
+        else staticBox(cx,-(q.y+h/2),q.z||0,q.w,h,q.d||60);});
       else if(q.k==="wall") once(["wall",q.x],()=>{const h=GY+4-q.y1;staticBox(q.x,-(q.y1+h/2),0,2,h,130,mWall);});
-      else if(q.k==="pole") once(["pole",q.x,q.z||0],()=>staticCyl([q.x,-q.y1,q.z||0],[q.x,-q.y2,q.z||0],3));
+      else if(q.k==="pole") once(["pole",q.x,q.z||0],()=>staticCyl([q.x3!=null?q.x3:q.x,-q.y1,q.z||0],[q.x3!=null?q.x3:q.x,-q.y2,q.z||0],3));
       else if(q.k==="ring") once(["ring",q.atRef||q.at],()=>{
-        if(q.atRef&&JMAP[q.atRef]&&(q.atRef==="W"||q.atRef==="F")){for(const s of ["L","R"]) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:JMAP[q.atRef]+s,len:q.len||55,axis:"x"});}
+        if(q.atRef&&JMAP[q.atRef]&&(q.atRef==="W"||q.atRef==="F")){for(const s of ["L","R"]) if(!q.one||q.one===s) dyn.push({ring:new T.Mesh(tor,mEq),strap:new T.Mesh(cyl,mEq),j:JMAP[q.atRef]+s,len:q.len||55,axis:"x"});}
         else for(const z of [-14,14]){const m=new T.Mesh(tor,mEq);m.position.set(q.at[0],-q.at[1],z);m.rotation.y=Math.PI/2;scene.add(m);
           staticCyl([q.at[0],-q.at[1]+6,z],[q.at[0],-q.at[1]+(q.len||55),z],0.9);}});
       else if(q.k==="band") once(["band",i],()=>dyn.push({band:i,kind:q.viaRef==="K"?"knees":q.toRef==="H"?"hips":q.toRef==="S"?"chest":q.toRef==="W"?"hands":"line",
