@@ -468,6 +468,14 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 /* the open workout's title: a clear, full-color header (the panel background above made its dark text unreadable) */
 .prow.hue[aria-expanded="true"]{background:linear-gradient(120deg,#5B46C9,#7C5CFF 60%,#4FB8C9)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 6px 22px rgba(124,98,245,.35)}
 .prow.hue[aria-expanded="true"] span,.prow.hue[aria-expanded="true"] b small{color:#fff!important;opacity:.9}
+/* cards and tappable boxes: almost black with a fine violet frame (dark theme) */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--card:#0E0D13;--card-b:rgba(155,123,255,.45)}}
+:root[data-theme="dark"]{--card:#0E0D13;--card-b:rgba(155,123,255,.45)}
+@supports (color:var(--card)){
+.track.hue:not([aria-pressed="true"]),.prow.hue:not([aria-expanded="true"]),details.tr,.stepc,.blk,#v-lib.hue .card,.sblk .scard,.opt,
+.lad:not([aria-pressed="true"]),.gmem li,.timer,.dobox,.box,.qres{background:var(--card,var(--surface))!important;border:1px solid var(--card-b,var(--glass-b))!important}
+.track.hue:not([aria-pressed="true"]):hover,.prow.hue:not([aria-expanded="true"]):hover,.lad:not([aria-pressed="true"]):hover{border-color:#9B7BFF!important}
+}
 </style>
 </head>
 <body>
@@ -520,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261101201137";
+const BUILD="20261101201934";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
