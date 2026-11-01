@@ -456,15 +456,12 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .bk{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .lad small.en,#ladname small.en{display:block;font-size:.66rem;line-height:1.15;color:var(--muted);font-weight:400;letter-spacing:.02em;margin-top:1px}
 #ladname small.en{font-size:.78rem;margin-top:2px}
-.seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border:1px solid var(--glass-b,var(--line));border-radius:14px;background:var(--glass,var(--surface));margin:10px 0}
-.seg3 button{font:inherit;font-size:.86rem;font-weight:600;padding:8px 4px;border:0;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer;line-height:1.2}
-.seg3 button small{display:block;font-size:.72rem;font-weight:400;opacity:.8}
-.seg3 button[aria-pressed="true"]{background:linear-gradient(120deg,#5B46C9,var(--v2,#7C5CFF));color:#fff}
-.addto{color:var(--muted);font-size:.8rem;margin:-2px 2px 10px}
-.memb{display:flex;gap:8px}
-.memb button{flex:1;font:inherit;font-size:.88rem;padding:9px;border-radius:999px;border:1px solid var(--glass-b,var(--line));background:transparent;color:var(--muted);cursor:pointer}
-.memb button[aria-pressed="true"]{background:color-mix(in srgb,#9B7BFF 22%,transparent);border-color:#9B7BFF;color:var(--ink);font-weight:700}
-.memb button[aria-pressed="true"]::before{content:"✓ "}
+.gmem{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}
+.gmem li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 8px 8px 14px;border-radius:12px;border:1px solid var(--glass-b,var(--line));background:var(--glass,var(--surface))}
+.gmem li span{font-weight:600;color:var(--ink)}
+.grm{font:inherit;font-size:.82rem;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,#FF6B81 55%,transparent);background:transparent;color:#FF8A9B;cursor:pointer}
+.gadd{display:grid;gap:8px;margin-bottom:6px}
+.gadd select{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--glass-b,var(--line));background:var(--glass,var(--surface));color:var(--ink)}
 </style>
 </head>
 <body>
@@ -499,9 +496,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
   <section id="v-tr" hidden>
     <p class="sub">לכל מתאמן בוחרים בכל סולם את השלב הקשה ביותר שהוא עושה נקי 3×5. ככה האפליקציה יודעת מה לתת לכל אחד באימון.</p>
-    <div class="seg3" id="trf" role="group" aria-label="איזה מתאמנים להציג"></div>
     <form id="addtr" class="addrow"><input id="trname" placeholder="שם מתאמן חדש" autocomplete="off" aria-label="שם מתאמן חדש"><button>הוספה</button></form>
-    <p class="addto" id="addto"></p>
     <div id="trlist"></div>
     <div class="bk">
       <button id="exp" type="button">גיבוי לקובץ</button>
@@ -2225,9 +2220,9 @@ CO.trainees.forEach(t=>{if(!t.lv)return;const nv={};
     // two old ladders merging into one: keep the harder step
     if(!cur||L.steps.findIndex(s=>s.ex===ex)>L.steps.findIndex(s=>s.ex===cur)) nv[L.key]=ex;}
   t.lv=nv;if(t.streak) t.streak=Object.fromEntries(Object.entries(t.streak).filter(([k])=>LAD(k)));});
-// personal trainees and the group are separate lists: a trainee can be in either or both. Trainees saved before the
-// split were all in the group and on the trainees screen, so they start in both.
-CO.trainees.forEach(t=>{if(t.grp==null)t.grp=true;if(t.per==null)t.per=true;});
+// the group: trainees are added to it and taken out of it on the group-workout screen (everyone in it trains today);
+// trainees saved before that were all in the group, and stay in it
+CO.trainees.forEach(t=>{if(t.grp==null)t.grp=CO.ses.present.includes(t.id)||!CO.ses.present.length;delete t.per;});
 const csave=()=>{try{localStorage.setItem(CK,JSON.stringify(CO))}catch(e){}};
 const grpTr=()=>CO.trainees.filter(t=>t.grp);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -2274,23 +2269,15 @@ $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$(
 
 // ---------- trainees ----------
 const openTr=new Set();
-let trF=(()=>{try{return localStorage.getItem("cal-trf")||"all"}catch(e){return "all"}})();
-const TRF=[["all","כולם"],["per","מתאמנים אישיים"],["grp","הקבוצה"]];
 function renderTr(){
-  const n={all:CO.trainees.length,per:CO.trainees.filter(t=>t.per).length,grp:CO.trainees.filter(t=>t.grp).length};
-  $("trf").innerHTML=TRF.map(([id,lb])=>`<button type="button" data-f="${id}" aria-pressed="${trF===id}">${lb}<small>${n[id]}</small></button>`).join("");
-  $("addto").innerHTML=trF==="all"?"מתאמן חדש נוסף גם לאישיים וגם לקבוצה. אפשר לשנות אצל כל מתאמן.":
-    trF==="per"?"מתאמן חדש נוסף לאישיים בלבד, לא לקבוצה.":"מתאמן חדש נוסף לקבוצה בלבד, לא לאישיים.";
-  const list=CO.trainees.filter(t=>trF==="all"||t[trF]);
-  $("trlist").innerHTML=list.length?list.map(tr=>{
+  $("trlist").innerHTML=CO.trainees.length?CO.trainees.map(tr=>{
     const keys=[...new Set([...MAIN,...Object.keys(tr.lv||{})])].filter(k=>LAD(k));
     const set=keys.filter(k=>lvIdx(tr,k)>=0).length;
     const others=LADS.filter(L=>!keys.includes(L.key));
     const hist=CO.log.flatMap(g=>(g.ch||[]).filter(c=>c.id===tr.id).map(c=>({...c,d:g.d}))).slice(-5).reverse();
     return `<details class="tr" data-id="${tr.id}"${openTr.has(tr.id)?" open":""}>
-      <summary><span class="who2"><i class="av hue" ${hueStyle((CO.trainees.indexOf(tr)*67+188)%360)}>${esc([...tr.name.trim()][0]||"?")}</i><b>${esc(tr.name)}</b></span><span>${[tr.per?"אישי":"",tr.grp?"בקבוצה":""].filter(Boolean).join(" · ")||"לא משויך"} · ${set} סולמות</span></summary>
+      <summary><span class="who2"><i class="av hue" ${hueStyle((CO.trainees.indexOf(tr)*67+188)%360)}>${esc([...tr.name.trim()][0]||"?")}</i><b>${esc(tr.name)}</b></span><span>${set} סולמות מוגדרים</span></summary>
       <div class="trb">
-        <div class="memb"><button type="button" data-m="per" aria-pressed="${!!tr.per}">מתאמן אישי</button><button type="button" data-m="grp" aria-pressed="${!!tr.grp}">בקבוצה</button></div>
         <label class="fl">הערות (פציעות, מטרות)<textarea data-f="note" rows="2">${esc(tr.note||"")}</textarea></label>
         ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k);return `<label class="fl lv"><span>${ladLabel(L)}</span>
           <select data-k="${esc(k)}">${stepOpts(L,i)}</select>${i>=0?`<em>${esc(L.steps[i].he||"")}${L.steps[i].he?" · ":""}יעד למעבר: ${esc(L.steps[i].pass)}</em>`:""}</label>`}).join("")}
@@ -2298,13 +2285,11 @@ function renderTr(){
         ${hist.length?`<div class="hist"><b>עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?lnHe(L.l):"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
         <button class="del" type="button">מחיקת ${esc(tr.name)}</button>
       </div></details>`}).join("")
-    :`<p class="empty">${trF==="per"?"עוד אין מתאמנים אישיים.":trF==="grp"?"עוד אין מתאמנים בקבוצה.":"עוד אין מתאמנים."} כותבים שם ולוחצים "הוספה".</p>`;
+    :`<p class="empty">עוד אין מתאמנים. כותבים שם ולוחצים "הוספה".</p>`;
 }
-$("trf").onclick=e=>{const b=e.target.closest("button[data-f]");if(!b)return;trF=b.dataset.f;try{localStorage.setItem("cal-trf",trF)}catch(_){}renderTr();};
 $("addtr").onsubmit=e=>{
   e.preventDefault();const n=$("trname").value.trim();if(!n)return;
-  const tr={id:uid(),name:n,note:"",lv:{},per:trF!=="grp",grp:trF!=="per"};CO.trainees.push(tr);openTr.add(tr.id);
-  if(tr.grp&&!CO.ses.present.includes(tr.id)) CO.ses.present.push(tr.id);
+  const tr={id:uid(),name:n,note:"",lv:{},grp:false};CO.trainees.push(tr);openTr.add(tr.id);
   csave();$("trname").value="";renderTr();
 };
 $("trlist").addEventListener("toggle",e=>{const d=e.target.closest&&e.target.closest("details.tr");if(!d)return;d.open?openTr.add(d.dataset.id):openTr.delete(d.dataset.id);},true);
@@ -2316,10 +2301,6 @@ $("trlist").onchange=e=>{
   if(t.dataset.k){const L=LAD(t.dataset.k);tr.lv[t.dataset.k]=t.value===""?"":L.steps[+t.value].ex;csave();renderTr();}
 };
 $("trlist").onclick=e=>{
-  const m=e.target.closest("button[data-m]");
-  if(m){const tr=trById(m.closest("details.tr").dataset.id);if(!tr)return;const f=m.dataset.m;tr[f]=!tr[f];
-    if(f==="grp"){if(tr.grp){if(!CO.ses.present.includes(tr.id))CO.ses.present.push(tr.id);}else CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);}
-    csave();renderTr();return;}
   const b=e.target.closest(".del");if(!b)return;const d=b.closest("details.tr"),tr=trById(d.dataset.id);
   if(!tr||!confirm(`למחוק את ${tr.name}?`))return;
   CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);csave();renderTr();
@@ -2337,7 +2318,7 @@ $("imp").onchange=async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   try{const j=JSON.parse(await f.text()),d=j.data||j;if(!Array.isArray(d.trainees))throw 0;
     if(confirm(`לשחזר ${d.trainees.length} מתאמנים מהגיבוי? זה מחליף את הרשימה הנוכחית.`)){
-      CO.trainees=d.trainees;CO.trainees.forEach(t=>{if(t.grp==null)t.grp=true;if(t.per==null)t.per=true;});CO.log=Array.isArray(d.log)?d.log:[];CO.ses.present=CO.trainees.filter(t=>t.grp).map(t=>t.id);CO.ses.done={};csave();renderTr();}}
+      CO.trainees=d.trainees;CO.trainees.forEach(t=>{if(t.grp==null)t.grp=true;});CO.log=Array.isArray(d.log)?d.log:[];CO.ses.present=CO.trainees.filter(t=>t.grp).map(t=>t.id);CO.ses.done={};csave();renderTr();}}
   catch(_){alert("הקובץ לא נראה כמו גיבוי של האפליקציה");}
   e.target.value="";
 };
@@ -2565,10 +2546,17 @@ function tick(){
   }
   const el=$("timer");if(el) el.innerHTML=timerInner(); else {clearInterval(TM.iv);TM.run=false;}
 }
+// the group's members: each with a remove button; below, add one of the trainees or a new name
+function grpEdit(G){
+  const rest=CO.trainees.filter(t=>!t.grp);
+  return `<ul class="gmem">${G.map(t=>`<li><span>${esc(t.name)}</span><button type="button" class="grm" data-rm="${t.id}" aria-label="להוציא את ${esc(t.name)} מהקבוצה">הוצאה</button></li>`).join("")}</ul>
+    <div class="gadd">${rest.length?`<select data-gadd="1" aria-label="הוספת מתאמן לקבוצה"><option value="">+ הוספת מתאמן לקבוצה…</option>${rest.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}</select>`:""}
+      <form class="addrow" data-gnew="1"><input placeholder="שם חדש לקבוצה" autocomplete="off" aria-label="שם חדש לקבוצה"><button>הוספה</button></form></div>`;
+}
 function renderSes(){
-  const S=CO.ses,G=grpTr();S.present=S.present.filter(id=>{const t=trById(id);return t&&t.grp;});S.alt=S.alt||{};
+  const S=CO.ses,G=grpTr();S.present=G.map(t=>t.id);S.alt=S.alt||{};
   if(!G.length){
-    $("sbody").innerHTML=`<p class="empty">${CO.trainees.length?"עוד אין מתאמנים בקבוצה. במסך המתאמנים מסמנים \"בקבוצה\" אצל מי שמתאמן בקבוצה, או מוסיפים מתאמן חדש בלשונית \"הקבוצה\".":"כדי לבנות אימון צריך קודם להוסיף מתאמנים לקבוצה ולסמן לכל אחד את השלב שלו בכל סולם."}</p><button class="primary" data-goto="tr">למסך המתאמנים</button>`;
+    $("sbody").innerHTML=`<p class="empty">עוד אין מתאמנים בקבוצה. מוסיפים כאן את מי שמתאמן בקבוצה.</p>${grpEdit(G)}`;
     return;
   }
   const chip=(on,attrs,txt)=>`<button class="lad" aria-pressed="${on}" ${attrs}>${txt}</button>`;
@@ -2584,11 +2572,11 @@ function renderSes(){
     if(!on) continue;
     const p=x;S.plan=p.id;S.step=Math.max(0,Math.min(S.step|0,p.blocks.length-1));
     h+=`<div class="pbody hue" ${hueStyle(ph)}>
-      <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>מי הגיע וציוד<span>${S.present.length===G.length?`כולם (${S.present.length})`:`${S.present.length} מתוך ${G.length}`} · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
-        <p class="label">מי הגיע</p><div class="chips">${G.map(t=>chip(S.present.includes(t.id),`data-p="${t.id}"`,esc(t.name))).join("")}</div>
+      <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>הקבוצה וציוד<span>${G.length} מתאמנים · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
+        <p class="label">הקבוצה</p>${grpEdit(G)}
         <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>
       <div class="seg2"><button data-view="cards" aria-pressed="${S.view!=="steps"}">בתמונות</button><button data-view="steps" aria-pressed="${S.view==="steps"}">שלב אחר שלב</button></div>
-      ${S.view!=="steps"?storyHtml(p,S):S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מסמנים ב"מי הגיע" מי בא היום.</p>`}
+      ${S.view!=="steps"?storyHtml(p,S):S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מוסיפים מתאמנים לקבוצה למעלה.</p>`}
     </div>`;
   }
   h+=`<details class="opt guide3" data-o="guide"${isOpen("guide",false)?" open":""}><summary>מדריך למאמן<span>איך מעבירים אימון קבוצתי</span></summary><div class="guide">${GUIDE.map(g=>`<p><b>${g[0]}</b>${esc(g[1])}</p>`).join("")}</div></details>`;
@@ -2604,7 +2592,7 @@ $("sbody").onclick=e=>{
     else{clearInterval(TM.iv);TM={...TM,round:1,phase:"work",left:TM.cfg.sec||TM.cfg.work,run:false,iv:0};}
     $("timer").innerHTML=timerInner();return;}
   let top=false;
-  if(b.dataset.p){const id=b.dataset.p;S.present=S.present.includes(id)?S.present.filter(x=>x!==id):[...S.present,id];}
+  if(b.dataset.rm){const tr=trById(b.dataset.rm);if(!tr||!confirm(`להוציא את ${tr.name} מהקבוצה? הוא יישאר ברשימת המתאמנים.`))return;tr.grp=false;}
   else if(b.dataset.e){const id=b.dataset.e;S.avail=S.avail.includes(id)?S.avail.filter(x=>x!==id):[...S.avail,id];}
   else if(b.dataset.po){const id=b.dataset.po;
     if(S.openPlan===id) S.openPlan=null;
@@ -2624,11 +2612,15 @@ $("sbody").onclick=e=>{
 };
 $("sbody").onchange=e=>{
   const S=CO.ses,t=e.target;
+  if(t.dataset.gadd){const tr=trById(t.value);if(tr){tr.grp=true;csave();const y=window.scrollY;renderSes();window.scrollTo(0,y);}return;}
   if(t.dataset.t){const tr=trById(t.dataset.t),L=LAD(t.dataset.k);if(!tr||!L)return;tr.lv=tr.lv||{};
     tr.lv[t.dataset.k]=t.value===""?"":L.steps[+t.value].ex;delete S.done[tr.id+"|"+t.dataset.k];
     if(tr.streak) delete tr.streak[t.dataset.k];showSel.delete(tr.id+"|"+t.dataset.k);
     csave();const y=window.scrollY;renderSes();window.scrollTo(0,y);}
 };
+$("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew]");if(!f)return;e.preventDefault();
+  const n=f.querySelector("input").value.trim();if(!n)return;CO.trainees.push({id:uid(),name:n,note:"",lv:{},grp:true});
+  csave();const y=window.scrollY;renderSes();window.scrollTo(0,y);});
 // progression: hitting the target in two sessions in a row moves a trainee up one step
 function finish(){
   const S=CO.ses,p=planById(S.plan),ch=[],half=[],held=[];
