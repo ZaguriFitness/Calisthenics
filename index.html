@@ -462,6 +462,9 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .grm{font:inherit;font-size:.82rem;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,#FF6B81 55%,transparent);background:transparent;color:#FF8A9B;cursor:pointer}
 .gadd{display:grid;gap:8px;margin-bottom:6px}
 .gadd select{font:inherit;padding:10px 12px;border-radius:12px;border:1px solid var(--glass-b,var(--line));background:var(--glass,var(--surface));color:var(--ink)}
+/* the open workout's title: a clear, full-color header (the panel background above made its dark text unreadable) */
+.prow.hue[aria-expanded="true"]{background:linear-gradient(120deg,#5B46C9,#7C5CFF 60%,#4FB8C9)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 6px 22px rgba(124,98,245,.35)}
+.prow.hue[aria-expanded="true"] span,.prow.hue[aria-expanded="true"] b small{color:#fff!important;opacity:.9}
 </style>
 </head>
 <body>
