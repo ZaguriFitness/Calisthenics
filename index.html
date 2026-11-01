@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261101203850";
+const BUILD="20261101204715";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -694,7 +694,7 @@ const bar=at=>({k:"bar",at});
 const FP={
   hang:{v:"front",sy:52,straight:true}, active:{v:"front",sy:45,straight:true,mark:true,scap:-1},
   feetBox:{v:"front",sy:52,straight:true,legs:"box",box:true},
-  top:{v:"front",sy:0,down:true}, c2b:{v:"front",sy:-8,grip:30,down:true},
+  top:{v:"front",sy:0,down:true}, c2b:{v:"front",sy:-8,grip:30,down:true,c2b:true},
   high:{v:"front",sy:-26}, support:{v:"front",sy:-50,grip:20,straight:true},
 };
 const R=o=>X(o,{eq:"rings"});
@@ -1246,7 +1246,7 @@ function frontJ(fr){
   if(fr.legs==="box"){kL=[bx-11,pL[1]+28];kR=[bx+11,pR[1]+28];fL=[bx-10,kL[1]+22];fR=[bx+10,kR[1]+22];}
   else if(fr.legs==="tuck"){kL=[bx-12,pL[1]-6];kR=[bx+12,pR[1]-6];fL=[bx-9,pL[1]+14];fR=[bx+9,pR[1]+14];}
   else {kL=[bx-9,pL[1]+37];kR=[bx+9,pR[1]+37];fL=[bx-8,kL[1]+36];fR=[bx+8,kR[1]+36];}
-  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel,scap:fr.scap,sup:!!fr.straight&&sy<40};
+  return {sL,sR,eL,eR,hL,hR,pL,pR,kL,kR,fL,fR,neck:[bx,by+sy-4],head:[bx,by+sy-17],by,eq:fr.eq||"bar",box:!!fr.box,band:!!fr.band,w:!!fr.w,towel:!!fr.towel,scap:fr.scap,sup:!!fr.straight&&sy<40,c2b:!!fr.c2b};
 }
 // wall walk for the 3D view: the feet climb the wall one step at a time while the hands walk in toward it
 const SIDE3D={"Wall Walk חלקי":(()=>{const FX=15,wall={k:"wall",x:12,y1:20};
@@ -1355,14 +1355,18 @@ function to3dPts(fr){
     const sy=J.sL[1]-J.by,f=J.sup?0:Math.max(0,Math.min(1,(52-sy)/32))*Math.max(0,Math.min(1,(sy+46)/20)),e=f*f*(3-2*f);
     // (chin over the bar, shoulders below it: the head only needs to clear the bar; higher pulls lean further back)
     const hb=Math.max(0,Math.min(1,(sy+8)/16));
-    if(e>0){const dz={neck:-21+6*hb,head:-35+17*hb,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
+    // chest to bar: the chest leads to the bar with the upper back arched and the head only a little back
+    // (eyes up at the bar, not at the sky); the legs stay a little forward
+    if(e>0&&J.c2b){const dz={neck:-21,head:-26,shL:-14,shR:-14,pelv:-3,hpL:-3,hpR:-3,knL:3,knR:3,ftL:9,ftR:9,elL:2,elR:2};
+      for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
+    else if(e>0){const dz={neck:-21+6*hb,head:-35+17*hb,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
       for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
     // bent arms: the elbow found in 3D, coming down and out to the side (a little in front of the body), so it
     // stays away from the ribs at the top of a pull-up instead of folding in front of the chest
     // (only while the shoulders are below or near the bar; higher, toward the muscle-up, the elbows go back)
     if(sy>-12) for(const s of ["L","R"]){const S=k["sh"+s],W=k["wr"+s],d=[W[0]-S[0],W[1]-S[1],W[2]-S[2]],L=Math.hypot(...d);
       if(L>0.93*54||L<1e-3) continue;const u=d.map(x=>x/L),D=Math.min(L,53.9),a=(28*28-26*26+D*D)/(2*D),h=Math.sqrt(Math.max(0,28*28-a*a));
-      const pole=[s==="L"?-1:1,-1,0],pd=pole.map((x,i)=>x-u[i]*(pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2])),pl=Math.hypot(...pd)||1;
+      const pole=J.c2b?[(s==="L"?-1:1)*0.6,-1,-0.9]:[s==="L"?-1:1,-1,0],pd=pole.map((x,i)=>x-u[i]*(pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2])),pl=Math.hypot(...pd)||1;
       k["el"+s]=S.map((x,i)=>x+u[i]*a+pd[i]/pl*h);}
   } else if(fr.lie){const J=fr.J;
     // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
