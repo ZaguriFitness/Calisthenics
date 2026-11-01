@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261101201934";
+const BUILD="20261101202819";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -737,11 +737,12 @@ const WALL=(()=>{const F=[20,200],S1=add(F,123,-68),hand=[S1[0]+50,S1[1]+4],wx=h
 // ---------- SIDE: dips ----------
 const DIPBAR={k:"hbar",y:110,x1:45,x2:140};
 const dipTop=(pr,e)=>X({H:[86.3,105.2],t:-80,A:[95,110],L:[78,177],kb:[1,0],pr:[DIPBAR,...(pr||[])]},e);
-const dipBot=(pr,e)=>X({H:[80,158],t:-62,A:[95,110],eb:[-1,-1],L:[62,214],kb:[1,0.3],pr:[DIPBAR,...(pr||[])]},e);
+// bottom: shoulders just below the elbows and ahead of the hands (forward lean), forearms near vertical, elbows back
+const dipBot=(pr,e)=>X({H:[95.5, 137.1],t:-62,A:[95,110],eb:[-1,-0.3],L:[77.5,193.1],kb:[1,0.3],pr:[DIPBAR,...(pr||[])]},e);
 const ringTop=(pr,e)=>X({H:[86.3,105.2],t:-80,A:[95,110],L:[78,177],pr:[ring("W",60),...(pr||[])]},e);
-const ringBot=(pr,e)=>X({H:[80,158],t:-62,A:[93,112],eb:[-1,-1],L:[62,214],kb:[1,0.3],pr:[ring("W",60),...(pr||[])]},e);
+const ringBot=(pr,e)=>X({H:[93.5, 139.1],t:-62,A:[93,112],eb:[-1,-0.3],L:[75.5,195.1],kb:[1,0.3],pr:[ring("W",60),...(pr||[])]},e);
 const sbTop={H:[90,108],t:-80,A:[98,110],L:[100,180],pr:[bar([98,110])]};
-const sbBot={H:[84,152],t:-55,A:[98,110],eb:[-1,-1],L:[86,224],kb:[1,0.3],pr:[bar([98,110])]};
+const sbBot={H:[83.3, 138.0],t:-55,A:[98,110],eb:[-1,-0.3],L:[85.3,210],kb:[1,0.3],pr:[bar([98,110])]};
 
 // ---------- SIDE: pike & handstand ----------
 function pike(F,W,pr){const H=tri(F,W,73,104), t=Math.atan2(W[1]-H[1],W[0]-H[0])*180/Math.PI;
@@ -1387,7 +1388,7 @@ function to3dPts(fr){
 // ---------- anatomy model: skinned mesh driven by the same keypoints as the mannequin; active muscles glow red ----------
 let modelP=null;
 const FING_K=1.4, FING_M=1.6;   // finger curl in a grip at the knuckles / middle joints (radians, on top of the relaxed curl)
-const BAR_R=1.7, BAR_N=4.4, BAR_F=0.4;   // bar radius (a real ~3.5 cm bar); bar centre vs the palm point (palm normal, fingers)
+const BAR_R=1.7, BAR_N=4.4, BAR_F=0.4, BAR_SUP=1.6, BAR_HEEL=4.0;   // on top of a bar: the palm sits lower and the bar under the heel of the hand   // bar radius (a real ~3.5 cm bar); bar centre vs the palm point (palm normal, fingers)
 const MS=0.9;                      // model is in cm; 0.9 makes its torso and legs match the drawing units
 function loadModel(){
   if(modelP) return modelP;
@@ -1504,7 +1505,7 @@ function contactsOf(fr,k){
     for(const q of supp){let d=1e9,c=null;
       if(q.t==="ring"&&(q.hand||q.foot)){if(isHand?q.hand&&(!q.one||q.one===s):q.foot){d=0;c={t:"ring",p:p.slice()};}}
       else if(q.t==="ring"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"ring",p:V3(q.x,q.y-6.5,p[2])};if(d>9)d=1e9;}   // held at its lower tube
-      else if(q.t==="bar"&&q.zs){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,(p[2]<0?-1:1)*q.zs),ax:q.ax};if(d>8||p[0]<q.x1||p[0]>q.x2)d=1e9;}
+      else if(q.t==="bar"&&q.zs){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,(p[2]<0?-1:1)*q.zs),ax:q.ax,thick:true};if(d>8||p[0]<q.x1||p[0]>q.x2)d=1e9;}
       else if(q.t==="bar"&&q.line){d=Math.abs(p[1]-q.y);c={t:"bar",p:V3(p[0],q.y,p[2]),ax:q.ax};if(d>7)d=1e9;}
       else if(q.t==="bar"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"bar",p:V3(q.x,q.y,p[2]),ax:q.ax};if(d>8)d=1e9;}
       else if(q.t==="flat"){const h=p[1]-q.y, inX=(q.x1==null||(p[0]>=q.x1&&p[0]<=q.x2))&&(q.z1==null||(p[2]>=q.z1&&p[2]<=q.z2));
@@ -1593,8 +1594,12 @@ function flatFingers(crease,fa,up,fwd,out,away,turn){const T=window.THREE,hz=a=>
   return F.normalize();}
 // fingers on a bar: hanging below it they continue the forearm up and over; supporting on top of it (forearm
 // pointing down) they point forward over the bar. Blended by the forearm's slope so it never flips.
-function barFingers(fa,ax,fwd,upW){const T=window.THREE,pj=a=>a.clone().addScaledVector(ax,-a.dot(ax));
-  const fh=pj(fa),fs=pj(fwd);if(fs.lengthSq()<1e-4)fs.copy(pj(upW));fs.normalize();
+// On top of a bar the fingers go across it away from the body: forward over a bar in front (straight bar dip,
+// muscle-up), outward over a bar along the side (parallel bars), so the palm sits on top and the fingers wrap down
+// its far side.
+function barFingers(fa,ax,fwd,upW,out){const T=window.THREE,pj=a=>a.clone().addScaledVector(ax,-a.dot(ax));
+  const fh=pj(fa),fs=pj(fwd);if(out)fs.add(pj(out));fs.addScaledVector(upW,-fs.dot(upW));
+  if(fs.lengthSq()<1e-4)fs.copy(pj(upW));fs.normalize();
   const x=Math.max(0,Math.min(1,(fa.dot(upW)+0.75)/1.5)),b=x*x*(3-2*x);
   // (the forearm's part across the bar keeps its length: a forearm lying along the bar has no say, and cannot flip it)
   const F=fs.clone().multiplyScalar(1-b).addScaledVector(fh,b);
@@ -1652,14 +1657,16 @@ function prepKeys(keys,cfg){
   for(const s of ["L","R"]){let prev=null;const rest=limbRest(REST.R,s,LIMBS[0]);
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K],iq=fr[i].Qt.clone().invert();
       if(c&&c.t==="bar"){const fa=v(k["wr"+K]).sub(v(k["el"+K])).applyQuaternion(iq).normalize(),ax=v(c.ax).applyQuaternion(iq).normalize();
-        const F=barFingers(fa,ax,new T.Vector3(0,0,1),new T.Vector3(0,1,0).applyQuaternion(iq)),n1=new T.Vector3().crossVectors(F,ax).normalize();
+        const upT=new T.Vector3(0,1,0).applyQuaternion(iq),F=barFingers(fa,ax,new T.Vector3(0,0,1),upT,new T.Vector3(s==="L"?1:-1,0,0)),n1=new T.Vector3().crossVectors(F,ax).normalize();
         // compared and stored in world space: the hand stays on the bar while the body turns around it (skin the cat)
         const n1w=n1.clone().applyQuaternion(fr[i].Qt);let sg;if(prev) sg=n1w.dot(prev)>=0?1:-1;
         else{const Wf=new T.Quaternion().setFromRotationMatrix(new T.Matrix4());   // forearm frame from the bend plane
           const h=v(k["_harm"+s]),fx=a=>{const x=a[0].clone().normalize(),y=a[1].clone().addScaledVector(x,-a[1].dot(x)).normalize();return new T.Matrix4().makeBasis(x,y,new T.Vector3().crossVectors(x,y));};
           Wf.setFromRotationMatrix(fx([fa,h]).multiply(fx([rest.r2,rest.hr]).transpose()));
           const N0=v(HAND_N[s]).applyQuaternion(Wf),pref=new T.Vector3(0,-1,1).normalize();
-          sg=(n1.dot(N0)+0.5*n1.dot(pref))>=0?1:-1;}
+          sg=(n1.dot(N0)+0.5*n1.dot(pref))>=0?1:-1;
+          // on top of the bar (forearm pointing down) the palm faces down onto it
+          if(fa.dot(upT)<-0.3) sg=n1.dot(fa)>=0?1:-1;}
         prev=n1w.multiplyScalar(sg);}
       k["_g"+s]=prev?[prev.x,prev.y,prev.z]:[0,0,0];});
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
@@ -1733,7 +1740,7 @@ function poseModel(Mo,k,cfg){
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
           else if(c.t==="pole"){F=fa.clone();N=v(c.p).sub(p3);N.y=0;if(N.lengthSq()<1e-4)N=fwd.clone();}
           else { // bar: fingers wrap around it, palm toward the bar; overhand unless the forearm is turned the other way
-            const ax=v(c.ax||[0,0,1]);F=barFingers(fa,ax,fwd,new T.Vector3(0,1,0));
+            const ax=v(c.ax||[0,0,1]);F=barFingers(fa,ax,fwd,new T.Vector3(0,1,0),lat.clone().multiplyScalar(sgn));
             const n1=new T.Vector3().crossVectors(F,ax).normalize(),g=v(k["_g"+s]||[0,0,0]);
             N=n1.dot(g.lengthSq()>0.01?g:fwd.clone().sub(up))>=0?n1:n1.negate();}
           N.addScaledVector(F,-N.dot(F));if(N.lengthSq()<1e-4)N=fwd.clone().addScaledVector(F,-fwd.dot(F));N.normalize();
@@ -1741,7 +1748,8 @@ function poseModel(Mo,k,cfg){
           const pc=v(c.p);
           if(c.t==="flat") pc.y+=c.bar?1.6:1.8; else if(c.t==="wall") pc.addScaledVector(v(c.n),1.8);
           else if(c.t==="ring") pc.addScaledVector(N,-3.2).addScaledVector(F,-2.2);
-          else pc.addScaledVector(N,-BAR_N).addScaledVector(F,BAR_F);   // the bar lies across the base of the fingers, in the palm
+          else{const sup=Math.max(0,Math.min(1,(-N.y-0.4)/0.4));   // resting on top of the bar: the palm itself on it
+            pc.addScaledVector(N,-(BAR_N+(c.thick?0.5:0)-BAR_SUP*sup)).addScaledVector(F,BAR_F+BAR_HEEL*sup);}   // the bar lies across the base of the fingers, in the palm
           if(keep) return;
           // rings and poles turn with the hand: the wrist sits a palm-length short of the grip along the line from the
           // shoulder, so the target does not depend on the hand's own twist (which follows the solved forearm)
@@ -1968,7 +1976,7 @@ function build(host,frames,opt){opt=opt||{};
   } else {
     frames.forEach(fr=>(fr.pr||[]).forEach((q,i)=>{
       if(q.k==="bar") once(["bar",q.at],()=>staticCyl([q.at[0],-q.at[1],-(q.half||45)],[q.at[0],-q.at[1],q.half||45],q.r||BAR_R));
-      else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],2.6);});
+      else if(q.k==="hbar") once(["hbar",q.y,q.x1,q.x2],()=>{for(const z of [-21,21]) staticCyl([q.x1,-q.y,z],[q.x2,-q.y,z],BAR_R+0.5);});
       else if(q.k==="box") once(["box",q.x,q.y,q.w,q.h],()=>{const h=q.h!=null?q.h:GY+3.5-q.y,cx=q.x+q.w/2;
         // a tall box reads as a solid cube next to the body: draw it as a table/bench (top + four legs)
         if(q.par){for(const dz of [-15,15]){const top=-(q.y+1.6);staticCyl([q.x-4,top,dz],[q.x+q.w+4,top,dz],1.6);
