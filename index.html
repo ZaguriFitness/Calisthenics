@@ -2,6 +2,9 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Calisthenics</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -515,6 +518,19 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 </div>
 
 <script>
+// the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
+// or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
+const BUILD="20261101201137";
+(function(){let busy=false;
+  const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
+    fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
+      const m=t.match(/BUILD\s*=\s*"(\d+)"/);
+      if(m&&m[1]!==BUILD){let tried="";try{tried=sessionStorage.getItem("cal-build-try")||"";}catch(e){}
+        if(tried===m[1])return;   // already reloaded for that build once: never loop
+        try{sessionStorage.setItem("cal-build-try",m[1]);}catch(e){}
+        location.replace(location.pathname+"?v="+encodeURIComponent(m[1])+location.hash);}
+    }).catch(()=>{}).finally(()=>{busy=false;});};
+  check();document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});})();
 // ===== Simple figure illustrations =====
 // Side view: angles in degrees, 0 = right, 90 = down, -90 = up. Ground at y = 200.
 // Front view: used for hanging/pulling on a bar or rings.
