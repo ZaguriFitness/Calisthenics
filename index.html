@@ -454,6 +454,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .empty,#v-tr>.sub{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 8v5M12 16.5v.5'/%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3C/svg%3E")}
 .fine{color:var(--muted);font-size:.82rem;text-align:center;margin-top:14px}
 .bk{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lad small.en,#ladname small.en{display:block;font-size:.66rem;line-height:1.15;color:var(--muted);font-weight:400;letter-spacing:.02em;margin-top:1px}
+#ladname small.en{font-size:.78rem;margin-top:2px}
 </style>
 </head>
 <body>
@@ -2084,14 +2086,28 @@ function renderTracks(){
 function renderLadders(){
   const v=$("v-lib");v.classList.add("hue");v.style.setProperty("--h",hueOf(TR()[st.t].name));
   $("ladders").innerHTML = TR()[st.t].ladders.map((l,i)=>
-    `<button class="lad" aria-pressed="${i===st.l}" data-i="${i}">${esc(l.name)}</button>`).join("");
+    `<button class="lad" aria-pressed="${i===st.l}" data-i="${i}">${esc(lnHe(l.name))}${lnEn(l.name)?`<small class="en" dir="ltr">${esc(lnEn(l.name))}</small>`:""}</button>`).join("");
 }
+// ladder titles shown in Hebrew (well-known English skill names written in Hebrew letters), with the English name
+// small underneath. The stored names (keys of every trainee's progress) stay as they are.
+var LN={"מתח":["מתח","Pull-Up"],"Muscle-Up":["מאסל-אפ","Muscle-Up"],"מתח יד אחת":["מתח יד אחת","One-Arm Pull-Up"],
+  "חתירה":["חתירה","Row"],"שכיבות סמיכה":["שכיבות סמיכה","Push-Up"],"דיפס":["דיפס","Dip"],
+  "דחיפה מעל הראש":["דחיפה מעל הראש","Pike & Handstand Push-Up"],"הכנה":["הכנה","Handstand Prep"],"קיר":["קיר","Wall Handstand"],
+  "עמידה חופשית":["עמידה חופשית","Freestanding Handstand"],"עמידת ידיים בטבעות":["עמידת ידיים בטבעות","Ring Handstand"],
+  "סקוואטים ותרגילים על רגל אחת":["סקוואטים ורגל אחת","Squat & Single-Leg"],"Dragon Squat":["דרגון סקוואט","Dragon Squat"],
+  "שרשרת אחורית":["שרשרת אחורית","Posterior Chain"],"תאומים":["תאומים","Calves"],
+  "Hollow / אנטי-אקסטנזיה":["הולו ופלאנק","Hollow & Plank"],"תלייה":["בטן בתלייה","Hanging Core"],
+  "L-Sit / V-Sit":["אל-סיט ווי-סיט","L-Sit & V-Sit"],"גב תחתון":["גב תחתון","Lower Back"],"צד":["צד","Side Core"],
+  "אנטי-רוטציה":["אנטי-רוטציה","Anti-Rotation"],"Front Lever":["פרונט ליבר","Front Lever"],"Back Lever":["בק ליבר","Back Lever"],
+  "Elbow Lever":["אלבו ליבר","Elbow Lever"],"Planche":["פלאנש","Planche"],"Human Flag":["דגל אדם","Human Flag"],"Iron Cross":["צלב","Iron Cross"]};
+function lnHe(n){return (LN[n]||[n])[0]}
+function lnEn(n){return (LN[n]||[])[1]||""}
 // exercises that use gymnastic rings get a small two-rings tag and a slightly different card
 const RTAG=`<span class="rtag"><svg viewBox="0 0 28 14" aria-hidden="true"><circle cx="8" cy="7" r="5"/><circle cx="20" cy="7" r="5"/></svg>טבעות</span>`;
 function dots(n){let s="";for(let i=1;i<=8;i++)s+=`<i class="${i<=n?"on":""}"></i>`;return s}
 function renderRail(){
   const lad = TR()[st.t].ladders[st.l];
-  $("ladname").textContent = lad.name;
+  $("ladname").innerHTML = esc(lnHe(lad.name))+(lnEn(lad.name)?`<small class="en" dir="ltr">${esc(lnEn(lad.name))}</small>`:"");
   $("ladcount").textContent = `${lad.steps.length} שלבים · מהקל לקשה`;
   $("rail").innerHTML = lad.steps.map((s,i)=>{
     const open = i===st.open;
@@ -2157,8 +2173,8 @@ const KP=K("משיכה אנכית","מתח"), KR=K("משיכה אופקית","ח
   KO=K("דחיפה אנכית","דחיפה מעל הראש"), KSQ=K("רגליים","סקוואטים ותרגילים על רגל אחת"), KH=K("רגליים","שרשרת אחורית"),
   KCA=K("רגליים","תאומים"), KHO=K("ליבה","Hollow / אנטי-אקסטנזיה"), KHA=K("ליבה","תלייה"), KAR=K("ליבה","אנטי-רוטציה"),
   KSI=K("ליבה","צד"), KHS=K("עמידת ידיים","קיר"), KFL=K("סטטיקה","Front Lever");
-const SHORT={[KSQ]:"סקוואט",[KHO]:"Hollow / פלאנק",[KO]:"דחיפה מעל הראש",[KHS]:"עמידת ידיים"};
-const shortName=L=>SHORT[L.key]||L.l;
+const SHORT={[KSQ]:"סקוואט",[KHO]:"הולו ופלאנק",[KO]:"דחיפה מעל הראש",[KHS]:"עמידת ידיים"};
+const shortName=L=>SHORT[L.key]||lnHe(L.l);
 const MAIN=[KP,KR,KPU,KD,KO,KSQ,KH,KHO,KHA].filter(Boolean);
 // equipment: an "equip" text like "מוט נמוך / טבעות" or "מוט + ארגז" → alternatives (split by /), each needing all its items (split by +)
 const EQ=[["bar","מוט",/מוט/],["pb","מקבילים",/מקבילים|Parallettes|ידיות/],["rings","טבעות",/טבעות/],["band","גומיות",/גומי/],
@@ -2206,7 +2222,7 @@ const exName=s=>s.en||s.ex;
 const exFull=s=>s.he?`${exName(s)} | ${s.he}`:exName(s);
 const exByKey=(k,ex)=>{const L=LAD(k),s=L&&L.steps.find(x=>x.ex===ex);return s?exFull(s):ex};
 const stepOpts=(L,i)=>`<option value="">— עוד לא נבדק —</option>`+L.steps.map((s,j)=>`<option value="${j}"${j===i?" selected":""}>${j+1}. ${esc(exName(s))}</option>`).join("");
-const ladLabel=L=>`${esc(L.l)}<small>${esc(L.t)}${L.ci===1?" · טבעות":""}</small>`;
+const ladLabel=L=>`${esc(lnHe(L.l))}<small>${esc(L.t)}${L.ci===1?" · טבעות":""}</small>`;
 const fmtDate=d=>{try{return new Date(d).toLocaleDateString("he-IL",{day:"numeric",month:"numeric"})}catch(e){return ""}};
 
 // ---------- views ----------
@@ -2236,7 +2252,7 @@ $("q").oninput=()=>{
   const out=[];
   for(const L of LADS) L.steps.forEach((s,i)=>{if(out.length<25&&[s.ex,s.en,s.he].some(x=>x&&x.toLowerCase().includes(q))) out.push({L,s,i});});
   $("qres").hidden=false;
-  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b><bdi>${esc(exName(o.s))}</bdi>${o.s.he?`<span class="sep"> | </span><bdi class="he">${esc(o.s.he)}</bdi>`:""}${o.s.ring?RTAG:""}</b><small>${esc(o.L.l)} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
+  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b><bdi>${esc(exName(o.s))}</bdi>${o.s.he?`<span class="sep"> | </span><bdi class="he">${esc(o.s.he)}</bdi>`:""}${o.s.ring?RTAG:""}</b><small>${esc(lnHe(o.L.l))} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
     :`<li class="none">לא נמצא תרגיל בשם הזה</li>`;
 };
 $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$("q").value="";$("qres").innerHTML="";$("qres").hidden=true;openStep(b.dataset.k,+b.dataset.x);};
@@ -2255,8 +2271,8 @@ function renderTr(){
         <label class="fl">הערות (פציעות, מטרות)<textarea data-f="note" rows="2">${esc(tr.note||"")}</textarea></label>
         ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k);return `<label class="fl lv"><span>${ladLabel(L)}</span>
           <select data-k="${esc(k)}">${stepOpts(L,i)}</select>${i>=0?`<em>${esc(L.steps[i].he||"")}${L.steps[i].he?" · ":""}יעד למעבר: ${esc(L.steps[i].pass)}</em>`:""}</label>`}).join("")}
-        <label class="fl">הוספת סולם נוסף<select data-add="1"><option value="">בחר סולם…</option>${others.map(L=>`<option value="${esc(L.key)}">${esc(L.l)} (${esc(L.t)}${L.ci===1?", טבעות":""})</option>`).join("")}</select></label>
-        ${hist.length?`<div class="hist"><b>עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?L.l:"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
+        <label class="fl">הוספת סולם נוסף<select data-add="1"><option value="">בחר סולם…</option>${others.map(L=>`<option value="${esc(L.key)}">${esc(lnHe(L.l))} (${esc(L.t)}${L.ci===1?", טבעות":""})</option>`).join("")}</select></label>
+        ${hist.length?`<div class="hist"><b>עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?lnHe(L.l):"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
         <button class="del" type="button">מחיקת ${esc(tr.name)}</button>
       </div></details>`}).join("")
     :`<p class="empty">עוד אין מתאמנים. כותבים שם ולוחצים "הוספה".</p>`;
