@@ -692,7 +692,7 @@ const DECL=pushups([20,172],200,22,{fbox:true});
 const INC_HI=pushups([20,200],145,18,{hbox:true});
 const INC_LO=pushups([20,200],172,20,{hbox:true});
 const PPL=(()=>{const F=[20,200],S1=onC(F,123,150),hand=[S1[0]-24,200],S2=onC(F,123,180);
-  const fr=S=>{const a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:hand,eb:[-0.4,-1],g:1};};
+  const fr=S=>{const a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:hand,eb:[-0.4,-1],g:1,fout:true};};
   return [fr(S1),fr(S2)];})();
 const KNEEPU=(()=>{const K=[34,197];
   const fr=a=>{const H=add(K,37,a);return {H,t:a,th:a+180,sh:-162,g:1};};
@@ -737,15 +737,15 @@ const ARMSFWD=k=>{for(const [s,sg] of [["L",1],["R",-1]]){const S=k["sh"+s],W=k[
 const PIS_T={H:[80,127],t:-90,L:[80,200],L2:[110,180],kb2:[1,0],ua:0,fa:0,g:1,post:ARMSFWD};
 const PIS_B={H:[60,176],t:-55,L:[82,200],kb:[1,-0.6],ua:-5,fa:-5,g:1,post:ARMSFWD};
 PIS_B.L2=add(PIS_B.H,73,-8);
-const GB_D={H:[78,192],t:180,L:[120,200],kb:[0.2,-1],A:[96,199],eb:[0,-1],g:1};
-const GB_U={H:[82,163],t:144.5,L:[120,200],kb:[0.2,-1],A:[92,199],eb:[0,-1],g:1};
+const GB_D={H:[78,192],t:180,L:[120,200],kb:[0.2,-1],A:[96,199],eb:[0,-1],g:1,fout:"back"};   // lying on the back: palms down, fingers toward the feet
+const GB_U={H:[82,163],t:144.5,L:[120,200],kb:[0.2,-1],A:[92,199],eb:[0,-1],g:1,fout:"back"};
 const NORD=a=>{const K=[80,198],H=add(K,37,a),th=Math.atan2(K[1]-H[1],K[0]-H[0])*180/Math.PI;
   const S=add(H,50,a);return {H,t:a,th,sh:180,A:add(S,54,a+80),g:1,pr:[box(36,186,16,12)]};};
 const HINGE={H:[66,124],t:-22,L:[80,200],kb:[1,-0.3],ua:84,fa:84,g:1};
 const SUPER=(up)=>({H:[100,193-(up?3:0)],t:180+(up?8:0),ua:180+(up?6:0),fa:180+(up?6:0),th:-(up?6:0),sh:-(up?8:0),g:1,face:-1});
 const RHYP=(up)=>({H:[62,150],t:180,A:[18,168],eb:[0,-1],th:up?-4:96,sh:up?-4:96,face:-1,pr:[box(4,157,60)]});
 // elbow lever: elbows dug into the belly, forearms vertical, hands under the elbows
-const ELB=(legs,e)=>X({H:[76,163],t:0,ua:160,fa:90,face:-1,g:1},legs,e);
+const ELB=(legs,e)=>X({H:[76,163],t:0,ua:160,fa:90,face:-1,g:1,fout:"back"},legs,e);   // fingers toward the feet
 const CALF=(dy,e)=>X({H:[80,127-dy],t:-90,L:[80,200-dy],A:[83,131-dy],g:1,toe:dy>0},e);
 
 // ---------- SIDE: core ----------
@@ -764,8 +764,8 @@ const RC=(t,o)=>{o=o||{};const H=add(RC_F,73,-140),pad=o.pad==="high"?add(H,7,-1
     pr:[box(RC_F[0]-6,RC_F[1]+1,22,null),box(pad[0]-9,pad[1]+3,18,8),{k:"pole",x:pad[0]+4,y1:pad[1]+11,y2:200}]},o.x);};
 // dragon flag: lying on a bench, both hands grip its end behind the head (its edge is held like a bar)
 const DF=(dir)=>{const S=[45,170],H=add(S,50,dir);return {H,t:dir+180,L:add(H,73,dir),A:[1,178],eb:[0.3,-1],g:1,pr:[box(0,176.5,72),X(bar([0,178.5]),{half:30,r:2.2})],post:k=>K3.z(k,{wrL:8,wrR:-8})};};
-const RC1=X(LIE,{th:-90,sh:0,A:[90,199],eb:[0,-1]});
-const RC2={H:[100,182],t:165,th:-125,sh:-25,A:[92,199],eb:[0,-1],g:1};
+const RC1=X(LIE,{th:-90,sh:0,A:[90,199],eb:[0,-1],fout:"back"});
+const RC2={H:[100,182],t:165,th:-125,sh:-25,A:[92,199],eb:[0,-1],g:1,fout:"back"};
 const HANGB=[100,40];
 // toes to the bar: the shoulders stay under the bar on straight arms, the body leans back and the hips come forward
 // and up, so the straight legs fold up in front of the chest
@@ -791,7 +791,7 @@ const INV=(e)=>X({H:[108,44],t:94.6,A:[100,40],th:-90,sh:-90,pr:[bar([100,40])]}
 const GER=(e)=>X({H:[119.4,137.8],t:-95,A:[100,40],th:95,sh:95,pr:[bar([100,40])]},e);
 const PLW=[100,184];
 const PLS=add(PLW,54,-70);
-const PLAN=(t,legs)=>X({H:add(PLS,-50,t),t,A:PLW,g:1,pr:[PAR(100,184)]},legs);
+const PLAN=(t,legs)=>X({H:add(PLS,-50,t),t,A:PLW,g:1,fout:true,pr:[PAR(100,184)]},legs);
 const FLAG=(e)=>X({H:[91.7,122.9],t:-15,A:[165,62],A2:[165,140],eb2:[-1,0],L:add([91.7,122.9],73,175),g:1,pr:[{k:"pole",x:165,y1:25,y2:200}]},e);
 
 // ---------- SIDE: rows ----------
@@ -1084,7 +1084,7 @@ const ILL={
  "Single-Leg Elbow Lever":[ELB({L:add([76,163],73,180),th2:180,sh2:-90,label:"רגל אחת ישרה"})],
  "Full Elbow Lever":[ELB({L:add([76,163],73,180),label:"החזקה"})],
  "Frog Stand":[{H:[80,135],t:Math.atan2(165-135,118-80)*180/Math.PI,A:[110,200],eb:[-1,-0.2],th:53.7,sh:189,g:1,label:"ברכיים על המרפקים"}],
- "Planche Lean":[(()=>{const F=[20,200],S=onC(F,123,148),a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:[S[0]-24,200],g:1,label:"החזקה, כתפיים לפני הידיים"};})()],
+ "Planche Lean":[(()=>{const F=[20,200],S=onC(F,123,148),a=Math.atan2(S[1]-F[1],S[0]-F[0])*180/Math.PI;return {H:add(F,73,a),t:a,L:F,A:[S[0]-24,200],g:1,fout:true,label:"החזקה, כתפיים לפני הידיים"};})()],
  "Tuck Planche":[PLAN(15,{th:60,sh:200,label:"החזקה"})],
  "Advanced Tuck Planche":[PLAN(5,{th:90,sh:180,label:"החזקה"})],
  "Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),L2:add(add(PLS,-50,5),73,182),post:STRAD,label:"החזקה, רגליים פתוחות"})],
@@ -1228,7 +1228,7 @@ function frames3d(ex,r){
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
-    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg};
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg,fout:fr.fout};
   });
 }
 return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), frames3d, GY};
@@ -1250,7 +1250,7 @@ function stop(){if(cur){cur.stop();cur=null;}}
 const JMAP={W:"wr",F:"ft",K:"kn",E:"el",H:"pelv",S:"neck",C:"head"};
 
 // 2D frame → named 3D points (Y up, 1 unit = 1 drawing px). Side view: left/right limbs split along Z.
-function to3d(fr){const k=to3dPts(fr),c=contactsOf(fr,k);
+function to3d(fr){const k=to3dPts(fr),c=contactsOf(fr,k);if(fr.fout) k._fout=fr.fout;
   k._c=c;k._cw=["hL","hR","fL","fR"].map(n=>c[n]?1:0);return k;}
 // keys between two frames: points move in a straight line; contacts fade in/out with their weights
 function lerpKeys(a,b,t){
@@ -1546,19 +1546,19 @@ function bodyFrame(k,cfg){
   return {up,lat,fwd:new T.Vector3().crossVectors(lat,up).normalize(),Qt:new T.Quaternion().setFromRotationMatrix(mt),
     Qr:new T.Quaternion().setFromRotationMatrix(basis(hl,up)),KL:cfg.sg>0?"R":"L",KR:cfg.sg>0?"L":"R"};
 }
-// fingers of a hand flat on the floor / box (world, horizontal): on the elbow-crease side (elbows point back in a
-// push-up: fingers forward); a leaning forearm (planche lean, arms lying beside the body) turns them toward its own
-// direction, through "fingers out" when the two are opposite
-function flatFingers(crease,fa,up,fwd,out,away){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
-  let B=hz(crease);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(out);B.normalize();
-  // upside down (pike, handstand) the fingers point away from the head and turn out
-  if(away){const inv=Math.max(0,Math.min(1,(-up.y-0.2)/0.4)),aw=hz(away).normalize().addScaledVector(hz(out).normalize(),0.5);
-    if(inv>0&&aw.lengthSq()>1e-4){aw.normalize();B.multiplyScalar(1-inv).addScaledVector(aw,inv);if(B.lengthSq()<1e-4)B.copy(aw);B.normalize();}}
-  const hf=hz(fa),x=Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)),wa=x*x*(3-2*x),F=B.clone();
+// fingers of a hand flat on the floor / box (world, horizontal): straight ahead, the way the body points from the hips
+// to the shoulders (push-up, bear, pike: forward; a handstand: the way the chest faces), not turned out. A forearm
+// leaning far over the hand (planche lean, pseudo planche, elbow lever: frames marked fout) turns them toward its own direction, through
+// "fingers out" when the two are opposite.
+function flatFingers(crease,fa,up,fwd,out,away,turn){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
+  let B=hz(up);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(crease);
+  if(B.lengthSq()<1e-6)B=hz(out);B.normalize();if(turn==="back") return B.negate();
+  // (only where the exercise says so: turn = the frame's fout flag)
+  const hf=hz(fa),x=turn?Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)):0,wa=x*x*(3-2*x),F=B.clone();
   if(wa>0){const hn=hf.clone().normalize();let dl=Math.atan2(B.x*hn.z-B.z*hn.x,B.dot(hn));
     if(Math.abs(dl)>2.5){const mid=B.clone().applyAxisAngle(new T.Vector3(0,1,0),-Math.sign(dl)*Math.PI/2);if(mid.dot(out)<0) dl-=Math.sign(dl)*2*Math.PI;}
     F.applyAxisAngle(new T.Vector3(0,1,0),-dl*wa);}
-  return F.addScaledVector(hz(out).normalize(),0.15).normalize();}
+  return F.normalize();}
 // fingers on a bar: hanging below it they continue the forearm up and over; supporting on top of it (forearm
 // pointing down) they point forward over the bar. Blended by the forearm's slope so it never flips.
 function barFingers(fa,ax,fwd,upW){const T=window.THREE,pj=a=>a.clone().addScaledVector(ax,-a.dot(ax));
@@ -1633,7 +1633,7 @@ function prepKeys(keys,cfg){
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
       if(c&&c.t==="flat"){const f=fr[i],H=v(k["_harm"+s]).applyQuaternion(f.Qt).normalize(),fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
-        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1),v(k["wr"+K]).sub(v(k.head)));k["_f"+s]=[F.x,F.y,F.z];}});
+        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1),v(k["wr"+K]).sub(v(k.head)),k._fout);k["_f"+s]=[F.x,F.y,F.z];}});
     keys.forEach((k,i)=>{if(k["_f"+s]) return;let bj=-1;for(let j=0;j<keys.length;j++) if(keys[j]["_f"+s]&&(bj<0||Math.abs(j-i)<Math.abs(bj-i))) bj=j;
       k["_f"+s]=bj>=0?keys[bj]["_f"+s].slice():[0,0,0];});
     // keys before the first grip take its palm direction too
@@ -1695,7 +1695,7 @@ function poseModel(Mo,k,cfg){
           const orient=(fa,Hs,keep)=>{const hz=a=>new T.Vector3(a.x,0,a.z);let F,N;
           const Wf=map(rr.r2,rr.hr,fa,Hs||H),N0=v(HAND_N[s]).applyQuaternion(Wf),crease=new T.Vector3().crossVectors(H,fa).normalize();
           if(c.t==="flat"){ // palm flat on the floor / box: fingers as decided on the keys (a planted hand does not turn)
-            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)));
+            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)),k._fout);
             N=new T.Vector3(0,-1,0);}
           else if(c.t==="wall"){N=v(c.n).negate();F=new T.Vector3(0,1,0);}
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
