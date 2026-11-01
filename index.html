@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261101204715";
+const BUILD="20261101214956";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1587,9 +1587,12 @@ function bodyFrame(k,cfg){
 // to the shoulders (push-up, bear, pike: forward; a handstand: the way the chest faces), not turned out. A forearm
 // leaning far over the hand (planche lean, pseudo planche, elbow lever: frames marked fout) turns them toward its own direction, through
 // "fingers out" when the two are opposite.
-function flatFingers(crease,fa,up,fwd,out,away,turn){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
+function flatFingers(crease,fa,up,fwd,out,away,turn,fromFeet){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
   let B=hz(up);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(crease);
-  if(B.lengthSq()<1e-6)B=hz(out);B.normalize();if(turn==="back") return B.negate();
+  if(B.lengthSq()<1e-6)B=hz(out);B.normalize();
+  // upside down with the feet away from the hands (box pike, wall lean, pike): the fingers point away from the feet
+  if(fromFeet&&!turn&&up.y<-0.5){const ff=hz(fromFeet),L=ff.length(),w=Math.max(0,Math.min(1,(L-35)/20))*Math.max(0,Math.min(1,(-up.y-0.5)/0.3));
+    if(w>0){ff.normalize();if(B.dot(ff)<-0.2)B.copy(ff); else B.lerp(ff,w).normalize();}}if(turn==="back") return B.negate();
   // (only where the exercise says so: turn = the frame's fout flag)
   const hf=hz(fa),x=turn?Math.max(0,Math.min(1,(hf.length()-0.2)/0.4)):0,wa=x*x*(3-2*x),F=B.clone();
   if(wa>0){const hn=hf.clone().normalize();let dl=Math.atan2(B.x*hn.z-B.z*hn.x,B.dot(hn));
@@ -1676,7 +1679,7 @@ function prepKeys(keys,cfg){
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
       if(c&&c.t==="flat"){const f=fr[i],H=v(k["_harm"+s]).applyQuaternion(f.Qt).normalize(),fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
-        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1),v(k["wr"+K]).sub(v(k.head)),k._fout);k["_f"+s]=[F.x,F.y,F.z];}});
+        const F=flatFingers(new T.Vector3().crossVectors(H,fa).normalize(),fa,f.up,f.fwd,f.lat.clone().multiplyScalar(s==="L"?1:-1),v(k["wr"+K]).sub(v(k.head)),k._fout,v(k["wr"+K]).sub(v(k.ftL).add(v(k.ftR)).multiplyScalar(0.5)));k["_f"+s]=[F.x,F.y,F.z];}});
     keys.forEach((k,i)=>{if(k["_f"+s]) return;let bj=-1;for(let j=0;j<keys.length;j++) if(keys[j]["_f"+s]&&(bj<0||Math.abs(j-i)<Math.abs(bj-i))) bj=j;
       k["_f"+s]=bj>=0?keys[bj]["_f"+s].slice():[0,0,0];});
     // keys before the first grip take its palm direction too
@@ -1738,7 +1741,7 @@ function poseModel(Mo,k,cfg){
           const orient=(fa,Hs,keep)=>{const hz=a=>new T.Vector3(a.x,0,a.z);let F,N;
           const Wf=map(rr.r2,rr.hr,fa,Hs||H),N0=v(HAND_N[s]).applyQuaternion(Wf),crease=new T.Vector3().crossVectors(H,fa).normalize();
           if(c.t==="flat"){ // palm flat on the floor / box: fingers as decided on the keys (a planted hand does not turn)
-            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)),k._fout);
+            const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)),k._fout,p3.clone().sub(v(k.ftL).add(v(k.ftR)).multiplyScalar(0.5)));
             N=new T.Vector3(0,-1,0);}
           else if(c.t==="wall"){N=v(c.n).negate();F=new T.Vector3(0,1,0);}
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
