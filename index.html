@@ -2556,13 +2556,12 @@ function grpEdit(G){
       <form class="addrow" data-gnew="1"><input placeholder="שם חדש לקבוצה" autocomplete="off" aria-label="שם חדש לקבוצה"><button>הוספה</button></form></div>`;
 }
 function renderSes(){
-  const S=CO.ses,G=grpTr();S.present=G.map(t=>t.id);S.alt=S.alt||{};
+  const S=CO.ses,G=grpTr();S.present=G.map(t=>t.id);S.avail=EQ.map(e=>e[0]);   // (no equipment picker: everything is there)S.alt=S.alt||{};
   if(!G.length){
     $("sbody").innerHTML=`<p class="empty">עוד אין מתאמנים בקבוצה. מוסיפים כאן את מי שמתאמן בקבוצה.</p>${grpEdit(G)}`;
     return;
   }
   const chip=(on,attrs,txt)=>`<button class="lad" aria-pressed="${on}" ${attrs}>${txt}</button>`;
-  const missing=EQ.filter(e=>!S.avail.includes(e[0])).map(e=>e[1]);
   const pres=S.present.map(trById);
   // a plain list of workouts; tapping one opens it right there (one open at a time)
   let h="",g0="";
@@ -2574,9 +2573,9 @@ function renderSes(){
     if(!on) continue;
     const p=x;S.plan=p.id;S.step=Math.max(0,Math.min(S.step|0,p.blocks.length-1));
     h+=`<div class="pbody hue" ${hueStyle(ph)}>
-      <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>הקבוצה וציוד<span>${G.length} מתאמנים · ${missing.length?`חסר: ${missing.join(", ")}`:"כל הציוד"}</span></summary>
-        <p class="label">הקבוצה</p>${grpEdit(G)}
-        <p class="label">ציוד במקום</p><div class="chips">${EQ.map(e=>chip(S.avail.includes(e[0]),`data-e="${e[0]}"`,e[1])).join("")}</div></details>
+      <details class="opt" data-o="who"${isOpen("who",false)?" open":""}><summary>אנשי הקבוצה<span>${G.length} מתאמנים</span></summary>
+        ${grpEdit(G)}
+        </details>
       <div class="seg2"><button data-view="cards" aria-pressed="${S.view!=="steps"}">בתמונות</button><button data-view="steps" aria-pressed="${S.view==="steps"}">שלב אחר שלב</button></div>
       ${S.view!=="steps"?storyHtml(p,S):S.present.length?`<section class="stepc">${stepHtml(p,S.step,S,pres)}</section>`:`<p class="empty">מוסיפים מתאמנים לקבוצה למעלה.</p>`}
     </div>`;
