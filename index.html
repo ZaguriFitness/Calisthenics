@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102161534";
+const BUILD="20261102161832";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1085,8 +1085,12 @@ const ILL={
    return [{H:add(F,73,a*180/Math.PI),t:a*180/Math.PI,A:[S[0],200],L:F,g:1,pr,label:"שכיבת סמיכה, רגליים על ארגז"},PW(140,"הליכה עם הידיים לאחור"),{H:[120,96],t:90,A:[120,200],L:F,g:1,pr,label:"אגן מעל הידיים"}];})(),
  "Elevated Pike Shoulder Taps":[{H:[120,96],t:90,A:[120,200],L:[47,96],g:1,pr:[box(22,99.5,40)],label:"פייק על ארגז"},{H:[122,96],t:90,A:[120,200],A2:[116,160],eb2:[1,0],L:[47,96],g:1,pr:[box(22,99.5,40)],post:k=>K3.tap(k,"R",[-6,-3],[-6,-18]),label:"נגיעה בכתף הנגדית"}],
  "Back-to-Wall Handstand — גב לקיר":[
-   {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"בעיטה עדינה"},
-   X(HLINE([128,200],-84),{pr:[{k:"wall",x:142,y1:10}],label:"עקבים נשענים על הקיר"})],
+   // facing the wall a step away: lunge, hands down ~20 cm from the wall, the back leg kicks up behind, the hips come
+   // over the hands with the kicking leg leading, and both heels come to rest on the wall (back to the wall)
+   {H:[62,128],t:-90,L:[90,200],kb:[1,-0.2],L2:[30,199],kb2:[0.2,1],ua:-90,fa:-90,g:1,pr:[{k:"wall",x:142,y1:10}],label:"מכרע מול הקיר, ידיים למעלה"},
+   {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"ידיים לרצפה, בעיטה"},
+   {H:[120,99],t:Math.atan2(146-99,127-120)*180/Math.PI,A:[128,200],L:add([120,99],73,-150),kb:[1,0.6],L2:add([120,99],73,-84),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"אגן מעל הידיים"},
+   X(HLINE([128,200],-84),{face:-1,pr:[{k:"wall",x:142,y1:10}],label:"עקבים על הקיר"})],
  "Wall Toe Pulls — שחרור רגליים מהקיר":[
    X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"בטן לקיר"}),
    X(HLINE([104,200],-90),{pr:[{k:"wall",x:85,y1:10}],label:"רגליים משתחררות מהקיר"})],
@@ -2102,7 +2106,7 @@ function fallback(host,ex,ring,msg){
   const d=document.createElement("div");d.className="ill";d.innerHTML=ILLV.draw(ex,ring);host.prepend(d);
 }
 // exercises whose point is the active (upward / forward) part only; the way back is not part of the drill
-const ONEWAY=/^(Handstand Kick-Up|Bail —|Wall Walk|Elevated Plank to Pike Walk|Explosive \/ High Pull-Up|Strict Bar Muscle-Up|Weighted Muscle-Up|Strict Ring Muscle-Up|Weighted Ring Muscle-Up|Band-Assisted Ring Muscle-Up|Low Ring Transition|Press to Handstand)/;
+const ONEWAY=/^(Handstand Kick-Up|Back-to-Wall Handstand|Bail —|Wall Walk|Elevated Plank to Pike Walk|Explosive \/ High Pull-Up|Strict Bar Muscle-Up|Weighted Muscle-Up|Strict Ring Muscle-Up|Weighted Ring Muscle-Up|Band-Assisted Ring Muscle-Up|Low Ring Transition|Press to Handstand)/;
 async function mount(host,ex,ring){
   stop();
   try{await load();}catch(e){if(host.isConnected) fallback(host,ex,ring,"אין חיבור לתלת-ממד כרגע, מוצג איור רגיל");return;}
