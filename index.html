@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102180547";
+const BUILD="20261102182919";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1890,9 +1890,10 @@ function poseModel(Mo,k,cfg){
     // under the floor, the limb is solved again with its end raised by that much
     // a foot standing on a flat support is re-solved once so its lowest point (heel, ball or toes, depending on how
     // the ankle turned on the solved shin) sits exactly on the support
-    let lift=0;for(let pass=0;pass<2;pass++){solveOne(s,L,li,lift);const t=tg[L[0]+s];
-      if(li&&t.c&&t.c.t==="flat"&&t.w>=0.99){const e=t.c.p[1]-endLowest(s,li);if(Math.abs(e)<0.3) break;lift+=e;continue;}
-      if(!cfg.g||t.w>=0.99) break;const lo=endLowest(s,li);if(lo>GROUND()-0.3) break;lift=GROUND()-lo+0.3;}});
+    // (both fade with the contact weight, so a heel lifting or a foot leaving the floor never jumps)
+    solveOne(s,L,li,0);{const t=tg[L[0]+s],firm=sm(0.6,0.99,t.w||0),flat=li&&t.c&&t.c.t==="flat";
+      if(flat||cfg.g){const lo=endLowest(s,li),e=flat?t.c.p[1]-lo:0,g=cfg.g?Math.max(0,GROUND()-lo+0.3):0;
+        const lift=(flat?firm*e:0)+(1-firm)*g;if(Math.abs(lift)>=0.05) solveOne(s,L,li,lift);}}});
   ["uarmL","uarmR","farmL","farmR","handL","handR","thighL","thighR","shinL","shinR","footL","footR"].forEach(setLocal);
   Mo.grp.updateMatrixWorld(true);};
   // lowest point of a hand (palm and fingers) or a foot (heel, ball, toes) from the end bone's position and rotation
@@ -2099,10 +2100,10 @@ function build(host,frames,opt){opt=opt||{};
   const TL=[];
   if(keys.length>1){
     if(opt.neg){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.15:0.6,move:2.6/(keys.length-1)});
-      TL.push({a:keys.length-1,b:0,hold:0.45,move:0.4});}
+      TL.push({a:keys.length-1,b:0,hold:0.45,move:0.9});}   // (an easy return to the start, not a snap)
     // one-way moves (kick-up, bail, muscle-up...): show only the active part, then snap back to the start
     else if(opt.fwd){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.25:0.6,move:opt.fast?0.55:opt.walk?0.7:1.1});
-      TL.push({a:keys.length-1,b:0,hold:0.6,move:0.4});}
+      TL.push({a:keys.length-1,b:0,hold:0.6,move:0.9});}
     else{const seq=[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)];
       seq.forEach((k,i)=>TL.push({a:k,b:seq[(i+1)%seq.length],hold:0.7,move:1.15}));}
   }
