@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102170541";
+const BUILD="20261102170731";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1276,7 +1276,7 @@ const SIDE3D={"Wall Walk חלקי":(()=>{const FX=15,wall={k:"wall",x:12,y1:20};
     // the hips rise step by step: from the straight plank line to hips over the hands, the shoulders staying over the hands
     const t0=Math.atan2(146-96,Math.sqrt(123*123-50*50))*180/Math.PI,u=Math.max(0,Math.min(1,(159-m)/(159-120))),e=u*u*(3-2*u);
     t=t0+(90-t0)*e;const S=[m,146],H0=add(S,-50,t);H=H0;
-    return {H,t,A:[xl,200],A2:[xr,200],L:F,g:1,pr};};
+    return {H,t,A:[xl,200],A2:[xr,200],L:F,g:1,pr,sg:1};};   // (belly toward the floor / box all the way)
   const P0=159,xs=[P0,149,139,129,120],seq=[[P0,P0]];
   for(let i=1;i<xs.length;i++){seq.push([xs[i-1],xs[i]]);seq.push([xs[i],xs[i]]);}
   const back=seq.slice(0,-1).reverse().map(([l,r])=>[r,l]);   // walking out: the other hand leads
