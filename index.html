@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102162621";
+const BUILD="20261102164833";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1162,7 +1162,8 @@ const ILL={
  "Band-Assisted Ring Dip":[ringTop([{k:"band",from:[60,100],to:[130,100],via:"K"}]),ringBot([{k:"band",from:[60,100],to:[130,100],via:"K"}])],
  "RTO Ring Dip":[ringTop(),ringBot(),X(ringTop(),{label:"נעילה + סיבוב החוצה"})],
  "Weighted Ring Dip":[ringTop([{k:"wt",at:"H",dy:12}]),ringBot([{k:"wt",at:"H",dy:12}])],
- "Low Ring Support — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,pr:[ring("W",55)],label:"החזקה, רגליים על הקרקע"}],
+ // rings beside the hips (hands a little wider than the body), knees slightly bent, as on the low parallel bars
+ "Low Ring Support — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,wz:21,pr:[ring("W",55)],label:"החזקה, רגליים על הקרקע"}],
  "RTO Support Hold":[X(ringTop(),{label:"החזקה, טבעות מסובבות החוצה"})],
  "Ring Tuck L-Sit":[X(ringTop(),{L:[118,92],kb:[1,-1],label:"החזקה"})],
  "Ring L-Sit":[X(ringTop(),{H:[94,108],L:add([94,108],73,0),label:"החזקה"})],
@@ -1635,6 +1636,9 @@ function flatFingers(crease,fa,up,fwd,out,away,turn,fromFeet){const T=window.THR
 function barFingers(fa,ax,fwd,upW,out){const T=window.THREE,pj=a=>a.clone().addScaledVector(ax,-a.dot(ax));
   const fh=pj(fa),fs=pj(fwd);if(out)fs.add(pj(out));fs.addScaledVector(upW,-fs.dot(upW));
   if(fs.lengthSq()<1e-4)fs.copy(pj(upW));fs.normalize();
+  // (supporting on top the hand is not bent back flat: it goes down and out over the bar, the wrist only a little
+  // extended, so the bar sits in the heel of the palm and the fingers wrap its far side)
+  fs.addScaledVector(pj(upW).normalize(),-0.85).normalize();
   const x=Math.max(0,Math.min(1,(fa.dot(upW)+0.75)/1.5)),b=x*x*(3-2*x);
   // (the forearm's part across the bar keeps its length: a forearm lying along the bar has no say, and cannot flip it)
   const F=fs.clone().multiplyScalar(1-b).addScaledVector(fh,b);
@@ -1772,6 +1776,9 @@ function poseModel(Mo,k,cfg){
             const fk=v(k["_f"+s]||[0,0,0]);F=fk.lengthSq()>0.01?new T.Vector3(fk.x,0,fk.z).normalize():flatFingers(crease,fa,up,fwd,lat.clone().multiplyScalar(sgn),p3.clone().sub(v(k.head)),k._fout,p3.clone().sub(v(k.ftL).add(v(k.ftR)).multiplyScalar(0.5)));
             N=new T.Vector3(0,-1,0);}
           else if(c.t==="wall"){N=v(c.n).negate();F=new T.Vector3(0,1,0);}
+          // pushing down on a ring (support, dip): the palm lies on its lower tube like on a parallel bar, fingers wrapped
+          // out and under it; hanging from it the hand stays in line with the forearm (rings turn with the hands)
+          else if(c.t==="ring"&&fa.y<-0.5){F=barFingers(fa,fwd.clone().setY(0).normalize(),fwd,new T.Vector3(0,1,0),lat.clone().multiplyScalar(sgn));N=new T.Vector3(0,-1,0);}
           else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
           else if(c.t==="pole"){F=fa.clone();N=v(c.p).sub(p3);N.y=0;if(N.lengthSq()<1e-4)N=fwd.clone();}
           else { // bar: fingers wrap around it, palm toward the bar; overhand unless the forearm is turned the other way
@@ -2041,7 +2048,9 @@ function build(host,frames,opt){opt=opt||{};
       if(d.ring){const w=k[d.j];
         if(Mo&&Mo.side&&d.j.startsWith("wr")){
           // the ring hangs in the model's hand: its lower tube through the closed fingers, its plane across the palm
-          const g=gripPoint(Mo,Mo.side[d.j.slice(2)]),c=g.p.clone().add(new T.Vector3(0,6.5,0)),ax=new T.Vector3(g.n.x,0,g.n.z);
+          // (palm down on the lower tube, in a support: the ring stands in the plane across the fingers, around the wrist)
+          const g=gripPoint(Mo,Mo.side[d.j.slice(2)]),c=g.p.clone().add(new T.Vector3(0,6.5,0)),ax=g.n.y<-0.6?new T.Vector3(g.f.x,0,g.f.z):new T.Vector3(g.n.x,0,g.n.z);
+          if(g.n.y<-0.6) c.addScaledVector(ax.clone().normalize(),-4.5);   // the tube under the heel of the palm: the forearm goes up through the ring
           if(ax.lengthSq()<1e-3) ax.set(g.f.z,0,-g.f.x);
           d.ring.position.copy(c);d.ring.quaternion.setFromUnitVectors(new T.Vector3(0,0,1),ax.normalize());
           place(d.strap,c.clone().add(new T.Vector3(0,6,0)),V([c.x,w[1]+d.len,c.z]),0.9);}
