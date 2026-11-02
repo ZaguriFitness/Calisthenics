@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102161832";
+const BUILD="20261102162152";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1604,7 +1604,10 @@ function bodyFrame(k,cfg){
 // leaning far over the hand (planche lean, pseudo planche, elbow lever: frames marked fout) turns them toward its own direction, through
 // "fingers out" when the two are opposite.
 function flatFingers(crease,fa,up,fwd,out,away,turn,fromFeet){const T=window.THREE,hz=a=>new T.Vector3(a.x,0,a.z);
-  let B=hz(up);if(B.length()<0.3){B=hz(up).add(hz(fwd));if(B.length()<0.2)B=hz(fwd);}if(B.lengthSq()<1e-6)B=hz(crease);
+  // upside down (handstand) the fingers point the way the back faces: the hands were put down in front with the
+  // fingers ahead and the legs went up over the head, so the belly ends up facing the other way
+  const fw=up.y<-0.5?fwd.clone().negate():fwd;
+  let B=hz(up);if(B.length()<0.3){B=hz(up).add(hz(fw));if(B.length()<0.2)B=hz(fw);}if(B.lengthSq()<1e-6)B=hz(crease);
   if(B.lengthSq()<1e-6)B=hz(out);B.normalize();
   // upside down with the feet away from the hands (box pike, wall lean, pike): the fingers point away from the feet
   if(fromFeet&&!turn&&up.y<-0.5){const ff=hz(fromFeet),L=ff.length(),w=Math.max(0,Math.min(1,(L-35)/20))*Math.max(0,Math.min(1,(-up.y-0.5)/0.3));
