@@ -528,7 +528,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102164833";
+const BUILD="20261102170541";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -699,7 +699,7 @@ const FP={
 };
 const R=o=>X(o,{eq:"rings"});
 // one-arm / archer helpers (front)
-const archTop=s=>({v:"front",sy:8,dx:22*s,hL:[-48*s,90],hR:[45*s,90],stL:s>0,stR:s<0,down:true,
+const archTop=s=>({v:"front",sy:16,dx:20*s,hL:[-48*s,90],hR:[45*s,90],stL:s>0,stR:s<0,down:true,
   ...(s<0?{hL:[-45,90],hR:[48,90]}:{})});
 const oneHang={v:"front",sy:54,straight:true,dx:-4,hL:[-10,90],hR:[24,152],stR:false};
 const oneTop={v:"front",sy:8,dx:-4,hL:[-10,90],hR:[24,104],down:true};
@@ -1638,7 +1638,7 @@ function barFingers(fa,ax,fwd,upW,out){const T=window.THREE,pj=a=>a.clone().addS
   if(fs.lengthSq()<1e-4)fs.copy(pj(upW));fs.normalize();
   // (supporting on top the hand is not bent back flat: it goes down and out over the bar, the wrist only a little
   // extended, so the bar sits in the heel of the palm and the fingers wrap its far side)
-  fs.addScaledVector(pj(upW).normalize(),-0.85).normalize();
+  if(fa.dot(upW)<-0.3) fs.addScaledVector(pj(upW).normalize(),-0.85).normalize();
   const x=Math.max(0,Math.min(1,(fa.dot(upW)+0.75)/1.5)),b=x*x*(3-2*x);
   // (the forearm's part across the bar keeps its length: a forearm lying along the bar has no say, and cannot flip it)
   const F=fs.clone().multiplyScalar(1-b).addScaledVector(fh,b);
@@ -1779,7 +1779,10 @@ function poseModel(Mo,k,cfg){
           // pushing down on a ring (support, dip): the palm lies on its lower tube like on a parallel bar, fingers wrapped
           // out and under it; hanging from it the hand stays in line with the forearm (rings turn with the hands)
           else if(c.t==="ring"&&fa.y<-0.5){F=barFingers(fa,fwd.clone().setY(0).normalize(),fwd,new T.Vector3(0,1,0),lat.clone().multiplyScalar(sgn));N=new T.Vector3(0,-1,0);}
-          else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();}   // rings turn with the hands: the hand stays in line with the forearm
+          else if(c.t==="ring"){F=v(HAND_F[s]).applyQuaternion(Wf);N=N0.clone();
+            // a hand holding a ring overhead never turns its palm up (that would be the wrist bent back): the ring
+            // turns with the hand, so the palm faces down / in instead
+            if(N.y>0.3){const ax2=fa.clone().normalize();N.addScaledVector(ax2,-N.dot(ax2)).negate();}}   // rings turn with the hands: the hand stays in line with the forearm
           else if(c.t==="pole"){F=fa.clone();N=v(c.p).sub(p3);N.y=0;if(N.lengthSq()<1e-4)N=fwd.clone();}
           else { // bar: fingers wrap around it, palm toward the bar; overhand unless the forearm is turned the other way
             const ax=v(c.ax||[0,0,1]);F=barFingers(fa,ax,fwd,new T.Vector3(0,1,0),lat.clone().multiplyScalar(sgn));
