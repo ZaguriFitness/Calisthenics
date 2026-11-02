@@ -476,6 +476,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .lad:not([aria-pressed="true"]),.gmem li,.timer,.dobox,.box,.qres{background:var(--card,var(--surface))!important;border:1px solid var(--card-b,var(--glass-b))!important}
 .track.hue:not([aria-pressed="true"]):hover,.prow.hue:not([aria-expanded="true"]):hover,.lad:not([aria-pressed="true"]):hover{border-color:#FF8A1F!important}
 }
+/* no step numbers on the rail: a small dot marks each step */
+.num,#v-lib.hue .num{width:18px!important;height:18px!important;min-width:18px;margin-top:16px;font-size:0!important}
 </style>
 </head>
 <body>
@@ -485,7 +487,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
     <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A1F"/><stop offset="1" stop-color="#FFB347"/></linearGradient></defs>
       <rect width="48" height="48" rx="14" fill="url(#lg)"/><path d="M10 11h28M18 11v12M30 11v12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
       <circle cx="18" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/><circle cx="30" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/></svg>
-    <div><h1>Calisthenics</h1><p class="tag">סולמות התקדמות · מתאמנים · אימון קבוצתי</p></div>
+    <div><h1>Calisthenics</h1></div>
   </header>
   <nav class="tabs" id="tabs" aria-label="מסכים">
     <button class="tab" data-v="lib" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h5v-5h5v-5h5V5h3"/></svg><span>סולמות</span></button>
@@ -528,7 +530,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261102182919";
+const BUILD="20261102203742";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2187,7 +2189,7 @@ const hueStyle=h=>`style="--h:28"`;   // one accent color (orange) everywhere
 function renderTracks(){
   $("tracks").innerHTML = TR().map((t,i)=>{
     const n=t.ladders.reduce((a,l)=>a+l.steps.length,0);
-    return `<button class="track hue" ${hueStyle(hueOf(t.name))} aria-pressed="${i===st.t}" data-i="${i}">${esc(t.name)}<small>${n} תרגילים</small></button>`}).join("");
+    return `<button class="track hue" ${hueStyle(hueOf(t.name))} aria-pressed="${i===st.t}" data-i="${i}">${esc(t.name)}</button>`}).join("");
 }
 function renderLadders(){
   const v=$("v-lib");v.classList.add("hue");v.style.setProperty("--h",hueOf(TR()[st.t].name));
@@ -2214,11 +2216,11 @@ function dots(n){let s="";for(let i=1;i<=8;i++)s+=`<i class="${i<=n?"on":""}"></
 function renderRail(){
   const lad = TR()[st.t].ladders[st.l];
   $("ladname").innerHTML = esc(lnHe(lad.name))+(lnEn(lad.name)?`<small class="en" dir="ltr">${esc(lnEn(lad.name))}</small>`:"");
-  $("ladcount").textContent = `${lad.steps.length} שלבים · מהקל לקשה`;
+  $("ladcount").textContent = "";
   $("rail").innerHTML = lad.steps.map((s,i)=>{
     const open = i===st.open;
     return `<li class="step${open?" open":""}${s.ring?" rg":""}">
-      <button class="num" data-i="${i}" tabindex="-1" aria-label="שלב ${i+1}">${i+1}</button>
+      <button class="num" data-i="${i}" tabindex="-1" aria-label="שלב ${i+1}"></button>
       <div class="card">
         <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
           <div class="top"><span class="name"><bdi class="en">${esc(s.en||s.ex)}</bdi>${s.he?`<span class="sep"> | </span><bdi class="he">${esc(s.he)}</bdi>`:""}</span>
