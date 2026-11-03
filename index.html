@@ -484,7 +484,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .step{grid-template-columns:50px minmax(0,1fr)!important;gap:10px!important}
 .lvb{font:inherit;width:50px;padding:8px 0 6px;margin-top:10px;border-radius:14px;border:1.5px solid #FF8A1F;background:#0F0F10;color:#FF8A1F;display:grid;justify-items:center;line-height:1;cursor:pointer}
 .lvb small{font-size:.66rem;font-weight:700;color:var(--muted);margin-bottom:3px}
-.lvb b{font-family:var(--display);font-size:1.5rem;font-weight:900}
+.lvb b{font-family:var(--display);font-size:1.25rem;font-weight:900}
 .step.open .lvb{background:#FF8A1F;color:#111}.step.open .lvb small{color:#111}
 .step>.num{display:none!important}
 /* ---- new library: family wheel → ladder cards → ladder ---- */
@@ -591,7 +591,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103214632";
+const BUILD="20261103215108";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
