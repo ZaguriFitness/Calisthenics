@@ -479,6 +479,10 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 /* no step numbers on the rail: a small dot marks each step */
 .num,#v-lib.hue .num{width:18px!important;height:18px!important;min-width:18px;margin-top:16px;font-size:0!important}
 
+/* no line and dots beside the steps: the cards take the full width */
+.rail::before,#v-lib.hue .rail::before{display:none!important}
+.step{grid-template-columns:minmax(0,1fr)!important}
+.step>.num{display:none!important}
 /* ---- new library: family wheel → ladder cards → ladder ---- */
 .wheelwrap{display:flex;justify-content:center;margin:6px 0 10px}
 .wheel{width:min(86vw,340px);height:auto;display:block;overflow:visible}
@@ -578,7 +582,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103163249";
+const BUILD="20261103180701";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
