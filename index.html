@@ -487,6 +487,11 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wheelwrap{display:flex;justify-content:center;margin:6px 0 10px}
 .wheel{width:min(86vw,340px);height:auto;display:block;overflow:visible}
 .wheel.mini{width:min(46vw,170px)}
+.wbox{position:relative;width:min(86vw,340px)}.wbox.mini{width:min(46vw,170px)}.wbox .wheel{width:100%}
+.wlabs{position:absolute;inset:0;pointer-events:none}
+.wlab{position:absolute;transform:translate(-50%,-50%);direction:rtl;white-space:nowrap;font-weight:800;font-size:clamp(13px,4.4vw,17px);color:var(--ink)}
+.wbox.mini .wlab{font-size:11px}
+.wlab.on{color:#111}.wlab.dim{opacity:.45}
 .wseg{cursor:pointer}
 .wseg path{fill:var(--card,#151517);stroke:#FF8A1F;stroke-width:1.4;transition:fill .2s,opacity .2s}
 .wseg text{fill:var(--ink);font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
@@ -582,7 +587,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103180701";
+const BUILD="20261103182117";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2325,13 +2330,17 @@ const saveLv=()=>{try{localStorage.setItem("cal-libview",JSON.stringify(lv))}cat
 // the ladder (or chapters) on screen
 const segs=()=>{const T=TR()[st.t];return st.l<0?T.ladders.map((L,i)=>({L,li:i})):[{L:T.ladders[st.l],li:st.l}];};
 const flatSteps=()=>segs().flatMap(g=>g.L.steps.map((s,i)=>({s,g,i})));
-function wheelSvg(el,sel,small){const n=FAM.length;let h="";
+function wheelSvg(el,sel,small){const n=FAM.length;let h="",lab="";
   FAM.forEach((F,i)=>{const a0=i/n*2*Math.PI-Math.PI/2,a1=(i+1)/n*2*Math.PI-Math.PI/2,R=150,r=58,P=(a,rr)=>[Math.cos(a)*rr,Math.sin(a)*rr];
     const[a,b]=P(a0+0.025,R),[c,d]=P(a1-0.025,R),[e,f]=P(a1-0.06,r),[g,k]=P(a0+0.06,r),on=i===sel,dim=sel>=0&&!on;
     h+=`<g class="wseg${on?" on":""}${dim?" dim":""}" data-f="${i}" role="listitem" tabindex="0" aria-label="${esc(F.n)}"><path d="M${a} ${b} A${R} ${R} 0 0 1 ${c} ${d} L${e} ${f} A${r} ${r} 0 0 0 ${g} ${k}Z"/>`;
-    const[tx,ty]=P((a0+a1)/2,104);h+=`<text x="${tx}" y="${ty+6}" text-anchor="middle">${esc(F.n)}</text></g>`;});
+    const[tx,ty]=P((a0+a1)/2,104);h+=`</g>`;lab+=`<span class="wlab${on?" on":""}${dim?" dim":""}" style="left:${(tx+160)/3.2}%;top:${(ty+160)/3.2}%">${esc(F.n)}</span>`;});
   h+=`<circle class="whub" r="50"/><g class="whubi" transform="translate(-22,-22) scale(1.83)"><path d="M3 4h18M7 4v6M17 4v6"/><circle cx="7" cy="14" r="4"/><circle cx="17" cy="14" r="4"/></g>`;
-  el.innerHTML=h;}
+  el.innerHTML=h;
+  // Hebrew labels as HTML on top of the wheel (iPhone Safari draws Hebrew inside SVG backwards)
+  let box=el.parentNode;if(!box.classList.contains("wbox")){box=document.createElement("div");box.className="wbox"+(el.classList.contains("mini")?" mini":"");el.before(box);box.appendChild(el);}
+  let L=box.querySelector(".wlabs");if(!L){L=document.createElement("div");L.className="wlabs";L.setAttribute("aria-hidden","true");box.appendChild(L);}
+  L.innerHTML=lab;}
 const thumb=s=>{try{return ILLV.thumb(s.ex,false)||""}catch(e){return ""}};
 function renderFam(){const F=FAM[lv.f];$("famname").textContent=F.n;$("famdesc").textContent=F.d;wheelSvg($("wheel2"),lv.f,true);
   $("lcards").innerHTML=F.L.map(r=>{const q=famRef(r);if(!q)return "";const T=TR()[q.ti],L=q.li<0?null:T.ladders[q.li];
