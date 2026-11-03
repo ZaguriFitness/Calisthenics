@@ -491,13 +491,15 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wheelwrap{display:flex;justify-content:center;margin:6px 0 10px}
 .wheel{width:min(86vw,340px);height:auto;display:block;overflow:visible}
 .wheel.mini{width:min(46vw,170px)}
-.wbox{position:relative;width:min(86vw,340px)}.wbox.mini{width:min(46vw,170px)}.wbox .wheel{width:100%}
+.wbox{position:relative;width:min(92vw,370px)}.wbox.mini{width:min(46vw,170px)}.wbox .wheel{width:100%}
 .wlabs{position:absolute;inset:0;pointer-events:none}
 .wlab{position:absolute;transform:translate(-50%,-50%);direction:rtl;white-space:nowrap;font-weight:800;font-size:clamp(13px,4.4vw,17px);color:var(--ink)}
 .wbox.mini .wlab{font-size:11px}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+#lhome:not([hidden]){display:flex;flex-direction:column;min-height:calc(100dvh - 215px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+#lhome .wheelwrap{flex:1;align-items:center;margin:0}
 .wseg{cursor:pointer}
 .wseg path{fill:var(--card,#151517);stroke:#FF8A1F;stroke-width:1.4;transition:fill .2s,opacity .2s}
 .wseg text{fill:var(--ink);font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
@@ -591,7 +593,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103215108";
+const BUILD="20261103215337";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
