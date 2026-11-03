@@ -587,7 +587,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103183945";
+const BUILD="20261103184136";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2330,9 +2330,9 @@ const saveLv=()=>{try{localStorage.setItem("cal-libview",JSON.stringify(lv))}cat
 // the ladder (or chapters) on screen
 const segs=()=>{const T=TR()[st.t];return st.l<0?T.ladders.map((L,i)=>({L,li:i})):[{L:T.ladders[st.l],li:st.l}];};
 const flatSteps=()=>segs().flatMap(g=>g.L.steps.map((s,i)=>({s,g,i})));
-function wheelSvg(el,sel,small){const n=FAM.length;let h="",lab="";
+function wheelSvg(el,sel,small,nodim){const n=FAM.length;let h="",lab="";
   FAM.forEach((F,i)=>{const a0=i/n*2*Math.PI-Math.PI/2,a1=(i+1)/n*2*Math.PI-Math.PI/2,R=150,r=58,P=(a,rr)=>[Math.cos(a)*rr,Math.sin(a)*rr];
-    const[a,b]=P(a0+0.025,R),[c,d]=P(a1-0.025,R),[e,f]=P(a1-0.06,r),[g,k]=P(a0+0.06,r),on=i===sel,dim=sel>=0&&!on;
+    const[a,b]=P(a0+0.025,R),[c,d]=P(a1-0.025,R),[e,f]=P(a1-0.06,r),[g,k]=P(a0+0.06,r),on=i===sel,dim=sel>=0&&!on&&!nodim;
     h+=`<g class="wseg${on?" on":""}${dim?" dim":""}" data-f="${i}" role="listitem" tabindex="0" aria-label="${esc(F.n)}"><path d="M${a} ${b} A${R} ${R} 0 0 1 ${c} ${d} L${e} ${f} A${r} ${r} 0 0 0 ${g} ${k}Z"/>`;
     const[tx,ty]=P((a0+a1)/2,104);h+=`</g>`;lab+=`<span class="wlab${on?" on":""}${dim?" dim":""}" style="left:${(tx+160)/3.2}%;top:${(ty+160)/3.2}%">${esc(F.n)}</span>`;});
   h+=`<circle class="whub" r="50"/><g class="whubi" transform="translate(-22,-22) scale(1.83)"><path d="M3 4h18M7 4v6M17 4v6"/><circle cx="7" cy="14" r="4"/><circle cx="17" cy="14" r="4"/></g>`;
@@ -2353,13 +2353,16 @@ function renderNext(){let x=null;try{x=JSON.parse(localStorage.getItem("cal-last
   $("nextcard").innerHTML=s?`<button class="nextc" id="nextgo"><span class="lthumb ill">${thumb(s)}</span><span class="ltxt"><small>להמשיך מאיפה שעצרת</small><b dir="ltr">${esc(s.en||s.ex)}</b>${s.he?`<em>${esc(s.he)}</em>`:""}</span><span class="gobtn">המשך ▶</span></button>`
     :`<p class="wheelhint">בוחרים משפחה בגלגל כדי להתחיל</p>`;}
 function showLib(v){lv.v=v;saveLv();$("lhome").hidden=v!=="home";$("lfam").hidden=v!=="fam";$("llad").hidden=v!=="lad";
-  if(v==="home"){wheelSvg($("wheel"),-1);renderNext();TD.stop();}
+  if(v==="home"){hsel=-1;wheelSvg($("wheel"),-1);renderNext();TD.stop();}
   if(v==="fam"){renderFam();TD.stop();}
   if(v==="lad") renderRail();
   window.scrollTo(0,0);}
 const pickFam=f=>{lv.f=f;showLib("fam");};
-["wheel","wheel2"].forEach(id=>{$(id).onclick=e=>{const g=e.target.closest(".wseg");if(g) pickFam(+g.dataset.f);};
-  $(id).onkeydown=e=>{const g=e.target.closest(".wseg");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pickFam(+g.dataset.f);}};});
+// home wheel: first tap lights the slice, a second tap on the same slice opens it
+let hsel=-1;
+const tapSeg=(id,f)=>{if(id==="wheel"&&hsel!==f){hsel=f;wheelSvg($("wheel"),f,false,true);return;}hsel=-1;pickFam(f);};
+["wheel","wheel2"].forEach(id=>{$(id).onclick=e=>{const g=e.target.closest(".wseg");if(g) tapSeg(id,+g.dataset.f);};
+  $(id).onkeydown=e=>{const g=e.target.closest(".wseg");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();tapSeg(id,+g.dataset.f);}};});
 $("lcards").onclick=e=>{const b=e.target.closest(".lcard");if(!b)return;st.t=+b.dataset.ti;st.l=+b.dataset.li;st.open=-1;save();showLib("lad");};
 $("nextcard").onclick=e=>{if(!e.target.closest("#nextgo"))return;let x=null;try{x=JSON.parse(localStorage.getItem("cal-last"))}catch(_){}
   if(!x)return;st.t=x.t;st.l=x.l;st.open=x.i;save();lv.f=famOf(x.t,Math.max(0,x.l));showLib("lad");
