@@ -493,6 +493,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wbox.mini .wlab{font-size:11px}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
+#nextcard{display:none}
 .wseg{cursor:pointer}
 .wseg path{fill:var(--card,#151517);stroke:#FF8A1F;stroke-width:1.4;transition:fill .2s,opacity .2s}
 .wseg text{fill:var(--ink);font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
@@ -586,7 +587,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103183210";
+const BUILD="20261103183945";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
