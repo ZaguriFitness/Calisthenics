@@ -8,8 +8,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Calisthenics</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -387,7 +387,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 /* header: slim, sticky, glass */
 .apphead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:12px;margin:0 -16px 14px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;
   background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid var(--glass-b)}
-.apphead .logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 14px rgba(255,128,20,.45))}
+.apphead .logo{width:40px;height:40px;flex:none;border-radius:11px;filter:drop-shadow(0 6px 14px rgba(255,128,20,.45))}
 .apphead h1{font-size:1.45rem;font-weight:800;line-height:1.1;letter-spacing:-.01em;padding:0;border:0;background:none;
   background-image:linear-gradient(90deg,var(--ink),color-mix(in srgb,var(--ink) 70%,#FF8A1F));-webkit-background-clip:text;background-clip:text;color:transparent}
 .apphead h1::before,.apphead h1::after{display:none}
@@ -531,9 +531,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
 <div class="wrap" dir="rtl">
   <header class="apphead">
-    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A1F"/><stop offset="1" stop-color="#FFB347"/></linearGradient></defs>
-      <rect width="48" height="48" rx="14" fill="url(#lg)"/><path d="M10 11h28M18 11v12M30 11v12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="18" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/><circle cx="30" cy="30" r="6" fill="none" stroke="#fff" stroke-width="3.2"/></svg>
+    <img class="logo" src="icons/icon-192.png?v=2" alt="" aria-hidden="true">
     <div><h1>Calisthenics</h1></div>
   </header>
   <nav class="tabs" id="tabs" aria-label="מסכים">
@@ -588,7 +586,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261103182210";
+const BUILD="20261103183210";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
