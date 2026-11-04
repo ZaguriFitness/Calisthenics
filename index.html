@@ -599,7 +599,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261104022534";
+const BUILD="20261104023521";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1220,7 +1220,11 @@ const ILL={
  "Archer Ring Pull-Up":[R(X(FP.hang,{grip:46})),R(X(archTop(1),{label:"משיכה לצד אחד"}))],
  // rings at hip height, sitting under them: lean back on straight arms, pull the rings to the chest, then
  // bring the chest over the rings into the bottom of a dip, the feet on the floor helping
- "Low Ring Transition":[{H:[50,194],t:-60.0,A:[102,104],L:[120,199],g:1,pr:[ring("W",55)],wz:21,label:"ישיבה מתחת לטבעות, ידיים ישרות"},{H:[76.9,139],t:-70.0,A:[102,104],L:[118,199],g:1,pr:[ring("W",55)],wz:21,kb:[1,-0.3],eb:[-1,0.6],label:"משיכת הטבעות לחזה"},{H:[99,131.5],t:-82.0,A:[102,104],L:[112,199],g:1,pr:[ring("W",55)],wz:21,kb:[1,-0.3],eb:[-1,0.3],label:"חזה מעל הטבעות, כמו בדיפס"}],
+ "Low Ring Transition":(()=>{const R=[82,118],F=[110,199],P={g:1,pr:[ring("W",72)],wz:19,L:F};return [
+   X(P,{H:[50,195],t:-105,A:R,eb:[0,1],kb:[0.2,-1],label:"ישיבה מתחת לטבעות, ידיים ישרות"}),
+   X(P,{H:[80,152],t:-100,A:R,eb:[-1,0.6],kb:[0.4,-1],label:"מושכים: הטבעות לחזה, מרפקים לאחור"}),
+   X(P,{H:[78,144],t:-88,A:R,eb:[-1,0],kb:[0.6,-1],label:"הכתפיים עוברות מעל הטבעות"}),
+   X(P,{H:[84.5,136],t:-62,A:R,eb:[-1,-0.6],kb:[1,-0.3],label:"חזה מעל הטבעות, תחתית דיפס"})];})(),
  "Ring Muscle-Up Negative":[R(X(FP.support,{label:"מעל הטבעות"})),R(FP.high),R(X(FP.hang,{label:"ירידה איטית"}))],
  "Band-Assisted Ring Muscle-Up":[R(X(FP.hang,{band:true})),R(X(FP.high,{band:true})),R(FP.support)],
  "Strict Ring Muscle-Up":[R(FP.hang),R(FP.high),R(FP.support)],
