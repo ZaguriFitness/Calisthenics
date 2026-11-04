@@ -507,14 +507,14 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 #lhome:not([hidden]){display:flex;flex-direction:column;min-height:calc(100dvh - 215px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 #lhome .wheelwrap{flex:1;align-items:center;margin:0}
 .wseg{cursor:pointer}
-.wseg path{fill:var(--card,#151517);stroke:#FF8A1F;stroke-width:2;stroke-linejoin:round;transition:fill .2s,opacity .2s}
+.wseg path{fill:var(--card,#151517);stroke:#FF8A1F;stroke-width:1.8;stroke-linejoin:round;transition:fill .2s,opacity .2s}
 .wseg text{fill:var(--ink);font-weight:800;font-size:15px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
 .wheel.mini .wseg text{font-size:17px}
 .wseg.on path{fill:#FF8A1F}.wseg.on text{fill:#111}
 .wseg.dim{opacity:.45}
 .wseg:active path{fill:#E8650A}
 .whub{fill:#0B0B0C;stroke:#FF8A1F;stroke-width:3}
-.wrim{fill:none;stroke:#FF8A1F;stroke-width:4}
+.wrim{fill:none;stroke:#FF8A1F;stroke-width:5}
 #lhome .wheel{filter:drop-shadow(0 0 12px rgba(255,138,31,.3))}
 .whubi{fill:none;stroke:#FF8A1F;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .wheelhint{text-align:center;color:var(--muted);margin:8px 0 0}
@@ -601,7 +601,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261104135326";
+const BUILD="20261104135519";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2350,7 +2350,7 @@ const saveLv=()=>{try{localStorage.setItem("cal-libview",JSON.stringify(lv))}cat
 // the ladder (or chapters) on screen
 const segs=()=>{const T=TR()[st.t];return st.l<0?T.ladders.map((L,i)=>({L,li:i})):[{L:T.ladders[st.l],li:st.l}];};
 const flatSteps=()=>segs().flatMap(g=>g.L.steps.map((s,i)=>({s,g,i})));
-function wheelSvg(el,sel,small,nodim){const n=FAM.length;let h='<circle class="wrim" r="156"/>',lab="";
+function wheelSvg(el,sel,small,nodim){const n=FAM.length;let h='<circle class="wrim" r="157.5"/>',lab="";
   FAM.forEach((F,i)=>{const a0=i/n*2*Math.PI-Math.PI/2,a1=(i+1)/n*2*Math.PI-Math.PI/2,R=150,r=58,P=(a,rr)=>[Math.cos(a)*rr,Math.sin(a)*rr];
     const[a,b]=P(a0+0.025,R),[c,d]=P(a1-0.025,R),[e,f]=P(a1-0.06,r),[g,k]=P(a0+0.06,r),on=i===sel,dim=sel>=0&&!on&&!nodim;
     h+=`<g class="wseg${on?" on":""}${dim?" dim":""}" data-f="${i}" role="listitem" tabindex="0" aria-label="${esc(F.n)}"><path d="M${a} ${b} A${R} ${R} 0 0 1 ${c} ${d} L${e} ${f} A${r} ${r} 0 0 0 ${g} ${k}Z"/>`;
