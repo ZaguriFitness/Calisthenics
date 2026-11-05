@@ -498,6 +498,12 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.passrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}
+.passrow.on span{color:#FF8A1F;font-weight:700}
+.passbtn{font:inherit;font-weight:800;padding:12px 16px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
+.passbtn.go{width:100%;background:#FF8A1F;color:#111;border-color:#FF8A1F}
+.lvb{position:relative}.lvb .ck{position:absolute;top:-7px;inset-inline-start:-7px;width:20px;height:20px;border-radius:50%;background:#FF8A1F;color:#111;font-style:normal;font-weight:900;font-size:.72rem;display:grid;place-items:center}
+.step.done .lvb{background:rgba(255,138,31,.16)}
 .lstat{flex:none;width:64px;display:grid;justify-items:center;gap:3px}
 .lstat .pring{width:42px;height:42px}
 .lstat small{font-size:.74rem;color:var(--muted);white-space:nowrap}
@@ -601,7 +607,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261105150319";
+const BUILD="20261105150836";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2303,12 +2309,12 @@ function renderRail(){
   document.querySelector("#llad .back").textContent="→ "+FAM[lv.f].n;
   const firstOf=new Map();if(multi){let n=0;T.ladders.forEach(L=>{firstOf.set(n,lnHe(L.name));n+=L.steps.length;});}
   if(st.open>=0){try{localStorage.setItem("cal-last",JSON.stringify({t:st.t,l:st.l,i:st.open}))}catch(e){}}
-  if(st.open>=0){let k=st.open,L=lad;if(multi){for(const x of T.ladders){if(k<x.steps.length){L=x;break;}k-=x.steps.length;}}
-    const key=T.name+"/"+L.name,P=prog();if(!(P[key]>=k)){P[key]=k;try{localStorage.setItem("cal-prog",JSON.stringify(P))}catch(e){}}}
+  const P=prog(),isDone=i=>{const q=stepKey(i);return P[q.key]>=q.k;};
   $("rail").innerHTML = lad.steps.map((s,i)=>{
     const open = i===st.open;
-    return (firstOf.has(i)?`<li class="chap"><span>פרק: ${esc(firstOf.get(i))}</span></li>`:"")+`<li class="step${open?" open":""}${s.ring?" rg":""}">
-      <button class="lvb" data-i="${i}" tabindex="-1" aria-label="רמה ${s.lvl}"><small>רמה</small><b>${s.lvl}</b></button>
+    const dn=isDone(i);
+    return (firstOf.has(i)?`<li class="chap"><span>פרק: ${esc(firstOf.get(i))}</span></li>`:"")+`<li class="step${open?" open":""}${s.ring?" rg":""}${dn?" done":""}">
+      <button class="lvb" data-i="${i}" tabindex="-1" aria-label="רמה ${s.lvl}"><small>רמה</small><b>${s.lvl}</b>${dn?`<i class="ck">✓</i>`:""}</button>
       <div class="card">
         <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
           <div class="top"><span class="name"><bdi class="en">${esc(s.en||s.ex)}</bdi>${s.he?`<span class="sep"> | </span><bdi class="he">${esc(s.he)}</bdi>`:""}</span>
@@ -2320,6 +2326,8 @@ function renderRail(){
           <p class="how">${esc(s.how)}</p>
           ${(s.req||[]).length?`<div class="box req"><b>לפני השלב הזה צריך לשלוט ב:</b>${s.req.map(r=>{const q=reqStep(r);return q?`<button class="reqlink" data-rk="${esc(r.k)}" data-rx="${q.i}">${esc(q.s.en||q.s.ex)} | ${esc(q.s.he||"")}<small>${esc(q.lad)} · שלב ${q.i+1} · ${esc(q.s.pass)}</small></button>`:""}).join("")}</div>`:""}
           <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(s.pass)}</div>
+          ${dn?`<div class="passrow on"><span>✓ סימנת שעברת את השלב הזה</span><button class="passbtn" data-i="${i}" data-act="undo">ביטול</button></div>`
+              :`<div class="passrow"><button class="passbtn go" data-i="${i}" data-act="do">✓ עברתי את השלב הזה</button></div>`}
           <div class="grid2">
             <div class="box"><b>אם קשה מדי — סיוע</b>${esc(s.assist)}</div>
             <div class="box"><b>ציוד</b>${esc(s.equip)}</div>
@@ -2370,7 +2378,13 @@ function wheelSvg(el,sel,small,nodim){const n=FAM.length;let h='<circle class="w
   L.innerHTML=lab;}
 const thumb=s=>{try{return ILLV.thumb(s.ex,false)||""}catch(e){return ""}};
 // personal progress: furthest step opened per ladder ("track/ladder" → index)
-const prog=()=>{try{return JSON.parse(localStorage.getItem("cal-prog")||"{}")||{}}catch(e){return {}}};
+// steps the user marked as passed, per ladder ("track/ladder" -> index of the furthest passed step). Only the
+// "עברתי" button changes it: just looking at a step never does.
+const prog=()=>{try{return JSON.parse(localStorage.getItem("cal-done")||"{}")||{}}catch(e){return {}}};
+const saveProg=P=>{try{localStorage.setItem("cal-done",JSON.stringify(P))}catch(e){}};
+// a step index on the open rail -> its ladder key and index inside that ladder (the handstand path holds several ladders)
+function stepKey(i){const T=TR()[st.t];if(st.l>=0)return {key:T.name+"/"+T.ladders[st.l].name,k:i};
+  let k=i;for(const x of T.ladders){if(k<x.steps.length)return {key:T.name+"/"+x.name,k};k-=x.steps.length;}return {key:"",k:-1};}
 // ladders that come after another one: [track, ladder] → [track, ladder it follows]
 const AFTER={"משיכה אנכית/Muscle-Up":["משיכה אנכית","מתח"],"משיכה אנכית/מתח יד אחת":["משיכה אנכית","מתח"],
   "רגליים/Dragon Squat":["רגליים","סקוואטים ותרגילים על רגל אחת"],"סטטיקה/Planche":["דחיפה אופקית","שכיבות סמיכה"],
@@ -2383,13 +2397,13 @@ function cardState(T,L){const P=prog();
   const a=L&&AFTER[T.name+"/"+L.name];
   if(a&&done<0){const pt=TR().find(x=>x.name===a[0]),pl=pt&&pt.ladders.find(x=>x.name===a[1]);
     if(pl){const pv=P[a[0]+"/"+a[1]];if(!(pv>=Math.floor(pl.steps.length*0.6)))return {lock:lnHe(pl.name)};}}
-  return {cur:Math.max(0,done)+1,n};}
+  return {cur:Math.min(n,done+2),pct:(done+1)/n,n};}
 function renderFam(){const F=FAM[lv.f];$("famname").textContent=F.n;$("famdesc").textContent=F.d;wheelSvg($("wheel2"),lv.f,true);
   $("lcards").innerHTML=F.L.map(r=>{const q=famRef(r);if(!q)return "";const T=TR()[q.ti],L=q.li<0?null:T.ladders[q.li];
     const he=L?lnHe(L.name):(SKILLNAME[T.name]||[T.name])[0],en=L?lnEn(L.name):(SKILLNAME[T.name]||["",""])[1];
     const steps=L?L.steps:T.ladders.flatMap(x=>x.steps),rep=steps[Math.min(steps.length-1,Math.floor(steps.length*0.55))];
     const sub=L?"":`${T.ladders.length} פרקים`;
-    return `<button class="lcard" data-ti="${q.ti}" data-li="${q.li}"><span class="lthumb ill">${thumb(rep)}</span><span class="ltxt"><b>${esc(he)}</b>${en?`<small dir="ltr">${esc(en)}</small>`:""}${sub?`<em>${sub}</em>`:""}</span>${(c=>c.lock?`<span class="lstat lock"><span class="lk">🔒</span><small>אחרי ${esc(c.lock)}</small></span>`:`<span class="lstat">${ringSvg(c.cur,c.n)}<small>שלב ${c.cur}</small></span>`)(cardState(T,L))}</button>`;}).join("");}
+    return `<button class="lcard" data-ti="${q.ti}" data-li="${q.li}"><span class="lthumb ill">${thumb(rep)}</span><span class="ltxt"><b>${esc(he)}</b>${en?`<small dir="ltr">${esc(en)}</small>`:""}${sub?`<em>${sub}</em>`:""}</span>${(c=>c.lock?`<span class="lstat lock"><span class="lk">🔒</span><small>אחרי ${esc(c.lock)}</small></span>`:`<span class="lstat">${ringSvg(c.pct*c.n,c.n)}<small>שלב ${c.cur}</small></span>`)(cardState(T,L))}</button>`;}).join("");}
 function renderNext(){let x=null;try{x=JSON.parse(localStorage.getItem("cal-last")||"null")}catch(e){}
   const T=x&&TR()[x.t],steps=T?(x.l<0?T.ladders.flatMap(L=>L.steps):(T.ladders[x.l]||{steps:[]}).steps):[],s=steps[x?x.i:-1];
   $("nextcard").innerHTML=s?`<button class="nextc" id="nextgo"><span class="lthumb ill">${thumb(s)}</span><span class="ltxt"><small>להמשיך מאיפה שעצרת</small><b dir="ltr">${esc(s.en||s.ex)}</b>${s.he?`<em>${esc(s.he)}</em>`:""}</span><span class="gobtn">המשך ▶</span></button>`
@@ -2423,6 +2437,9 @@ $("rail").onkeydown=e=>{
 };
 $("rail").onclick=e=>{
   const rq=e.target.closest(".reqlink");if(rq){openStep(rq.dataset.rk,+rq.dataset.rx);return;}
+  const pb=e.target.closest(".passbtn");if(pb){const q=stepKey(+pb.dataset.i),P=prog();
+    if(pb.dataset.act==="do") P[q.key]=Math.max(P[q.key]>=0?P[q.key]:-1,q.k); else {P[q.key]=q.k-1;if(P[q.key]<0)delete P[q.key];}
+    saveProg(P);renderRail();return;}
   const h=e.target.closest(".head, .lvb"), g=e.target.closest(".mv");
   if(h && h.classList.contains("head") && hasSelection()) return;
   if(h){const i=+h.dataset.i;st.open=st.open===i?-1:i;renderRail();}
