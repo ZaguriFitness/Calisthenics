@@ -514,9 +514,6 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .lstat{flex:none;width:64px;display:grid;justify-items:center;gap:3px}
 .lstat .pring{width:42px;height:42px}
 .lstat small{font-size:.74rem;color:var(--muted);white-space:nowrap}
-.lstat.lock .lk{font-size:1.25rem;line-height:42px;height:42px}
-.lstat.lock small{font-size:.66rem;white-space:normal;text-align:center;line-height:1.2}
-.lcard:has(.lstat.lock){opacity:.6}
 #lhome:not([hidden]){display:flex;flex-direction:column;min-height:calc(100dvh - 215px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 #lhome .wheelwrap{flex:1;align-items:center;margin:0}
 .wseg{cursor:pointer}
@@ -614,7 +611,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261105152837";
+const BUILD="20261105153722";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2401,25 +2398,18 @@ const saveProg=P=>{try{localStorage.setItem("cal-done",JSON.stringify(P))}catch(
 // a step index on the open rail -> its ladder key and index inside that ladder (the handstand path holds several ladders)
 function stepKey(i){const T=TR()[st.t];if(st.l>=0)return {key:T.name+"/"+T.ladders[st.l].name,k:i};
   let k=i;for(const x of T.ladders){if(k<x.steps.length)return {key:T.name+"/"+x.name,k};k-=x.steps.length;}return {key:"",k:-1};}
-// ladders that come after another one: [track, ladder] → [track, ladder it follows]
-const AFTER={"משיכה אנכית/Muscle-Up":["משיכה אנכית","מתח"],"משיכה אנכית/מתח יד אחת":["משיכה אנכית","מתח"],
-  "רגליים/Dragon Squat":["רגליים","סקוואטים ותרגילים על רגל אחת"],"סטטיקה/Planche":["דחיפה אופקית","שכיבות סמיכה"],
-  "סטטיקה/Iron Cross":["דחיפה אנכית","דיפס"],"סטטיקה/Human Flag":["ליבה","צד"]};
 const ringSvg=(a,b)=>{const r=17,C=2*Math.PI*r,p=b?Math.max(0,Math.min(1,a/b)):0;
   return `<svg class="pring" viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="${r}" stroke="#2a2a2e" stroke-width="4" fill="none"/>${p>0?`<circle cx="21" cy="21" r="${r}" stroke="#FF8A1F" stroke-width="4" fill="none" stroke-dasharray="${(C*p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 21 21)" stroke-linecap="round"/>`:""}</svg>`;};
 function cardState(T,L){const P=prog();
   const list=L?[L]:T.ladders,n=list.reduce((a,x)=>a+x.steps.length,0);let done=-1,off=0;
   list.forEach(x=>{const v=P[T.name+"/"+x.name];if(v>=0)done=Math.max(done,off+v);off+=x.steps.length;});
-  const a=L&&AFTER[T.name+"/"+L.name];
-  if(a&&done<0){const pt=TR().find(x=>x.name===a[0]),pl=pt&&pt.ladders.find(x=>x.name===a[1]);
-    if(pl){const pv=P[a[0]+"/"+a[1]];if(!(pv>=Math.floor(pl.steps.length*0.6)))return {lock:lnHe(pl.name)};}}
   return {cur:Math.min(n,done+2),pct:(done+1)/n,n};}
 function renderFam(){const F=FAM[lv.f];$("famname").textContent=F.n;$("famdesc").textContent=F.d;wheelSvg($("wheel2"),lv.f,true);
   $("lcards").innerHTML=F.L.map(r=>{const q=famRef(r);if(!q)return "";const T=TR()[q.ti],L=q.li<0?null:T.ladders[q.li];
     const he=L?lnHe(L.name):(SKILLNAME[T.name]||[T.name])[0],en=L?lnEn(L.name):(SKILLNAME[T.name]||["",""])[1];
     const steps=L?L.steps:T.ladders.flatMap(x=>x.steps),rep=steps[Math.min(steps.length-1,Math.floor(steps.length*0.55))];
     const sub=L?"":`${T.ladders.length} פרקים`;
-    return `<button class="lcard" data-ti="${q.ti}" data-li="${q.li}"><span class="lthumb ill">${thumb(rep)}</span><span class="ltxt"><b>${esc(he)}</b>${en?`<small dir="ltr">${esc(en)}</small>`:""}${sub?`<em>${sub}</em>`:""}</span>${(c=>c.lock?`<span class="lstat lock"><span class="lk">🔒</span><small>אחרי ${esc(c.lock)}</small></span>`:`<span class="lstat">${ringSvg(c.pct*c.n,c.n)}<small>שלב ${c.cur}</small></span>`)(cardState(T,L))}</button>`;}).join("");}
+    return `<button class="lcard" data-ti="${q.ti}" data-li="${q.li}"><span class="lthumb ill">${thumb(rep)}</span><span class="ltxt"><b>${esc(he)}</b>${en?`<small dir="ltr">${esc(en)}</small>`:""}${sub?`<em>${sub}</em>`:""}</span>${(c=>`<span class="lstat">${ringSvg(c.pct*c.n,c.n)}<small>שלב ${c.cur}</small></span>`)(cardState(T,L))}</button>`;}).join("");}
 function renderNext(){let x=null;try{x=JSON.parse(localStorage.getItem("cal-last")||"null")}catch(e){}
   const T=x&&TR()[x.t],steps=T?(x.l<0?T.ladders.flatMap(L=>L.steps):(T.ladders[x.l]||{steps:[]}).steps):[],s=steps[x?x.i:-1];
   $("nextcard").innerHTML=s?`<button class="nextc" id="nextgo"><span class="lthumb ill">${thumb(s)}</span><span class="ltxt"><small>להמשיך מאיפה שעצרת</small><b dir="ltr">${esc(s.en||s.ex)}</b>${s.he?`<em>${esc(s.he)}</em>`:""}</span><span class="gobtn">המשך ▶</span></button>`
