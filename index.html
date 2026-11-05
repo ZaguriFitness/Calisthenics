@@ -481,11 +481,9 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
 /* no line and dots beside the steps: the cards take the full width */
 .rail::before,#v-lib.hue .rail::before{display:none!important}
-.step{grid-template-columns:50px minmax(0,1fr)!important;gap:10px!important}
-.lvb{font:inherit;width:50px;padding:8px 0 6px;margin-top:10px;border-radius:14px;border:1.5px solid #FF8A1F;background:#0F0F10;color:#FF8A1F;display:grid;justify-items:center;line-height:1;cursor:pointer}
-.lvb small{font-size:.66rem;font-weight:700;color:var(--muted);margin-bottom:3px}
-.lvb b{font-family:var(--display);font-size:1.25rem;font-weight:900}
-.step.open .lvb{background:#FF8A1F;color:#111}.step.open .lvb small{color:#111}
+.step{grid-template-columns:46px minmax(0,1fr)!important;gap:10px!important}
+.vbox{font:inherit;width:46px;height:46px;margin-top:12px;border-radius:14px;border:2px solid rgba(255,138,31,.55);background:#0F0F10;color:#111;font-size:1.5rem;font-weight:900;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0}
+.vbox[aria-pressed="true"]{background:#FF8A1F;border-color:#FF8A1F;box-shadow:0 4px 14px rgba(255,128,20,.35)}
 .step>.num{display:none!important}
 /* ---- new library: family wheel → ladder cards → ladder ---- */
 .wheelwrap{display:flex;justify-content:center;margin:6px 0 10px}
@@ -509,8 +507,6 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .passrow.on span{color:#FF8A1F;font-weight:700}
 .passbtn{font:inherit;font-weight:800;padding:12px 16px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
 .passbtn.go{width:100%;background:#FF8A1F;color:#111;border-color:#FF8A1F}
-.lvb{position:relative}.lvb .ck{position:absolute;top:-7px;inset-inline-start:-7px;width:20px;height:20px;border-radius:50%;background:#FF8A1F;color:#111;font-style:normal;font-weight:900;font-size:.72rem;display:grid;place-items:center}
-.step.done .lvb{background:rgba(255,138,31,.16)}
 .lstat{flex:none;width:64px;display:grid;justify-items:center;gap:3px}
 .lstat .pring{width:42px;height:42px}
 .lstat small{font-size:.74rem;color:var(--muted);white-space:nowrap}
@@ -611,7 +607,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261105153722";
+const BUILD="20261105154952";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2265,6 +2261,8 @@ const NAMES=(()=>{try{return JSON.parse(localStorage.getItem("cal-names")||"{}")
 DATA.forEach(C=>C.tracks.forEach(T=>T.ladders.forEach(L=>L.steps.forEach(s=>{s._he0=s.he||"";s._en0=s.en||s.ex;
   const o=NAMES[s.ex];if(o){if(o.he)s.he=o.he;if(o.en)s.en=o.en;}}))));
 let rnOpen=-1;
+// level label inside a ladder: the first step of a level is "2", the next ones of the same level "2.1", "2.2" ...
+DATA.forEach(C=>C.tracks.forEach(T=>T.ladders.forEach(L=>{const seen={};L.steps.forEach(s=>{const n=seen[s.lvl]||0;seen[s.lvl]=n+1;s.lvn=n?s.lvl+"."+n:String(s.lvl);});})));
 const save=()=>{try{localStorage.setItem("cal-rings-ladders",JSON.stringify({c:st.c,t:st.t,l:st.l}))}catch(e){}};
 const TR=()=>DATA[st.c].tracks;
 const $=id=>document.getElementById(id);
@@ -2318,16 +2316,16 @@ function renderRail(){
   document.querySelector("#llad .back").textContent="→ "+FAM[lv.f].n;
   const firstOf=new Map();if(multi){let n=0;T.ladders.forEach(L=>{firstOf.set(n,lnHe(L.name));n+=L.steps.length;});}
   if(st.open>=0){try{localStorage.setItem("cal-last",JSON.stringify({t:st.t,l:st.l,i:st.open}))}catch(e){}}
-  const P=prog(),isDone=i=>{const q=stepKey(i);return P[q.key]>=q.k;};
+  const P=prog(),isDone=i=>!!P[lad.steps[i].ex];
   $("rail").innerHTML = lad.steps.map((s,i)=>{
     const open = i===st.open;
     const dn=isDone(i);
     return (firstOf.has(i)?`<li class="chap"><span>פרק: ${esc(firstOf.get(i))}</span></li>`:"")+`<li class="step${open?" open":""}${s.ring?" rg":""}${dn?" done":""}">
-      <button class="lvb" data-i="${i}" tabindex="-1" aria-label="רמה ${s.lvl}"><small>רמה</small><b>${s.lvl}</b>${dn?`<i class="ck">✓</i>`:""}</button>
+      <button class="vbox" data-i="${i}" aria-pressed="${dn}" aria-label="${dn?"הצלחתי – לחיצה מבטלת":"סימון: הצלחתי את התרגיל"}">${dn?"✓":""}</button>
       <div class="card">
         <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
           <div class="top"><span class="name"><bdi class="en">${esc(s.en||s.ex)}</bdi>${s.he?`<span class="sep"> | </span><bdi class="he">${esc(s.he)}</bdi>`:""}</span>
-            ${s.ring?`<span class="lvl">${RTAG}</span>`:""}</div>
+            <span class="lvl">רמה ${s.lvn}<span class="dots">${dots(s.lvl)}</span>${s.ring?RTAG:""}</span></div>
           <p class="one">${esc(firstSentence(s.how))}</p>
         </div>
         ${open?`<div class="body">
@@ -2335,8 +2333,8 @@ function renderRail(){
           <p class="how">${esc(s.how)}</p>
           ${(s.req||[]).length?`<div class="box req"><b>לפני השלב הזה צריך לשלוט ב:</b>${s.req.map(r=>{const q=reqStep(r);return q?`<button class="reqlink" data-rk="${esc(r.k)}" data-rx="${q.i}">${esc(q.s.en||q.s.ex)} | ${esc(q.s.he||"")}<small>${esc(q.lad)} · שלב ${q.i+1} · ${esc(q.s.pass)}</small></button>`:""}).join("")}</div>`:""}
           <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(s.pass)}</div>
-          ${dn?`<div class="passrow on"><span>✓ סימנת שעברת את השלב הזה</span><button class="passbtn" data-i="${i}" data-act="undo">ביטול</button></div>`
-              :`<div class="passrow"><button class="passbtn go" data-i="${i}" data-act="do">✓ עברתי את השלב הזה</button></div>`}
+          ${dn?`<div class="passrow on"><span>✓ סימנת שהצלחת את התרגיל</span><button class="passbtn" data-i="${i}">ביטול</button></div>`
+              :`<div class="passrow"><button class="passbtn go" data-i="${i}">✓ הצלחתי את התרגיל</button></div>`}
           ${rnOpen===i?`<div class="rnform"><label>שם בעברית<input class="rnhe" value="${esc(s.he||"")}"></label>
               <label>שם באנגלית<input class="rnen" dir="ltr" value="${esc(s.en||s.ex)}"></label>
               <div class="rnb"><button class="rnsave" data-i="${i}">שמירה</button>${NAMES[s.ex]?`<button class="rnreset" data-i="${i}">החזרת השם המקורי</button>`:""}<button class="rncancel">ביטול</button></div></div>`
@@ -2359,7 +2357,7 @@ function renderRail(){
   TD.stop();
   const tdh=document.querySelector(".td");
   if(tdh&&st.open>=0) TD.mount(tdh,lad.steps[st.open].ex,st.c===1);
-  document.querySelectorAll("#rail .step").forEach((el,k)=>{const b=el.querySelector(".head");if(b)b.dataset.i=k;const n=el.querySelector(".lvb");if(n)n.dataset.i=k;});
+  document.querySelectorAll("#rail .step").forEach((el,k)=>{const b=el.querySelector(".head");if(b)b.dataset.i=k;el.querySelectorAll(".vbox,.passbtn").forEach(n=>n.dataset.i=k);});
 }
 // ---------- the five families (every ladder of the app belongs to exactly one) ----------
 const FAM=[
@@ -2393,17 +2391,13 @@ const thumb=s=>{try{return ILLV.thumb(s.ex,false)||""}catch(e){return ""}};
 // personal progress: furthest step opened per ladder ("track/ladder" → index)
 // steps the user marked as passed, per ladder ("track/ladder" -> index of the furthest passed step). Only the
 // "עברתי" button changes it: just looking at a step never does.
-const prog=()=>{try{return JSON.parse(localStorage.getItem("cal-done")||"{}")||{}}catch(e){return {}}};
-const saveProg=P=>{try{localStorage.setItem("cal-done",JSON.stringify(P))}catch(e){}};
-// a step index on the open rail -> its ladder key and index inside that ladder (the handstand path holds several ladders)
-function stepKey(i){const T=TR()[st.t];if(st.l>=0)return {key:T.name+"/"+T.ladders[st.l].name,k:i};
-  let k=i;for(const x of T.ladders){if(k<x.steps.length)return {key:T.name+"/"+x.name,k};k-=x.steps.length;}return {key:"",k:-1};}
+const prog=()=>{try{return JSON.parse(localStorage.getItem("cal-v")||"{}")||{}}catch(e){return {}}};   // exercise id -> 1 when marked ✓
+const saveProg=P=>{try{localStorage.setItem("cal-v",JSON.stringify(P))}catch(e){}};
 const ringSvg=(a,b)=>{const r=17,C=2*Math.PI*r,p=b?Math.max(0,Math.min(1,a/b)):0;
   return `<svg class="pring" viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="${r}" stroke="#2a2a2e" stroke-width="4" fill="none"/>${p>0?`<circle cx="21" cy="21" r="${r}" stroke="#FF8A1F" stroke-width="4" fill="none" stroke-dasharray="${(C*p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 21 21)" stroke-linecap="round"/>`:""}</svg>`;};
-function cardState(T,L){const P=prog();
-  const list=L?[L]:T.ladders,n=list.reduce((a,x)=>a+x.steps.length,0);let done=-1,off=0;
-  list.forEach(x=>{const v=P[T.name+"/"+x.name];if(v>=0)done=Math.max(done,off+v);off+=x.steps.length;});
-  return {cur:Math.min(n,done+2),pct:(done+1)/n,n};}
+function cardState(T,L){const P=prog(),steps=(L?[L]:T.ladders).flatMap(x=>x.steps),n=steps.length;
+  const done=steps.filter(x=>P[x.ex]).length,first=steps.findIndex(x=>!P[x.ex]);
+  return {cur:first<0?n:first+1,pct:done/n,n};}
 function renderFam(){const F=FAM[lv.f];$("famname").textContent=F.n;$("famdesc").textContent=F.d;wheelSvg($("wheel2"),lv.f,true);
   $("lcards").innerHTML=F.L.map(r=>{const q=famRef(r);if(!q)return "";const T=TR()[q.ti],L=q.li<0?null:T.ladders[q.li];
     const he=L?lnHe(L.name):(SKILLNAME[T.name]||[T.name])[0],en=L?lnEn(L.name):(SKILLNAME[T.name]||["",""])[1];
@@ -2456,10 +2450,9 @@ $("rail").onclick=e=>{
       try{localStorage.setItem("cal-names",JSON.stringify(NAMES))}catch(_){}
       rnOpen=-1;}
     renderRail();return;}
-  const pb=e.target.closest(".passbtn");if(pb){const q=stepKey(+pb.dataset.i),P=prog();
-    if(pb.dataset.act==="do") P[q.key]=Math.max(P[q.key]>=0?P[q.key]:-1,q.k); else {P[q.key]=q.k-1;if(P[q.key]<0)delete P[q.key];}
-    saveProg(P);renderRail();return;}
-  const h=e.target.closest(".head, .lvb"), g=e.target.closest(".mv");
+  const pb=e.target.closest(".passbtn,.vbox");if(pb){const T=TR()[st.t],steps=st.l<0?T.ladders.flatMap(L=>L.steps):T.ladders[st.l].steps,x=steps[+pb.dataset.i],P=prog();
+    if(P[x.ex])delete P[x.ex];else P[x.ex]=1;saveProg(P);renderRail();return;}
+  const h=e.target.closest(".head"), g=e.target.closest(".mv");
   if(h && h.classList.contains("head") && hasSelection()) return;
   if(h){const i=+h.dataset.i;st.open=st.open===i?-1:i;rnOpen=-1;renderRail();}
   else if(g){st.open=+g.dataset.go;renderRail();}
