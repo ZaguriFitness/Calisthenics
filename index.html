@@ -601,7 +601,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261105150101";
+const BUILD="20261105150319";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2398,7 +2398,9 @@ function showLib(v){lv.v=v;saveLv();$("lhome").hidden=v!=="home";$("lfam").hidde
   if(v==="home"){hsel=-1;wheelSvg($("wheel"),-1);renderNext();TD.stop();}
   if(v==="fam"){renderFam();TD.stop();}
   if(v==="lad") renderRail();
-  window.scrollTo(0,0);}
+  // iPhone can ignore one scroll call while the page is still gliding: repeat it a few times
+  const top=()=>{window.scrollTo(0,0);const se=document.scrollingElement;if(se)se.scrollTop=0;};
+  top();requestAnimationFrame(top);setTimeout(top,80);setTimeout(top,300);}
 const pickFam=f=>{lv.f=f;showLib("fam");};
 // home wheel: first tap lights the slice, a second tap on the same slice opens it
 let hsel=-1;
