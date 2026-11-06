@@ -510,8 +510,18 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .plh{margin:4px 0 12px;font-size:1.35rem}
 .plcard{border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));margin-bottom:10px;overflow:hidden}
 .plcard.open{border-color:#FF8A1F}
-.plhead{font:inherit;width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px;border:0;background:transparent;color:var(--ink);cursor:pointer;text-align:start}
-.plhead b{font-size:1.08rem}.plhead span{color:#FF8A1F;font-size:.85rem;font-weight:700}
+.plhead{display:flex;align-items:center;gap:6px;padding:10px 10px 10px 8px}
+.plname{font:inherit;font-size:1.08rem;font-weight:800;flex:1;min-width:0;padding:8px 8px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink)}
+.plname:focus{outline:none;border-color:#FF8A1F;background:#0B0B0C}
+.pltog{font:inherit;flex:none;display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;border:0;background:transparent;color:#FF8A1F;font-weight:700;font-size:.85rem;cursor:pointer}
+.pltog i{font-style:normal;font-size:1rem}
+.plhead .pldel{flex:none;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid rgba(255,107,129,.5);background:transparent;color:#FF8A9B;font:inherit;font-weight:800;cursor:pointer}
+.plplus{display:grid;place-items:center;width:52px;height:52px;margin:4px 0 0 auto;padding:0;border-radius:50%;border:0;background:#FF8A1F;color:#111;font:inherit;font-size:1.9rem;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 6px 18px rgba(255,128,20,.35)}
+.plnewf{display:grid;gap:10px;padding:14px;border-radius:18px;border:1.5px dashed #FF8A1F;margin-top:4px}
+.plnewf input{font:inherit;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0B0B0C;color:var(--ink)}
+.plnewf div{display:flex;gap:8px}
+.plnewf button{font:inherit;font-weight:800;padding:10px 18px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
+.plnewf .plok{background:#FF8A1F;color:#111}
 .pllist{list-style:none;margin:0;padding:0 12px;display:grid;gap:8px;counter-reset:pl}
 .plrow{display:flex;align-items:center;gap:8px;padding:10px;border-radius:14px;background:#0B0B0C;counter-increment:pl}
 .plrow::before{content:counter(pl);flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(255,138,31,.16);color:#FF8A1F;font-weight:800;font-size:.85rem}
@@ -525,7 +535,6 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .plbtns{display:flex;flex-wrap:wrap;gap:8px;padding:12px}
 .plbtns button{font:inherit;font-weight:700;padding:9px 14px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
 .plbtns .pladdmore{background:#FF8A1F;color:#111}
-.plbtns .pldel{border-color:rgba(255,107,129,.6);color:#FF8A9B;margin-inline-start:auto}
 .rnbtn{font:inherit;font-size:.85rem;padding:6px 2px;margin:0 0 8px;border:0;background:none;color:var(--muted);cursor:pointer;text-decoration:underline}
 .rnform{display:grid;gap:8px;margin:0 0 12px;padding:12px;border-radius:14px;border:1px solid rgba(255,138,31,.45)}
 .rnform label{display:grid;gap:4px;font-size:.8rem;color:var(--muted)}
@@ -642,7 +651,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261105164714";
+const BUILD="20261106162014";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2514,7 +2523,7 @@ all();
 // {list:[{id,name,items:[exercise id]}]} kept on this phone
 const PL=(()=>{try{const j=JSON.parse(localStorage.getItem("cal-plans")||"null");if(j&&Array.isArray(j.list))return j;}catch(e){}return {list:[]};})();
 const plSave=()=>{try{localStorage.setItem("cal-plans",JSON.stringify(PL))}catch(e){}};
-let plPick=-1,plOpen=null;
+let plPick=-1,plOpen=null,plAdding=false;
 const plNew=name=>{const p={id:"p"+Date.now().toString(36),name:name||"התוכנית שלי",items:[]};PL.list.push(p);plSave();return p;};
 function planBox(s,i){
   const inP=PL.list.filter(p=>p.items.includes(s.ex));
@@ -2549,23 +2558,34 @@ function renderPlan(){
       return `<li class="plrow${P[ex]?" ok":""}"><button class="plgo" data-ex="${esc(ex)}"><b>${esc(s.he||s.en||s.ex)}</b><small dir="ltr">${esc(s.en||s.ex)}</small>
         <em>${esc(lnHe(q.L.l))} · רמה ${esc(s.lvn)} · ${esc(s.pass)}</em></button>
         <span class="plctl"><button class="plup" data-p="${p.id}" data-k="${k}" ${k?"":"disabled"} aria-label="למעלה">↑</button><button class="pldn" data-p="${p.id}" data-k="${k}" ${k<p.items.length-1?"":"disabled"} aria-label="למטה">↓</button><button class="plx" data-p="${p.id}" data-k="${k}" aria-label="הוצאה">✕</button></span></li>`;}).join("");
-    return `<div class="plcard${open?" open":""}"><button class="plhead" data-p="${p.id}"><b>${esc(p.name)}</b><span>${p.items.length} תרגילים</span></button>
+    return `<div class="plcard${open?" open":""}"><div class="plhead">
+        <input class="plname" data-p="${p.id}" value="${esc(p.name)}" aria-label="שם התוכנית (אפשר לשנות)" enterkeyhint="done" autocomplete="off">
+        <button class="pltog" data-p="${p.id}" aria-expanded="${open}"><span>${p.items.length} תרגילים</span><i>${open?"▴":"▾"}</i></button>
+        <button class="pldel" data-p="${p.id}" aria-label="מחיקת התוכנית">✕</button></div>
       ${open?`<ol class="pllist">${rows||`<li class="plempty">עוד אין תרגילים. בוחרים תרגיל בסולמות ולוחצים "+ הוספה לתוכנית האימון".</li>`}</ol>
-        <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button><button class="plren" data-p="${p.id}">✎ שינוי שם</button><button class="pldel" data-p="${p.id}">מחיקת התוכנית</button></div>`:""}</div>`;};
+        <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button></div>`:""}</div>`;};
   $("plbody").innerHTML=`<h2 class="plh">תוכניות האימון שלי</h2>
     ${PL.list.length?PL.list.map(card).join(""):`<p class="empty">כאן בונים תוכנית אימון אישית. פותחים תרגיל בסולמות, לוחצים "+ הוספה לתוכנית האימון", והוא נכנס לכאן.</p>`}
-    <form id="plnewf" class="addrow"><input id="plnewn" placeholder="שם תוכנית חדשה" autocomplete="off" aria-label="שם תוכנית חדשה"><button>יצירה</button></form>`;}
+    ${plAdding?`<form id="plnewf" class="plnewf"><input id="plnewn" placeholder="שם התוכנית החדשה" autocomplete="off" aria-label="שם התוכנית החדשה" enterkeyhint="done">
+      <div><button class="plok">יצירה</button><button type="button" class="plnewx">ביטול</button></div></form>`
+      :`<button class="plplus" aria-label="תוכנית חדשה">+</button>`}`;
+  if(plAdding){const i=$("plnewn");if(i)i.focus();}}
 $("plbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;const p=PL.list.find(q=>q.id===b.dataset.p);
-  if(b.classList.contains("plhead")){plOpen=plOpen===p.id?null:p.id;}
+  if(b.classList.contains("pltog")){plOpen=plOpen===p.id?null:p.id;}
+  else if(b.classList.contains("plplus")){plAdding=true;renderPlan();return;}
+  else if(b.classList.contains("plnewx")){plAdding=false;renderPlan();return;}
   else if(b.classList.contains("plgo")){const q=stepByEx(b.dataset.ex);if(q)openStep(q.L.key,q.i);return;}
   else if(b.classList.contains("pladdmore")){lv.v="home";show("lib");planToast("בוחרים תרגיל ולוחצים + הוספה לתוכנית האימון");return;}
-  else if(p&&b.classList.contains("plren")){const n=prompt("שם התוכנית",p.name);if(n&&n.trim())p.name=n.trim();}
   else if(p&&b.classList.contains("pldel")){if(!confirm(`למחוק את "${p.name}"?`))return;PL.list=PL.list.filter(q=>q!==p);}
   else if(p&&(b.classList.contains("plup")||b.classList.contains("pldn"))){const k=+b.dataset.k,j=k+(b.classList.contains("plup")?-1:1);[p.items[k],p.items[j]]=[p.items[j],p.items[k]];}
   else if(p&&b.classList.contains("plx")){p.items.splice(+b.dataset.k,1);}
   else return;
   plSave();renderPlan();};
-$("plbody").onsubmit=e=>{e.preventDefault();const n=$("plnewn").value.trim();const p=plNew(n||("תוכנית "+(PL.list.length+1)));plOpen=p.id;renderPlan();};
+$("plbody").onsubmit=e=>{e.preventDefault();const n=$("plnewn").value.trim();const p=plNew(n||("תוכנית "+(PL.list.length+1)));plOpen=p.id;plAdding=false;renderPlan();};
+// renaming: the plan's name is an input; it is saved when the field is left (or Enter)
+$("plbody").addEventListener("change",e=>{const i=e.target.closest(".plname");if(!i)return;const p=PL.list.find(q=>q.id===i.dataset.p);
+  const n=i.value.trim();if(p&&n){p.name=n;plSave();}else if(p)i.value=p.name;});
+$("plbody").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.closest(".plname")){e.preventDefault();e.target.blur();}});
 const LADS=[];
 DATA.forEach((c,ci)=>c.tracks.forEach((t,ti)=>t.ladders.forEach((l,li)=>LADS.push({key:c.name+" › "+t.name+" › "+l.name,ci,ti,li,t:t.name,l:l.name,steps:l.steps}))));
 const LAD=k=>LADS.find(x=>x.key===k);
