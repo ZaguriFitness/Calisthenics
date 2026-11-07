@@ -496,6 +496,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.step .name .sep{display:none}.step .name .he{margin-inline-end:10px}
+.step .name .en{display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .plbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
 .pladd{font:inherit;font-weight:800;width:100%;padding:12px 16px;border-radius:999px;border:1.5px dashed #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
 .pltag{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:999px;background:rgba(255,138,31,.14);color:#FF8A1F;font-weight:700;font-size:.85rem}
@@ -651,7 +653,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261106162014";
+const BUILD="20261107174029";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2378,14 +2380,14 @@ function renderRail(){
       <button class="vbox" data-i="${i}" aria-pressed="${dn}" aria-label="${dn?"הצלחתי – לחיצה מבטלת":"סימון: הצלחתי את התרגיל"}">${dn?"✓":""}</button>
       <div class="card">
         <div class="head" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}">
-          <div class="top"><span class="name"><bdi class="en">${esc(s.en||s.ex)}</bdi>${s.he?`<span class="sep"> | </span><bdi class="he">${esc(s.he)}</bdi>`:""}</span>
+          <div class="top"><span class="name">${s.he?`<bdi class="he">${esc(s.he)}</bdi><span class="sep"> | </span>`:""}<bdi class="en" dir="ltr">${esc(s.en||s.ex)}</bdi></span>
             <span class="lvl">רמה ${s.lvn}<span class="dots">${dots(s.lvl)}</span>${s.ring?RTAG:""}</span></div>
           <p class="one">${esc(firstSentence(s.how))}</p>
         </div>
         ${open?`<div class="body">
           ${ILLV.has(s.ex,st.c===1)?`<div class="td"><div class="tdbar"><span class="tdmsg">טוען תלת-ממד…</span><button class="tdplay" hidden>⏸ עצירה</button></div></div>`:""}
           <p class="how">${esc(s.how)}</p>
-          ${(s.req||[]).length?`<div class="box req"><b>לפני השלב הזה צריך לשלוט ב:</b>${s.req.map(r=>{const q=reqStep(r);return q?`<button class="reqlink" data-rk="${esc(r.k)}" data-rx="${q.i}">${esc(q.s.en||q.s.ex)} | ${esc(q.s.he||"")}<small>${esc(q.lad)} · שלב ${q.i+1} · ${esc(q.s.pass)}</small></button>`:""}).join("")}</div>`:""}
+          ${(s.req||[]).length?`<div class="box req"><b>לפני השלב הזה צריך לשלוט ב:</b>${s.req.map(r=>{const q=reqStep(r);return q?`<button class="reqlink" data-rk="${esc(r.k)}" data-rx="${q.i}">${q.s.he?esc(q.s.he)+" | ":""}<bdi>${esc(q.s.en||q.s.ex)}</bdi><small>${esc(q.lad)} · שלב ${q.i+1} · ${esc(q.s.pass)}</small></button>`:""}).join("")}</div>`:""}
           <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(s.pass)}</div>
           ${dn?`<div class="passrow on"><span>✓ סימנת שהצלחת את התרגיל</span><button class="passbtn" data-i="${i}">ביטול</button></div>`
               :`<div class="passrow"><button class="passbtn go" data-i="${i}">✓ הצלחתי את התרגיל</button></div>`}
@@ -2644,7 +2646,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const trById=id=>CO.trainees.find(t=>t.id===id);
 const lvIdx=(tr,k)=>{const L=LAD(k),n=tr.lv&&tr.lv[k];return L&&n?L.steps.findIndex(s=>s.ex===n):-1};
 const exName=s=>s.en||s.ex;
-const exFull=s=>s.he?`${exName(s)} | ${s.he}`:exName(s);
+const exFull=s=>s.he?`${s.he} | ${exName(s)}`:exName(s);
 const exByKey=(k,ex)=>{const L=LAD(k),s=L&&L.steps.find(x=>x.ex===ex);return s?exFull(s):ex};
 const stepOpts=(L,i)=>`<option value="">— עוד לא נבדק —</option>`+L.steps.map((s,j)=>`<option value="${j}"${j===i?" selected":""}>${j+1}. ${esc(exName(s))}</option>`).join("");
 const ladLabel=L=>`${esc(lnHe(L.l))}<small>${esc(L.t)}${L.ci===1?" · טבעות":""}</small>`;
@@ -2682,7 +2684,7 @@ $("q").oninput=()=>{
   const out=[];
   for(const L of LADS) L.steps.forEach((s,i)=>{if(out.length<25&&[s.ex,s.en,s.he].some(x=>x&&x.toLowerCase().includes(q))) out.push({L,s,i});});
   $("qres").hidden=false;
-  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b><bdi>${esc(exName(o.s))}</bdi>${o.s.he?`<span class="sep"> | </span><bdi class="he">${esc(o.s.he)}</bdi>`:""}${o.s.ring?RTAG:""}</b><small>${esc(lnHe(o.L.l))} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
+  $("qres").innerHTML=out.length?out.map(o=>`<li><button data-k="${esc(o.L.key)}" data-x="${o.i}"><b>${o.s.he?`<bdi class="he">${esc(o.s.he)}</bdi><span class="sep"> | </span>`:""}<bdi>${esc(exName(o.s))}</bdi>${o.s.ring?RTAG:""}</b><small>${esc(lnHe(o.L.l))} · שלב ${o.i+1}${o.L.ci===1?" · טבעות":""}</small></button></li>`).join("")
     :`<li class="none">לא נמצא תרגיל בשם הזה</li>`;
 };
 $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$("q").value="";$("qres").innerHTML="";$("qres").hidden=true;openStep(b.dataset.k,+b.dataset.x);};
@@ -2886,7 +2888,7 @@ function openCard(p,bi,ci){
   const ring=!!(c.k&&LAD(c.k)&&LAD(c.k).ci===1);
   let h=`<p class="mcap">${fmt(c.cap)}</p>`;
   if(st){
-    h+=`<h3 class="mtitle"><bdi>${esc(exName(st))}</bdi>${st.he?` | ${esc(st.he)}`:""}${st.ring?RTAG:""}</h3>
+    h+=`<h3 class="mtitle">${st.he?`<bdi>${esc(st.he)}</bdi> | `:""}<bdi>${esc(exName(st))}</bdi>${st.ring?RTAG:""}</h3>
       ${ILLV.has(st.ex,ring)?`<div class="td"><div class="tdbar"><span class="tdmsg">טוען תלת-ממד…</span><button class="tdplay" hidden>⏸ עצירה</button></div></div>`:""}
       <p class="how">${esc(st.how)}</p>
       <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(st.pass)}</div>
