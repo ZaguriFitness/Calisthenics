@@ -653,7 +653,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261107182011";
+const BUILD="20261107182823";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1871,7 +1871,7 @@ function prepKeys(keys,cfg){
         // So away from the hang the side is taken from that turn, relative to the grip chosen on the hang (overhand or
         // underhand), and only a forearm that points sideways falls back to "keep the previous side"
         const rot=new T.Vector3(0,0,1).multiplyScalar(fa.dot(upT)).addScaledVector(upT,-fa.dot(new T.Vector3(0,0,1)));
-        if(i!==a0&&anchorRel!==0&&rot.length()>0.5) sg=n1.dot(rot)*anchorRel>=0?1:-1;
+        if(i!==a0&&anchorRel!==0&&rot.length()>0.5&&upT.y>0.6) sg=n1.dot(rot)*anchorRel>=0?1:-1;
         else if(prev) sg=n1w.dot(prev)>=0?1:-1;
         else{const Wf=new T.Quaternion().setFromRotationMatrix(new T.Matrix4());   // forearm frame from the bend plane
           const h=v(k["_harm"+s]),fx=a=>{const x=a[0].clone().normalize(),y=a[1].clone().addScaledVector(x,-a[1].dot(x)).normalize();return new T.Matrix4().makeBasis(x,y,new T.Vector3().crossVectors(x,y));};
@@ -1880,7 +1880,7 @@ function prepKeys(keys,cfg){
           sg=(n1.dot(N0)+0.5*n1.dot(pref))>=0?1:-1;
           // on top of the bar (forearm pointing down) the palm faces down onto it
           if(fa.dot(upT)<-0.3) sg=n1.dot(fa)>=0?1:-1;}
-        prev=n1w.multiplyScalar(sg);if(i===a0){anchor=prev.clone();const r=n1.clone().multiplyScalar(sg).dot(rot);anchorRel=rot.length()>0.5?(r>=0?1:-1):0;}}
+        prev=n1w.multiplyScalar(sg);if(i===a0){anchor=prev.clone();const r=n1.clone().multiplyScalar(sg).dot(rot);anchorRel=rot.length()>0.5&&upT.y>0.6?(r>=0?1:-1):0;}}
       k["_g"+s]=prev&&c&&c.t==="bar"?[prev.x,prev.y,prev.z]:(prev?[prev.x,prev.y,prev.z]:[0,0,0]);});
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
@@ -1969,7 +1969,7 @@ function poseModel(Mo,k,cfg){
             const n1=new T.Vector3().crossVectors(F,ax).normalize(),g=v(k["_g"+s]||[0,0,0]);
             N=n1.dot(g.lengthSq()>0.01?g:fwd.clone().sub(up))>=0?n1:n1.negate();}
           N.addScaledVector(F,-N.dot(F));if(N.lengthSq()<1e-4)N=fwd.clone().addScaledVector(F,-fwd.dot(F));N.normalize();
-          t.Qc=map(v(HAND_F[s]),v(HAND_N[s]),F,N);t.F=F;t.N=N;
+          t.Qc=map(v(HAND_F[s]),v(HAND_N[s]),F,N);t.F=F;t.N=N;if(window.__palm&&c.t==="bar"){const r=fwd.clone().multiplyScalar(fa.dot(up)).addScaledVector(up,-fa.dot(fwd));window.__palm.push([s,r.length()>0.5?N.dot(r.normalize()):null,fa.dot(up)]);}
           const pc=v(c.p);
           if(c.t==="flat") pc.y+=c.bar?1.6:1.8; else if(c.t==="wall") pc.addScaledVector(v(c.n),1.8);
           else if(c.t==="ring") pc.addScaledVector(N,-3.2).addScaledVector(F,-2.2);
