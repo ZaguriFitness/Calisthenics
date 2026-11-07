@@ -653,7 +653,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261107174450";
+const BUILD="20261107181819";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1853,7 +1853,15 @@ function prepKeys(keys,cfg){
   // so the hand never flips over while the forearm turns around the bar (muscle-up transition)
   const v=a=>new T.Vector3(a[0],a[1],a[2]);
   for(const s of ["L","R"]){let prev=null;const rest=limbRest(REST.R,s,LIMBS[0]);
-    keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K],iq=fr[i].Qt.clone().invert();
+    // the palm side is decided on the key where the hand clearly hangs from the bar (forearm most upward), then carried
+    // forward and backward from it, so a move that starts on top of the bar (muscle-up negative) still ends hanging
+    // with a normal overhand grip instead of the supporting hand turned upside down
+    let a0=0,best=-2;keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];if(!(c&&c.t==="bar"))return;
+      const iq=fr[i].Qt.clone().invert(),fa=v(k["wr"+K]).sub(v(k["el"+K])).applyQuaternion(iq).normalize(),u=fa.dot(new T.Vector3(0,1,0).applyQuaternion(iq));
+      if(u>best+0.05){best=u;a0=i;}});
+    const order=[...keys.keys()].slice(a0).concat([-1],[...keys.keys()].slice(0,a0).reverse());let anchor=null;
+    order.forEach(i=>{if(i<0){prev=anchor;return;}const k=keys[i];
+      const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K],iq=fr[i].Qt.clone().invert();
       if(c&&c.t==="bar"){const fa=v(k["wr"+K]).sub(v(k["el"+K])).applyQuaternion(iq).normalize(),ax=v(c.ax).applyQuaternion(iq).normalize();
         const upT=new T.Vector3(0,1,0).applyQuaternion(iq),F=barFingers(fa,ax,new T.Vector3(0,0,1),upT,new T.Vector3(s==="L"?1:-1,0,0)),n1=new T.Vector3().crossVectors(F,ax).normalize();
         // compared and stored in world space: the hand stays on the bar while the body turns around it (skin the cat)
@@ -1865,8 +1873,8 @@ function prepKeys(keys,cfg){
           sg=(n1.dot(N0)+0.5*n1.dot(pref))>=0?1:-1;
           // on top of the bar (forearm pointing down) the palm faces down onto it
           if(fa.dot(upT)<-0.3) sg=n1.dot(fa)>=0?1:-1;}
-        prev=n1w.multiplyScalar(sg);}
-      k["_g"+s]=prev?[prev.x,prev.y,prev.z]:[0,0,0];});
+        prev=n1w.multiplyScalar(sg);if(i===a0)anchor=prev.clone();}
+      k["_g"+s]=prev&&c&&c.t==="bar"?[prev.x,prev.y,prev.z]:(prev?[prev.x,prev.y,prev.z]:[0,0,0]);});
     // flat hand: fingers decided where the hand is on the floor, carried to the keys around it
     keys.forEach((k,i)=>{const K=s==="L"?fr[i].KL:fr[i].KR,c=k._c&&k._c["h"+K];k["_f"+s]=null;
       if(c&&c.t==="flat"){const f=fr[i],H=v(k["_harm"+s]).applyQuaternion(f.Qt).normalize(),fa=v(k["wr"+K]).sub(v(k["el"+K])).normalize();
