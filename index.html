@@ -653,7 +653,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261107174029";
+const BUILD="20261107174450";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1538,14 +1538,21 @@ function to3dPts(fr){
     if(e>0&&J.c2b){const dz={neck:-21,head:-26,shL:-14,shR:-14,pelv:-3,hpL:-3,hpR:-3,knL:3,knR:3,ftL:9,ftR:9,elL:2,elR:2};
       for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
     else if(e>0){const dz={neck:-21+6*hb,head:-35+17*hb,shL:-14,shR:-14,pelv:-6,hpL:-6,hpR:-6,knL:0,knR:0,ftL:7,ftR:7,elL:2,elR:2};
-      for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+dz[n]*e];}
+      // pulling higher than the chin (bar toward the lower chest / belly, the start of a muscle-up): the head comes
+      // forward over the bar again (eyes forward, not at the sky), the chest stays against the bar and the hips stay
+      // behind it, legs a little forward
+      const g=Math.max(0,Math.min(1,(-12-sy)/14)),gs=g*g*(3-2*g),hi={neck:-6,head:-2,shL:-13,shR:-13,pelv:-15,hpL:-15,hpR:-15,knL:-6,knR:-6,ftL:4,ftR:4,elL:0,elR:0};
+      for(const n in dz) k[n]=[k[n][0],k[n][1],k[n][2]+(dz[n]+(hi[n]-dz[n])*gs)*e];}
     // bent arms: the elbow found in 3D, coming down and out to the side (a little in front of the body), so it
     // stays away from the ribs at the top of a pull-up instead of folding in front of the chest
     // (only while the shoulders are below or near the bar; higher, toward the muscle-up, the elbows go back)
-    if(sy>-12) for(const s of ["L","R"]){const S=k["sh"+s],W=k["wr"+s],d=[W[0]-S[0],W[1]-S[1],W[2]-S[2]],L=Math.hypot(...d);
+    // above the chin the elbows swing back behind the body (close to the sides, not out like wings): the upper arm
+    // goes back and down while the forearm stays over the bar; the wrist turns over the bar
+    {const g=Math.max(0,Math.min(1,(-6-sy)/18)),gs=g*g*(3-2*g);
+    for(const s of ["L","R"]){const S=k["sh"+s],W=k["wr"+s],d=[W[0]-S[0],W[1]-S[1],W[2]-S[2]],L=Math.hypot(...d);
       if(L>0.93*54||L<1e-3) continue;const u=d.map(x=>x/L),D=Math.min(L,53.9),a=(28*28-26*26+D*D)/(2*D),h=Math.sqrt(Math.max(0,28*28-a*a));
-      const pole=J.c2b?[(s==="L"?-1:1)*0.6,-1,-0.9]:[s==="L"?-1:1,-1,0],pd=pole.map((x,i)=>x-u[i]*(pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2])),pl=Math.hypot(...pd)||1;
-      k["el"+s]=S.map((x,i)=>x+u[i]*a+pd[i]/pl*h);}
+      const sd=s==="L"?-1:1,p0=J.c2b?[sd*0.6,-1,-0.9]:[sd,-1,0],p1=[sd*0.3,-0.35,-1],pole=p0.map((x,i)=>x+(p1[i]-x)*gs),pd=pole.map((x,i)=>x-u[i]*(pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2])),pl=Math.hypot(...pd)||1;
+      k["el"+s]=S.map((x,i)=>x+u[i]*a+pd[i]/pl*h);}}
   } else if(fr.lie){const J=fr.J;
     // lying on the side: the drawing plane is the body's frontal plane, so left/right split inside the plane
     const dx=J.S[0]-J.H[0],dy=J.S[1]-J.H[1],d=Math.hypot(dx,dy)||1,n=[-dy/d,dx/d];
