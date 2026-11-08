@@ -654,7 +654,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261108172216";
+const BUILD="20261108175341";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -949,7 +949,7 @@ const INVT=(e)=>X({H:[108,44],t:94.6,A:[100,40],th:-120,sh:-20,pr:[bar([100,40])
 const INV=(e)=>X({H:[108,44],t:94.6,A:[100,40],th:-90,sh:-90,pr:[bar([100,40])]},e);
 const GER=(e)=>X({H:[119.4,137.8],t:-95,A:[100,40],th:95,sh:95,pr:[bar([100,40])]},e);
 const PLW=[100,184];
-const PLS=add(PLW,54,-70);
+const PLS=add(PLW,54,-55);   // shoulders well in front of the hands: a small angle between arm and body (planche lean)
 const PLAN=(t,legs)=>X({H:add(PLS,-50,t),t,A:PLW,g:1,fout:true,pr:[PAR(100,184)]},legs);
 const N90S=[128,158];   // shoulder of the 90° hold: elbow right above the hand, upper arm level
 const N90=e=>X({H:add(N90S,-50,2),t:2,A:PLW,eb:[-1,-1],L:add(add(N90S,-50,2),73,182),g:1,fout:true,pr:[PAR(100,184)]},e);
@@ -1265,8 +1265,8 @@ const ILL={
  "Handstand to 90° Negative":[HS(PLW,{pr:[PAR(100,184)],label:"עמידת ידיים"}),N90MID({label:"ירידה איטית"}),N90({label:"החזקת 90°"})],
  "90 Degree Push-Up":[HS(PLW,{pr:[PAR(100,184)],label:"עמידת ידיים"}),N90MID({label:"ירידה עם גוף ישר"}),N90({label:"90°: מרפקים בזווית ישרה"}),N90MID({label:"דחיפה חזרה למעלה"})],
  // band-assisted holds: a loop around the hips tied to a bar above (or the bar itself); bands go strong -> medium -> light
- "Band-Assisted Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),L2:add(add(PLS,-50,5),73,182),post:STRAD,pr:[PAR(100,184),bar([69,24]),{k:"band",from:[69,24],to:"H"}],label:"החזקה עם גומייה"})],
- "Band-Assisted Full Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),pr:[PAR(100,184),bar([69,24]),{k:"band",from:[69,24],to:"H"}],label:"החזקה עם גומייה"})],
+ "Band-Assisted Straddle Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),L2:add(add(PLS,-50,5),73,182),post:STRAD,pr:[PAR(100,184),bar([81,24]),{k:"band",from:[81,24],to:"H"}],label:"החזקה עם גומייה"})],
+ "Band-Assisted Full Planche":[PLAN(5,{L:add(add(PLS,-50,5),73,182),pr:[PAR(100,184),bar([81,24]),{k:"band",from:[81,24],to:"H"}],label:"החזקה עם גומייה"})],
  "Band-Assisted Straddle Front Lever":[FL(X(LEG_FULL([50,92]),{L2:add([50,92],73,172)}),{pr:[bar(FLB),{k:"band",from:FLB,to:"H"}],post:STRAD,label:"החזקה עם גומייה"})],
  "Band-Assisted Full Front Lever":[FL(LEG_FULL([50,92]),{pr:[bar(FLB),{k:"band",from:FLB,to:"H"}],label:"החזקה עם גומייה"})],
  "Band-Assisted Back Lever":[BL(LEG_FULL([95,72]),{pr:[bar(BLB),{k:"band",from:BLB,to:"H"}],label:"החזקה עם גומייה"})],
