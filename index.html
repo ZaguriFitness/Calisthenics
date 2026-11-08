@@ -654,7 +654,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261108213515";
+const BUILD="20261108213555";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2424,8 +2424,6 @@ function renderRail(){
           <p class="how">${esc(s.how)}</p>
           ${(s.req||[]).length?`<div class="box req"><b>לפני השלב הזה צריך לשלוט ב:</b>${s.req.map(r=>{const q=reqStep(r);return q?`<button class="reqlink" data-rk="${esc(r.k)}" data-rx="${q.i}">${q.s.he?esc(q.s.he)+" | ":""}<bdi>${esc(q.s.en||q.s.ex)}</bdi><small>${esc(q.lad)} · שלב ${q.i+1} · ${esc(q.s.pass)}</small></button>`:""}).join("")}</div>`:""}
           <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(s.pass)}</div>
-          ${dn?`<div class="passrow on"><span>✓ סימנת שהצלחת את התרגיל</span><button class="passbtn" data-i="${i}">ביטול</button></div>`
-              :`<div class="passrow"><button class="passbtn go" data-i="${i}">✓ הצלחתי את התרגיל</button></div>`}
           ${planBox(s,i)}
           ${rnOpen===i?`<div class="rnform"><label>שם בעברית<input class="rnhe" value="${esc(s.he||"")}"></label>
               <label>שם באנגלית<input class="rnen" dir="ltr" value="${esc(s.en||s.ex)}"></label>
