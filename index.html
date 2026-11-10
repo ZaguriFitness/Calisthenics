@@ -654,7 +654,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261108213555";
+const BUILD="20261110134603";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2438,9 +2438,7 @@ function renderRail(){
             <div class="box"><b>טעויות נפוצות</b>${esc(s.mist)}</div>
           </div>
           <div class="nav">
-            <button class="mv" data-go="${i-1}" ${i===0?"disabled":""}>→ שלב קודם</button>
             <a href="${esc(s.img)}" target="_blank" rel="noopener">תמונות של התרגיל ↗</a>
-            <button class="mv" data-go="${i+1}" ${i===lad.steps.length-1?"disabled":""}>שלב הבא ←</button>
           </div>
         </div>`:""}
       </div></li>`}).join("");
