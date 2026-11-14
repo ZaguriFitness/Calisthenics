@@ -496,6 +496,54 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.plrow{padding:0!important;background:transparent!important}
+.plrow::before{display:none!important}
+.pledit,.pmex,.prgo{font:inherit;width:100%;display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;border:0;background:#0B0B0C;color:var(--ink);cursor:pointer;text-align:start}
+.pledit .lthumb,.pmex .lthumb,.prgo .lthumb{width:58px;height:58px;border-radius:12px;background:#17171A}
+.pltxt{flex:1;min-width:0;display:block}
+.pltxt b{display:block;font-size:1rem}.pltxt small{display:block;color:var(--muted);font-size:.72rem}
+.pltxt em{display:block;font-style:normal;color:#FF8A1F;font-size:.8rem;font-weight:700;margin-top:3px}
+.plrow.ok .pledit{box-shadow:inset 0 0 0 1.5px #FF8A1F}
+.plstart{background:#FF8A1F!important;color:#111!important;border-color:#FF8A1F!important;flex:1}
+.plmod{align-items:flex-end}
+.plmcard{display:grid;gap:12px}
+.pmh{display:flex;align-items:center;justify-content:space-between}
+.pmh b{font-size:1.1rem}
+.pmh button{font:inherit;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:#17171A;color:var(--ink);cursor:pointer}
+.pmh .pmdel{color:#FF8A9B}
+.pmex{background:#17171A}
+.pmu{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+.pmu button{font:inherit;font-weight:700;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.pmu button.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.pmt{margin:4px 0 0;font-size:1rem;color:var(--muted)}
+.pmsets{display:grid;gap:8px;padding:12px;border-radius:16px;background:#17171A}
+.pmrow{display:grid;grid-template-columns:34px 34px 1fr 1fr;gap:10px;align-items:center}
+.pmhd span{font-size:.75rem;color:var(--muted);text-align:center;font-weight:700}
+.pmrow i{font-style:normal;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;font-size:.85rem}
+.pmrm{font:inherit;width:30px;height:30px;border-radius:50%;border:0;background:#E5484D;color:#fff;font-weight:900;font-size:1.1rem;line-height:1;cursor:pointer;padding:0}
+.pmrm:disabled{opacity:.3}
+.pmrow input{font:inherit;font-size:18px;font-weight:800;text-align:center;width:100%;min-width:0;padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:#0B0B0C;color:var(--ink)}
+.pmadd{font:inherit;font-weight:800;padding:11px;border-radius:12px;border:1.5px dashed #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
+.pmmove{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+.pmmove button{font:inherit;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.pmmove button:disabled{opacity:.3}
+.pmsave{font:inherit;font-weight:900;font-size:1.05rem;padding:15px;border-radius:16px;border:0;background:#FF8A1F;color:#111;cursor:pointer}
+.plrun{display:grid;gap:12px}
+.prh{display:flex;align-items:flex-end;justify-content:space-between}
+.prh small{display:block;color:var(--muted);font-size:.8rem}.prh b{font-size:1.3rem}
+.prc{color:#FF8A1F;font-weight:800}
+.prbar{height:8px;border-radius:999px;background:#17171A;overflow:hidden}.prbar i{display:block;height:100%;background:#FF8A1F;border-radius:999px;transition:width .3s}
+.prex{display:grid;gap:8px;padding:10px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface))}
+.prex.ok{border-color:#FF8A1F}
+.prgo{padding:0;background:transparent}
+.prsets{display:flex;flex-wrap:wrap;gap:8px}
+.prset{font:inherit;min-width:64px;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:#0B0B0C;color:var(--ink);cursor:pointer;display:grid;justify-items:center;line-height:1.15}
+.prset small{font-size:.68rem;color:var(--muted)}.prset b{font-size:1.05rem}
+.prset.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}.prset.on small{color:#111}
+.prbtns{display:flex;gap:10px}
+.prend{flex:1;font:inherit;font-weight:900;padding:15px;border-radius:16px;border:0;background:#FF8A1F;color:#111;cursor:pointer}
+.prquit{font:inherit;font-weight:700;padding:15px 18px;border-radius:16px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+
 .bandnote{display:block;margin-top:3px;font-size:.74rem;color:#FF8A1F;font-weight:600}
 .step .name .sep{display:none}.step .name .he{margin-inline-end:10px}
 .step .name .en{display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
@@ -654,7 +702,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261110134603";
+const BUILD="20261114173422";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2556,12 +2604,18 @@ all();
 // {list:[{id,name,items:[exercise id]}]} kept on this phone
 const PL=(()=>{try{const j=JSON.parse(localStorage.getItem("cal-plans")||"null");if(j&&Array.isArray(j.list))return j;}catch(e){}return {list:[]};})();
 const plSave=()=>{try{localStorage.setItem("cal-plans",JSON.stringify(PL))}catch(e){}};
+// a plan item: {ex, u:"r"|"s" (reps or seconds), sets:[{r,w}]} (w = added weight in kg); older plans held bare exercise ids
+const plDefault=ex=>{let st=null;for(const C of DATA)for(const T of C.tracks)for(const L of T.ladders)for(const x of L.steps)if(x.ex===ex)st=x;
+  const pass=(st&&st.pass)||"",m=pass.match(/(\d+)\s*[×x]\s*(\d+)/),n=m?Math.min(8,+m[1]):3,r=m?+m[2]:8;
+  return {ex,u:/שנ/.test(pass)?"s":"r",sets:Array.from({length:n},()=>({r,w:0}))};};
+PL.list.forEach(p=>{p.items=(p.items||[]).map(it=>typeof it==="string"?plDefault(it):it);});
+const plHas=(p,ex)=>p.items.some(it=>it.ex===ex);
 let plPick=-1,plOpen=null,plAdding=false;
 const plNew=name=>{const p={id:"p"+Date.now().toString(36),name:name||"התוכנית שלי",items:[]};PL.list.push(p);plSave();return p;};
 function planBox(s,i){
-  const inP=PL.list.filter(p=>p.items.includes(s.ex));
+  const inP=PL.list.filter(p=>plHas(p,s.ex));
   const tags=inP.map(p=>`<span class="pltag">✓ בתוכנית: ${esc(p.name)} <button class="plrm" data-i="${i}" data-p="${p.id}" aria-label="הוצאה מהתוכנית">✕</button></span>`).join("");
-  const rest=PL.list.filter(p=>!p.items.includes(s.ex));
+  const rest=PL.list.filter(p=>!plHas(p,s.ex));
   let act="";
   if(plPick===i) act=`<div class="plchoose"><b>לאיזו תוכנית?</b>${rest.map(p=>`<button class="plpick" data-i="${i}" data-p="${p.id}">${esc(p.name)}</button>`).join("")}<button class="plpick" data-i="${i}" data-p="new">+ תוכנית חדשה</button><button class="plcancel">ביטול</button></div>`;
   else if(rest.length||!PL.list.length) act=`<button class="pladd" data-i="${i}">+ הוספה לתוכנית האימון</button>`;
@@ -2570,15 +2624,15 @@ function planToast(t){let el=$("pltoast");if(!el){el=document.createElement("div
   el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),1800);}
 function planClick(b){
   const T=TR()[st.t],steps=st.l<0?T.ladders.flatMap(L=>L.steps):T.ladders[st.l].steps,x=steps[+b.dataset.i];
-  const addTo=p=>{if(!p.items.includes(x.ex))p.items.push(x.ex);plSave();planToast(`נוסף לתוכנית: ${p.name}`);};
-  if(b.classList.contains("pladd")){const rest=PL.list.filter(p=>!p.items.includes(x.ex));
+  const addTo=p=>{if(!plHas(p,x.ex))p.items.push(plDefault(x.ex));plSave();planToast(`נוסף לתוכנית: ${p.name}`);};
+  if(b.classList.contains("pladd")){const rest=PL.list.filter(p=>!plHas(p,x.ex));
     if(!PL.list.length) addTo(plNew());
     else if(PL.list.length===1&&rest.length===1) addTo(rest[0]);
     else plPick=+b.dataset.i;}
   else if(b.classList.contains("plpick")){let p=PL.list.find(q=>q.id===b.dataset.p);
     if(b.dataset.p==="new"){const n=prompt("שם התוכנית החדשה","תוכנית "+(PL.list.length+1));if(n===null)return;p=plNew(n.trim()||("תוכנית "+(PL.list.length+1)));}
     if(p)addTo(p);plPick=-1;}
-  else if(b.classList.contains("plrm")){const p=PL.list.find(q=>q.id===b.dataset.p);if(p){p.items=p.items.filter(e=>e!==x.ex);plSave();}}
+  else if(b.classList.contains("plrm")){const p=PL.list.find(q=>q.id===b.dataset.p);if(p){p.items=p.items.filter(it=>it.ex!==x.ex);plSave();}}
   else plPick=-1;
   renderRail();}
 const stepByEx=ex=>{for(const L of LADS){const i=L.steps.findIndex(s=>s.ex===ex);if(i>=0)return {L,i,s:L.steps[i]};}return null;};
@@ -2587,16 +2641,16 @@ function renderPlan(){
   if(!plOpen&&PL.list.length===1)plOpen=PL.list[0].id;
   const P=prog();
   const card=p=>{const open=p.id===plOpen;
-    const rows=p.items.map((ex,k)=>{const q=stepByEx(ex);if(!q)return "";const s=q.s;
-      return `<li class="plrow${P[ex]?" ok":""}"><button class="plgo" data-ex="${esc(ex)}"><b>${esc(s.he||s.en||s.ex)}</b><small dir="ltr">${esc(s.en||s.ex)}</small>
-        <em>${esc(lnHe(q.L.l))} · רמה ${esc(s.lvn)} · ${esc(s.pass)}</em></button>
-        <span class="plctl"><button class="plup" data-p="${p.id}" data-k="${k}" ${k?"":"disabled"} aria-label="למעלה">↑</button><button class="pldn" data-p="${p.id}" data-k="${k}" ${k<p.items.length-1?"":"disabled"} aria-label="למטה">↓</button><button class="plx" data-p="${p.id}" data-k="${k}" aria-label="הוצאה">✕</button></span></li>`;}).join("");
+    const rows=p.items.map((it,k)=>{const q=stepByEx(it.ex);if(!q)return "";const s=q.s;
+      return `<li class="plrow${P[it.ex]?" ok":""}"><button class="pledit" data-p="${p.id}" data-k="${k}"><span class="lthumb ill">${thumb(s)}</span>
+        <span class="pltxt"><b>${esc(s.he||s.en||s.ex)}</b><small dir="ltr">${esc(s.en||s.ex)}</small><em>${esc(plSum(it))}</em></span></button></li>`;}).join("");
     return `<div class="plcard${open?" open":""}"><div class="plhead">
         <input class="plname" data-p="${p.id}" value="${esc(p.name)}" aria-label="שם התוכנית (אפשר לשנות)" enterkeyhint="done" autocomplete="off">
         <button class="pltog" data-p="${p.id}" aria-expanded="${open}"><span>${p.items.length} תרגילים</span><i>${open?"▴":"▾"}</i></button>
         <button class="pldel" data-p="${p.id}" aria-label="מחיקת התוכנית">✕</button></div>
       ${open?`<ol class="pllist">${rows||`<li class="plempty">עוד אין תרגילים. בוחרים תרגיל בסולמות ולוחצים "+ הוספה לתוכנית האימון".</li>`}</ol>
-        <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button></div>`:""}</div>`;};
+        <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button>${p.items.length?`<button class="plstart" data-p="${p.id}">▶ התחלת אימון</button>`:""}</div>`:""}</div>`;};
+  if(plRun){renderRun();return;}
   $("plbody").innerHTML=`<h2 class="plh">תוכניות האימון שלי</h2>
     ${PL.list.length?PL.list.map(card).join(""):`<p class="empty">כאן בונים תוכנית אימון אישית. פותחים תרגיל בסולמות, לוחצים "+ הוספה לתוכנית האימון", והוא נכנס לכאן.</p>`}
     ${plAdding?`<form id="plnewf" class="plnewf"><input id="plnewn" placeholder="שם התוכנית החדשה" autocomplete="off" aria-label="שם התוכנית החדשה" enterkeyhint="done">
@@ -2607,7 +2661,9 @@ $("plbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;const p=
   if(b.classList.contains("pltog")){plOpen=plOpen===p.id?null:p.id;}
   else if(b.classList.contains("plplus")){plAdding=true;renderPlan();return;}
   else if(b.classList.contains("plnewx")){plAdding=false;renderPlan();return;}
-  else if(b.classList.contains("plgo")){const q=stepByEx(b.dataset.ex);if(q)openStep(q.L.key,q.i);return;}
+  else if(p&&b.classList.contains("pledit")){plEdit(p,+b.dataset.k);return;}
+  else if(p&&b.classList.contains("plstart")){plRun={p:p.id,done:{}};runSave();renderPlan();window.scrollTo(0,0);return;}
+  else if(b.closest(".plrun")){runClick(b);return;}
   else if(b.classList.contains("pladdmore")){lv.v="home";show("lib");planToast("בוחרים תרגיל ולוחצים + הוספה לתוכנית האימון");return;}
   else if(p&&b.classList.contains("pldel")){if(!confirm(`למחוק את "${p.name}"?`))return;PL.list=PL.list.filter(q=>q!==p);}
   else if(p&&(b.classList.contains("plup")||b.classList.contains("pldn"))){const k=+b.dataset.k,j=k+(b.classList.contains("plup")?-1:1);[p.items[k],p.items[j]]=[p.items[j],p.items[k]];}
@@ -2619,6 +2675,56 @@ $("plbody").onsubmit=e=>{e.preventDefault();const n=$("plnewn").value.trim();con
 $("plbody").addEventListener("change",e=>{const i=e.target.closest(".plname");if(!i)return;const p=PL.list.find(q=>q.id===i.dataset.p);
   const n=i.value.trim();if(p&&n){p.name=n;plSave();}else if(p)i.value=p.name;});
 $("plbody").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.closest(".plname")){e.preventDefault();e.target.blur();}});
+// "3 סטים · 10 חזרות · +8 ק״ג"
+function plSum(it){const n=it.sets.length,rs=it.sets.map(x=>+x.r||0),ws=it.sets.map(x=>+x.w||0);
+  const rr=Math.min(...rs)===Math.max(...rs)?String(rs[0]):Math.min(...rs)+" עד "+Math.max(...rs),wmax=Math.max(0,...ws);
+  return `${n} ${n===1?"סט":"סטים"} · ${rr} ${it.u==="s"?"שניות":"חזרות"}${wmax?` · +${wmax} ק״ג`:""}`;}
+// editing one exercise of a plan: its sets (reps or seconds, added weight), order, removal
+function plEdit(p,k){const it=p.items[k],q=stepByEx(it.ex);if(!q)return;const s=q.s;let d=JSON.parse(JSON.stringify(it));
+  let m=$("plmod");if(!m){m=document.createElement("div");m.id="plmod";m.className="modal plmod";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");document.body.appendChild(m);}
+  const close=()=>{m.hidden=true;m.innerHTML="";document.body.style.overflow="";};
+  const draw=()=>{m.innerHTML=`<div class="mcard plmcard">
+    <div class="pmh"><button class="pmx" aria-label="סגירה">✕</button><b>תרגיל באימון</b><button class="pmdel" aria-label="הוצאה מהתוכנית">🗑</button></div>
+    <button class="pmex"><span class="lthumb ill">${thumb(s)}</span><span class="pltxt"><b>${esc(s.he||s.en||s.ex)}</b><small dir="ltr">${esc(s.en||s.ex)}</small><em>${esc(lnHe(q.L.l))} · רמה ${esc(s.lvn)}</em></span><span class="lgo">‹</span></button>
+    <div class="pmu"><span>סופרים:</span><button class="pmunit${d.u!=="s"?" on":""}" data-u="r">חזרות</button><button class="pmunit${d.u==="s"?" on":""}" data-u="s">שניות</button></div>
+    <h3 class="pmt">סטים</h3>
+    <div class="pmsets"><div class="pmrow pmhd"><span></span><span></span><span>${d.u==="s"?"שניות":"חזרות"}</span><span>משקל נוסף (ק״ג)</span></div>
+      ${d.sets.map((x,i)=>`<div class="pmrow"><button class="pmrm" data-i="${i}" aria-label="מחיקת סט" ${d.sets.length<2?"disabled":""}>−</button><i>${i+1}</i>
+        <input class="pmr" data-i="${i}" type="number" inputmode="numeric" min="0" value="${+x.r||0}" aria-label="${d.u==="s"?"שניות":"חזרות"} בסט ${i+1}">
+        <input class="pmw" data-i="${i}" type="number" inputmode="decimal" min="0" step="0.5" value="${+x.w||0}" aria-label="משקל בסט ${i+1}"></div>`).join("")}
+      <button class="pmadd">+ הוספת סט</button></div>
+    <div class="pmmove"><span>מיקום באימון:</span><button class="pmup" ${k?"":"disabled"}>↑ למעלה</button><button class="pmdn" ${k<p.items.length-1?"":"disabled"}>↓ למטה</button></div>
+    <button class="pmsave">שמירה</button></div>`;};
+  const sync=()=>{m.querySelectorAll(".pmr").forEach(e=>d.sets[+e.dataset.i].r=Math.max(0,+e.value||0));m.querySelectorAll(".pmw").forEach(e=>d.sets[+e.dataset.i].w=Math.max(0,+e.value||0));};
+  m.onclick=e=>{if(e.target===m){close();return;}const b=e.target.closest("button");if(!b)return;sync();
+    if(b.classList.contains("pmx")){close();return;}
+    if(b.classList.contains("pmdel")){if(!confirm("להוציא את התרגיל מהתוכנית?"))return;p.items.splice(k,1);plSave();close();renderPlan();return;}
+    if(b.classList.contains("pmex")){close();openStep(q.L.key,q.i);return;}
+    if(b.classList.contains("pmunit")){d.u=b.dataset.u;}
+    else if(b.classList.contains("pmrm")){d.sets.splice(+b.dataset.i,1);}
+    else if(b.classList.contains("pmadd")){d.sets.push(Object.assign({},d.sets[d.sets.length-1]||{r:8,w:0}));}
+    else if(b.classList.contains("pmup")||b.classList.contains("pmdn")){const j=k+(b.classList.contains("pmup")?-1:1);p.items[k]=d;[p.items[k],p.items[j]]=[p.items[j],p.items[k]];k=j;plSave();renderPlan();}
+    else if(b.classList.contains("pmsave")){p.items[k]=d;plSave();close();renderPlan();planToast("נשמר");return;}
+    draw();};
+  m.hidden=false;document.body.style.overflow="hidden";draw();}
+// running a plan: each exercise with its sets to tick off one by one
+let plRun=(()=>{try{return JSON.parse(localStorage.getItem("cal-plan-run")||"null")}catch(e){return null}})();
+const runSave=()=>{try{plRun?localStorage.setItem("cal-plan-run",JSON.stringify(plRun)):localStorage.removeItem("cal-plan-run")}catch(e){}};
+function renderRun(){const p=PL.list.find(q=>q.id===plRun.p);if(!p){plRun=null;runSave();renderPlan();return;}
+  let tot=0,dn=0;p.items.forEach((it,k)=>it.sets.forEach((x,i)=>{tot++;if(plRun.done[k+"_"+i])dn++;}));
+  $("plbody").innerHTML=`<div class="plrun"><div class="prh"><div><small>אימון</small><b>${esc(p.name)}</b></div><span class="prc">${dn}/${tot} סטים</span></div>
+    <div class="prbar"><i style="width:${tot?dn/tot*100:0}%"></i></div>
+    ${p.items.map((it,k)=>{const q=stepByEx(it.ex);if(!q)return "";const s=q.s,all=it.sets.every((x,i)=>plRun.done[k+"_"+i]);
+      return `<div class="prex${all?" ok":""}"><button class="prgo" data-k="${k}"><span class="lthumb ill">${thumb(s)}</span><span class="pltxt"><b>${esc(s.he||s.en||s.ex)}</b><em>${esc(plSum(it))}</em></span></button>
+        <div class="prsets">${it.sets.map((x,i)=>`<button class="prset${plRun.done[k+"_"+i]?" on":""}" data-k="${k}" data-i="${i}"><small>סט ${i+1}</small><b>${+x.r||0}${it.u==="s"?" שנ׳":""}</b>${+x.w?`<small>+${+x.w} ק״ג</small>`:""}</button>`).join("")}</div></div>`;}).join("")}
+    <div class="prbtns"><button class="prend">✓ סיום אימון</button><button class="prquit">ביטול</button></div></div>`;}
+function runClick(b){const p=PL.list.find(q=>q.id===plRun.p);
+  if(b.classList.contains("prset")){const key=b.dataset.k+"_"+b.dataset.i;if(plRun.done[key])delete plRun.done[key];else plRun.done[key]=1;runSave();renderRun();return;}
+  if(b.classList.contains("prgo")){const q=stepByEx(p.items[+b.dataset.k].ex);if(q)openStep(q.L.key,q.i);return;}
+  if(b.classList.contains("prend")){const n=Object.keys(plRun.done).length;
+    try{const L=JSON.parse(localStorage.getItem("cal-plan-log")||"[]");L.push({d:new Date().toISOString(),p:p.name,sets:n});localStorage.setItem("cal-plan-log",JSON.stringify(L.slice(-200)));}catch(e){}
+    plRun=null;runSave();renderPlan();planToast("האימון נשמר 💪");return;}
+  if(b.classList.contains("prquit")){if(!confirm("לצאת מהאימון בלי לשמור?"))return;plRun=null;runSave();renderPlan();}}
 const LADS=[];
 DATA.forEach((c,ci)=>c.tracks.forEach((t,ti)=>t.ladders.forEach((l,li)=>LADS.push({key:c.name+" › "+t.name+" › "+l.name,ci,ti,li,t:t.name,l:l.name,steps:l.steps}))));
 const LAD=k=>LADS.find(x=>x.key===k);
@@ -2771,7 +2877,7 @@ $("imp").onchange=async e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   try{const j=JSON.parse(await f.text()),d=j.data||j;if(!Array.isArray(d.trainees))throw 0;
     if(confirm(`לשחזר ${d.trainees.length} מתאמנים מהגיבוי? זה מחליף את הרשימה הנוכחית.`)){
-      CO.trainees=d.trainees;CO.trainees.forEach(t=>{if(t.grp==null)t.grp=true;});CO.log=Array.isArray(d.log)?d.log:[];CO.ses.present=CO.trainees.filter(t=>t.grp).map(t=>t.id);CO.ses.done={};csave();if(Array.isArray(d.plans)){PL.list=d.plans;plSave();}renderTr();}}
+      CO.trainees=d.trainees;CO.trainees.forEach(t=>{if(t.grp==null)t.grp=true;});CO.log=Array.isArray(d.log)?d.log:[];CO.ses.present=CO.trainees.filter(t=>t.grp).map(t=>t.id);CO.ses.done={};csave();if(Array.isArray(d.plans)){PL.list=d.plans;PL.list.forEach(p=>{p.items=(p.items||[]).map(it=>typeof it==="string"?plDefault(it):it);});plSave();}renderTr();}}
   catch(_){alert("הקובץ לא נראה כמו גיבוי של האפליקציה");}
   e.target.value="";
 };
