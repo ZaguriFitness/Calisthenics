@@ -551,7 +551,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
 .bandnote{display:block;margin-top:3px;font-size:.74rem;color:#FF8A1F;font-weight:600}
 .step .name .sep{display:none}.step .name .he{margin-inline-end:10px}
-.step .name .en{display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.step .name .en{display:block;white-space:normal;overflow-wrap:anywhere}
+.hbody,.step .top,.step .name{min-width:0;max-width:100%}
 .plbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
 .pladd{font:inherit;font-weight:800;width:100%;padding:12px 16px;border-radius:999px;border:1.5px dashed #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer}
 .pltag{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:999px;background:rgba(255,138,31,.14);color:#FF8A1F;font-weight:700;font-size:.85rem}
@@ -707,7 +708,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261114210705";
+const BUILD="20261115191833";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2470,7 +2471,7 @@ function renderRail(){
       <button class="vbox" data-i="${i}" aria-pressed="${dn}" aria-label="${dn?"הצלחתי – לחיצה מבטלת":"סימון: הצלחתי את התרגיל"}">${dn?"✓":""}</button>
       <div class="card">
         <div class="head hasth" role="button" tabindex="0" data-i="${i}" aria-expanded="${open}"><span class="sthumb">${thumb(s)}</span><div class="hbody">
-          <div class="top"><span class="name">${s.he?`<bdi class="he">${esc(s.he)}</bdi><span class="sep"> | </span>`:""}<bdi class="en" dir="ltr">${esc(s.en||s.ex)}</bdi></span>
+          <div class="top"><span class="name">${s.he?`<bdi class="he">${esc(s.he)}</bdi><span class="sep"> | </span>`:""}<bdi class="en" dir="ltr">${esc(s.en||s.ex).replace(/-/g,"\u2011")}</bdi></span>
             <span class="lvl">רמה ${s.lvn}<span class="dots">${dots(s.lvl)}</span>${s.ring?RTAG:""}</span>${s.band?`<small class="bandnote">גומייה: עבה ← בינונית ← דקה</small>`:""}</div>
           <p class="one">${esc(firstSentence(s.how))}</p></div>
         </div>
