@@ -496,6 +496,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+#apphead{cursor:pointer;-webkit-tap-highlight-color:transparent}#apphead:active{opacity:.8}
 .head.hasth{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:start}
 .sthumb{width:64px;height:64px;border-radius:14px;overflow:hidden;background:#F6ECDC;display:grid;place-items:center;margin-top:2px}
 .sthumb svg{width:100%;height:100%;background:#0B0B0C}
@@ -647,7 +648,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <body>
 
 <div class="wrap" dir="rtl">
-  <header class="apphead">
+  <header class="apphead" id="apphead" role="button" tabindex="0" aria-label="חזרה למסך הראשי">
     <img class="logo" src="icons/icon-192.png?v=2" alt="" aria-hidden="true">
     <div><h1>Calisthenics</h1></div>
   </header>
@@ -708,7 +709,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261115191833";
+const BUILD="20261115192621";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2739,6 +2740,10 @@ function runClick(b){const p=PL.list.find(q=>q.id===plRun.p);
     try{const L=JSON.parse(localStorage.getItem("cal-plan-log")||"[]");L.push({d:new Date().toISOString(),p:p.name,sets:n});localStorage.setItem("cal-plan-log",JSON.stringify(L.slice(-200)));}catch(e){}
     plRun=null;runSave();renderPlan();planToast("האימון נשמר 💪");return;}
   if(b.classList.contains("prquit")){if(!confirm("לצאת מהאימון בלי לשמור?"))return;plRun=null;runSave();renderPlan();}}
+// tapping the app title (logo + "Calisthenics") goes straight back to the home wheel, from anywhere
+{const goHome=()=>{closeCard&&closeCard();lv.v="home";show("lib");window.scrollTo(0,0);};
+ $("apphead").addEventListener("click",goHome);
+ $("apphead").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goHome();}});}
 const LADS=[];
 DATA.forEach((c,ci)=>c.tracks.forEach((t,ti)=>t.ladders.forEach((l,li)=>LADS.push({key:c.name+" › "+t.name+" › "+l.name,ci,ti,li,t:t.name,l:l.name,steps:l.steps}))));
 const LAD=k=>LADS.find(x=>x.key===k);
