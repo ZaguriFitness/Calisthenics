@@ -12,7 +12,7 @@ const [part,np]=process.argv.slice(2).map(Number);fs.mkdirSync(SP+'/h/thraw',{re
     const url=await p.evaluate(async([ex,ring])=>{const D=TD.dbg;await D.load();const M=await D.loadModel();
       let step=null;for(const c of DATA)for(const t of c.tracks)for(const l of t.ladders){const x=l.steps.find(z=>z.ex===ex);if(x&&!step)step=x;}
       const h=document.createElement('div');h.style.width='480px';document.body.appendChild(h);
-      const B=D.build(h,ILLV.frames3d(ex,ring),{model:M,act:D.muscleAct(step,M.meta.groups),neg:/Negative/i.test(ex),fwd:D.ONEWAY.test(ex)});
+      const B=D.build(h,ILLV.frames3d(ex,ring),{model:M,act:D.muscleAct(step,M.meta.groups),neg:/Negative/i.test(ex),fwd:D.ONEWAY.test(ex),fg:ring&&/False Grip|Muscle-Up|Ring Transition/i.test(ex)});
       // play up to the peak so the smooth fades settle, then take the still
       const T=B.peak;for(let x=0;x<=T;x+=Math.max(0.05,T/40)) B.shot(x);
       const u=B.shot(T);B.stop();h.remove();return u;},[ex,ring]);
