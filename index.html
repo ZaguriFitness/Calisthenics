@@ -496,6 +496,33 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.qrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.qrow .search{flex:1;margin:0!important}
+.fbtn{flex:none;display:flex;align-items:center;gap:6px;height:46px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,138,31,.55);background:var(--card,#0F0F10);color:#FF8A1F;font:inherit;font-weight:800;cursor:pointer}
+.fbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round}
+.fchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.fchip{font:inherit;font-weight:700;font-size:.85rem;padding:7px 12px;border-radius:999px;border:0;background:rgba(255,138,31,.16);color:#FF8A1F;cursor:pointer}
+.fchip i{font-style:normal;opacity:.8;margin-inline-start:4px}
+.fchip.edit{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.fcount{color:var(--muted);margin:4px 0 10px;font-size:.88rem}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.frow{font:inherit;width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));color:var(--ink);cursor:pointer;text-align:start}
+.frow .lthumb{width:58px;height:58px;border-radius:12px}
+.frow.ok{border-color:#FF8A1F}
+.fsheet{gap:10px}
+.fname{display:grid;gap:6px;font-size:.85rem;color:var(--muted)}
+.fname input{font:inherit;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:#0B0B0C;color:var(--ink)}
+.fclear{width:auto!important;padding:0 14px;font-weight:700!important}
+.flvl{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+.fnums{flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.fn{font:inherit;font-weight:800;height:40px;border-radius:10px;border:1px solid var(--line);background:#0B0B0C;color:var(--ink);cursor:pointer;padding:0}
+.fn.mid{background:rgba(255,138,31,.22);border-color:transparent}
+.fn.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.fhint{margin:0;color:var(--muted);font-size:.75rem}
+.fopts{display:flex;flex-wrap:wrap;gap:8px}
+.fopt{font:inherit;font-weight:700;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.fopt.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+
 #apphead{cursor:pointer;-webkit-tap-highlight-color:transparent}#apphead:active{opacity:.8}
 .head.hasth{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:start}
 .sthumb{width:64px;height:64px;border-radius:14px;overflow:hidden;background:#F6ECDC;display:grid;place-items:center;margin-top:2px}
@@ -664,13 +691,19 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
   <!-- 1) home: the wheel of the five families -->
   <div id="lhome">
-    <input id="q" class="search" type="search" placeholder="חיפוש תרגיל" autocomplete="off" aria-label="חיפוש תרגיל">
+    <div class="qrow"><input id="q" class="search" type="search" placeholder="חיפוש תרגיל" autocomplete="off" aria-label="חיפוש תרגיל"><button id="fbtn" class="fbtn" type="button" aria-label="סינון תרגילים"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>סינון</span></button></div>
     <ul class="qres" id="qres" hidden></ul>
     <div class="wheelwrap"><svg class="wheel" id="wheel" viewBox="-160 -160 320 320" direction="ltr" role="list" aria-label="משפחות התרגילים"></svg></div>
     <div id="nextcard"></div>
   </div>
 
   <!-- 2) one family: its ladders as cards -->
+  <div id="lfilt" hidden>
+    <div class="vhead"><button class="back" id="fback" aria-label="חזרה">→</button><h2>תרגילים מסוננים</h2></div>
+    <div id="fchips" class="fchips"></div>
+    <p id="fcount" class="fcount"></p>
+    <ul id="flist" class="flist"></ul>
+  </div>
   <div id="lfam" hidden>
     <div class="vhead"><button class="back" data-back="home" aria-label="חזרה">→</button><h2 id="famname"></h2></div>
     <div class="wheelwrap mini"><svg class="wheel mini" id="wheel2" viewBox="-160 -160 320 320" direction="ltr"></svg></div>
@@ -709,7 +742,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261115202606";
+const BUILD="20261116183354";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2608,7 +2641,7 @@ function renderNext(){let x=null;try{x=JSON.parse(localStorage.getItem("cal-last
   const T=x&&TR()[x.t],steps=T?(x.l<0?T.ladders.flatMap(L=>L.steps):(T.ladders[x.l]||{steps:[]}).steps):[],s=steps[x?x.i:-1];
   $("nextcard").innerHTML=s?`<button class="nextc" id="nextgo"><span class="lthumb ill">${thumb(s)}</span><span class="ltxt"><small>להמשיך מאיפה שעצרת</small><b dir="ltr">${esc(s.en||s.ex)}</b>${s.he?`<em>${esc(s.he)}</em>`:""}</span><span class="gobtn">המשך ▶</span></button>`
     :`<p class="wheelhint">בוחרים משפחה בגלגל כדי להתחיל</p>`;}
-function showLib(v){lv.v=v;saveLv();$("lhome").hidden=v!=="home";$("lfam").hidden=v!=="fam";$("llad").hidden=v!=="lad";
+function showLib(v){if(v==="filt"&&!fActive())v="home";lv.v=v;saveLv();$("lfilt").hidden=v!=="filt";if(v==="filt")renderFilt();$("lhome").hidden=v!=="home";$("lfam").hidden=v!=="fam";$("llad").hidden=v!=="lad";
   if(v==="home"){hsel=-1;wheelSvg($("wheel"),-1);renderNext();TD.stop();}
   if(v==="fam"){renderFam();TD.stop();}
   if(v==="lad") renderRail();
@@ -2793,6 +2826,71 @@ function runClick(b){const p=PL.list.find(q=>q.id===plRun.p);
 {const goHome=()=>{closeCard&&closeCard();lv.v="home";show("lib");window.scrollTo(0,0);};
  $("apphead").addEventListener("click",goHome);
  $("apphead").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goHome();}});}
+// ---------- filters: level, equipment, muscle, kind, name -> one list of matching exercises ----------
+const FEQ=[["none","בלי ציוד"],["bar","מוט"],["pbars","מקבילים"],["ptt","מקבילונים"],["rings","טבעות"],["band","גומייה"],["wall","קיר"],["box","ארגז / ספסל"]];
+const FMU=[["back","גב"],["chest","חזה"],["shoulders","כתפיים"],["arms","ידיים"],["core","ליבה"],["legs","רגליים"]];
+const FKIND=[["hold","החזקה (סטטי)"],["reps","חזרות (תנועה)"]];
+function exEquip(s){const e=s.equip||"",o=new Set();
+  if(!e.trim()||/^—$/.test(e.trim()))o.add("none");
+  if(/מוט/.test(e))o.add("bar");if(/מקבילים/.test(e))o.add("pbars");if(/Parallettes|מקבילונים|ידיות/.test(e))o.add("ptt");
+  if(s.ring||/טבעות/.test(e))o.add("rings");if(s.band||/גומייה/.test(e))o.add("band");if(/קיר/.test(e))o.add("wall");
+  if(/ארגז|ספסל|שולחן|מדרגה|כיסא|כדור/.test(e))o.add("box");if(!o.size)o.add("none");return o;}
+function exMuscles(s){const t=(s.prim||""),o=new Set();
+  if(/רחב גבי|מעויינים|טרפז|גב/.test(t))o.add("back");if(/חזה/.test(t))o.add("chest");if(/כתף|כתפיים|סראטוס/.test(t))o.add("shoulders");
+  if(/דו-ראשי|תלת-ראשי|ברכיאליס|אמה|אחיזה|פרקי כף יד/.test(t))o.add("arms");if(/ליבה|בטן|אלכסונ|הולו|מכופפי ירך/.test(t))o.add("core");
+  if(/ארבע|ירך|ישבן|תאומים|המסטרינג|רגל|מקרבים|שוק/.test(t))o.add("legs");return o;}
+const exKind=s=>/שנ/.test(s.pass||"")?"hold":"reps";
+let FS=(()=>{try{return JSON.parse(localStorage.getItem("cal-filter")||"null")}catch(e){return null}})()||{lo:1,hi:8,eq:[],mu:[],kind:[],q:""};
+const fSave=()=>{try{localStorage.setItem("cal-filter",JSON.stringify(FS))}catch(e){}};
+const fActive=()=>FS.lo>1||FS.hi<8||FS.eq.length||FS.mu.length||FS.kind.length||!!(FS.q||"").trim();
+function fMatch(s){if(s.lvl<FS.lo||s.lvl>FS.hi)return false;
+  if(FS.eq.length){const e=exEquip(s);if(!FS.eq.some(x=>e.has(x)))return false;}
+  if(FS.mu.length){const m=exMuscles(s);if(!FS.mu.some(x=>m.has(x)))return false;}
+  if(FS.kind.length&&!FS.kind.includes(exKind(s)))return false;
+  const q=(FS.q||"").trim().toLowerCase();if(q&&![s.ex,s.en,s.he].some(x=>x&&x.toLowerCase().includes(q)))return false;return true;}
+function renderFilt(){const nm=(L,k)=>(L.find(x=>x[0]===k)||[k,k])[1],ch=[];
+  if(FS.lo>1||FS.hi<8)ch.push(["lvl",FS.lo===FS.hi?`רמה ${FS.lo}`:`רמה ${FS.lo}–${FS.hi}`]);
+  FS.eq.forEach(x=>ch.push(["eq:"+x,nm(FEQ,x)]));FS.mu.forEach(x=>ch.push(["mu:"+x,nm(FMU,x)]));FS.kind.forEach(x=>ch.push(["kind:"+x,nm(FKIND,x)]));
+  if((FS.q||"").trim())ch.push(["q",`"${FS.q.trim()}"`]);
+  $("fchips").innerHTML=ch.map(([k,t])=>`<button class="fchip" data-k="${esc(k)}">${esc(t)} <i>✕</i></button>`).join("")+`<button class="fchip edit" data-k="edit">✎ שינוי</button>`;
+  const out=[];for(const L of LADS)L.steps.forEach((s,i)=>{if(fMatch(s))out.push({L,s,i});});
+  out.sort((a,b)=>a.s.lvl-b.s.lvl);
+  $("fcount").textContent=out.length?`${out.length} תרגילים`:"אין תרגילים שמתאימים לסינון. אפשר להסיר מסנן.";
+  const P=prog();
+  $("flist").innerHTML=out.map(o=>`<li><button class="frow${P[o.s.ex]?" ok":""}" data-k="${esc(o.L.key)}" data-x="${o.i}"><span class="lthumb ill">${thumb(o.s)}</span>
+    <span class="pltxt"><b>${esc(o.s.he||o.s.en||o.s.ex)}</b><small dir="ltr">${esc(o.s.en||o.s.ex)}</small><em>${esc(lnHe(o.L.l))} · רמה ${esc(o.s.lvn)}${o.s.ring?" · טבעות":""}</em></span><span class="lgo">‹</span></button></li>`).join("");}
+function fSheet(){let d=JSON.parse(JSON.stringify(FS));let m=$("fmod");
+  if(!m){m=document.createElement("div");m.id="fmod";m.className="modal plmod";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");document.body.appendChild(m);}
+  const close=()=>{m.hidden=true;m.innerHTML="";document.body.style.overflow="";};
+  const chips=(L,key)=>L.map(([k,t])=>`<button class="fopt${d[key].includes(k)?" on":""}" data-g="${key}" data-v="${k}">${esc(t)}</button>`).join("");
+  const count=()=>{const keep=FS;FS=d;let n=0;for(const L of LADS)for(const s of L.steps)if(fMatch(s))n++;FS=keep;return n;};
+  const draw=()=>{m.innerHTML=`<div class="mcard plmcard fsheet">
+    <div class="pmh"><button class="pmx" aria-label="סגירה">✕</button><b>סינון תרגילים</b><button class="fclear">ניקוי</button></div>
+    <label class="fname">שם התרגיל<input id="fq" type="search" value="${esc(d.q||"")}" placeholder="למשל Lever או מתח" autocomplete="off"></label>
+    <h3 class="pmt">רמה</h3>
+    <div class="flvl"><span>מ-</span><div class="fnums">${[1,2,3,4,5,6,7,8].map(n=>`<button class="fn${n===d.lo?" on":""}${n>d.lo&&n<d.hi?" mid":""}${n===d.hi?" on":""}" data-n="${n}">${n}</button>`).join("")}</div><span>עד</span></div>
+    <p class="fhint">לוחצים על רמה אחת, ואז על רמה שנייה לטווח</p>
+    <h3 class="pmt">ציוד</h3><div class="fopts">${chips(FEQ,"eq")}</div>
+    <h3 class="pmt">שריר</h3><div class="fopts">${chips(FMU,"mu")}</div>
+    <h3 class="pmt">סוג התרגיל</h3><div class="fopts">${chips(FKIND,"kind")}</div>
+    <button class="pmsave fgo">הצג ${count()} תרגילים</button></div>`;};
+  let pick=null;
+  m.oninput=e=>{if(e.target.id==="fq"){d.q=e.target.value;m.querySelector(".fgo").textContent=`הצג ${count()} תרגילים`;}};
+  m.onclick=e=>{if(e.target===m){close();return;}const b=e.target.closest("button");if(!b)return;
+    if(b.classList.contains("pmx")){close();return;}
+    if(b.classList.contains("fclear")){d={lo:1,hi:8,eq:[],mu:[],kind:[],q:""};pick=null;}
+    else if(b.classList.contains("fn")){const n=+b.dataset.n;if(pick==null){d.lo=d.hi=n;pick=n;}else{d.lo=Math.min(pick,n);d.hi=Math.max(pick,n);pick=null;}}
+    else if(b.classList.contains("fopt")){const a=d[b.dataset.g],v=b.dataset.v,i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);}
+    else if(b.classList.contains("fgo")){FS=d;fSave();close();showLib(fActive()?"filt":"home");return;}
+    const q=d.q;draw();const i=$("fq");if(i)i.value=q;};
+  m.hidden=false;document.body.style.overflow="hidden";draw();}
+$("fbtn").onclick=fSheet;
+$("fback").onclick=()=>showLib("home");
+$("fchips").onclick=e=>{const b=e.target.closest(".fchip");if(!b)return;const k=b.dataset.k;
+  if(k==="edit"){fSheet();return;}
+  if(k==="lvl"){FS.lo=1;FS.hi=8;}else if(k==="q")FS.q="";else{const [g,v]=k.split(":");FS[g]=FS[g].filter(x=>x!==v);}
+  fSave();showLib(fActive()?"filt":"home");};
+$("flist").onclick=e=>{const b=e.target.closest(".frow");if(b)openStep(b.dataset.k,+b.dataset.x);};
 const LADS=[];
 DATA.forEach((c,ci)=>c.tracks.forEach((t,ti)=>t.ladders.forEach((l,li)=>LADS.push({key:c.name+" › "+t.name+" › "+l.name,ci,ti,li,t:t.name,l:l.name,steps:l.steps}))));
 const LAD=k=>LADS.find(x=>x.key===k);
