@@ -742,7 +742,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261116183354";
+const BUILD="20261117215343";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2649,9 +2649,9 @@ function showLib(v){if(v==="filt"&&!fActive())v="home";lv.v=v;saveLv();$("lfilt"
   const top=()=>{window.scrollTo(0,0);const se=document.scrollingElement;if(se)se.scrollTop=0;};
   top();requestAnimationFrame(top);setTimeout(top,80);setTimeout(top,300);}
 const pickFam=f=>{lv.f=f;showLib("fam");};
-// home wheel: first tap lights the slice, a second tap on the same slice opens it
+// home wheel: tapping a slice opens that family
 let hsel=-1;
-const tapSeg=(id,f)=>{if(id==="wheel"&&hsel!==f){hsel=f;wheelSvg($("wheel"),f,false,true);return;}hsel=-1;pickFam(f);};
+const tapSeg=(id,f)=>{hsel=-1;pickFam(f);};   // one tap opens the family
 ["wheel","wheel2"].forEach(id=>{$(id).onclick=e=>{const g=e.target.closest(".wseg");if(g) tapSeg(id,+g.dataset.f);};
   $(id).onkeydown=e=>{const g=e.target.closest(".wseg");if(g&&(e.key==="Enter"||e.key===" ")){e.preventDefault();tapSeg(id,+g.dataset.f);}};});
 $("lcards").onclick=e=>{const b=e.target.closest(".lcard");if(!b)return;st.t=+b.dataset.ti;st.l=+b.dataset.li;st.open=-1;save();showLib("lad");};
