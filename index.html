@@ -496,6 +496,36 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gcard{padding:14px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));margin-bottom:12px;display:grid;gap:10px}
+.ghd{display:flex;justify-content:space-between;align-items:center}.ghd b{font-size:1.05rem}.ghd span{color:#FF8A1F;font-weight:700;font-size:.85rem}
+.gchips{display:flex;flex-wrap:wrap;gap:8px}
+.gch{font:inherit;font-weight:700;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.gch.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.glbl{margin:2px 0 -2px;color:var(--muted);font-size:.8rem;font-weight:700}
+.gnew{display:flex;gap:8px}.gnew input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0B0B0C;color:var(--ink)}
+.gnew button{font:inherit;font-weight:800;padding:0 16px;border-radius:12px;border:0;background:#FF8A1F;color:#111;cursor:pointer}
+.gblk{padding:14px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));margin-bottom:12px;display:grid;gap:10px}
+.gbh{display:flex;align-items:center;gap:12px}.gbh>div{flex:1;min-width:0}
+.gbh i{font-style:normal;flex:none;width:34px;height:34px;border-radius:50%;background:#FF8A1F;color:#111;font-weight:900;display:grid;place-items:center}
+.gbh b{display:block;font-size:1.08rem}.gbh small{display:block;color:var(--muted);font-size:.8rem;line-height:1.4;margin-top:2px}
+.gtm{font:inherit;font-weight:800;font-size:.8rem;flex:none;padding:8px 12px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;cursor:pointer;white-space:nowrap}
+.gtm.on{background:#FF8A1F;color:#111}
+.gtip{margin:0;color:var(--muted);font-size:.82rem;line-height:1.5}
+.gpl{margin:6px 0 2px;font-weight:800;color:#FF8A1F;font-size:.9rem}
+.gex2{display:grid;gap:6px}
+.gwho{display:flex;align-items:center;gap:8px;padding:8px;border-radius:14px;background:#0B0B0C}
+.gwho.ok{box-shadow:inset 0 0 0 1.5px #FF8A1F}
+.gok{flex:none;width:30px;height:30px;border-radius:9px;border:2px solid rgba(255,138,31,.55);background:transparent;color:#111;font-weight:900;cursor:pointer;padding:0}
+.gwho.ok .gok{background:#FF8A1F;border-color:#FF8A1F}
+.gnm{flex:none;width:58px;font-weight:800;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gex{font:inherit;flex:1;min-width:0;text-align:start;border:0;background:transparent;color:var(--ink);cursor:pointer;padding:0}
+.gex b{display:block;font-size:.92rem}.gex small{display:block;color:var(--muted);font-size:.74rem}
+.glv{flex:none;display:flex;gap:4px}
+.glv button{font:inherit;font-weight:900;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
+.glv button:disabled{opacity:.25}
+.gwu{list-style:none;margin:0;padding:0;display:grid;gap:6px}.gwu li{padding:8px 10px;border-radius:12px;background:#0B0B0C}
+.gtxt{color:var(--ink);font-size:.88rem}
+
 .qrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
 .qrow .search{flex:1;margin:0!important}
 .fbtn{flex:none;display:flex;align-items:center;gap:6px;height:46px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,138,31,.55);background:var(--card,#0F0F10);color:#FF8A1F;font:inherit;font-weight:800;cursor:pointer}
@@ -742,7 +772,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261117215343";
+const BUILD="20261119170335";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3278,7 +3308,7 @@ function grpEdit(G){
     <div class="gadd">${rest.length?`<select data-gadd="1" aria-label="הוספת מתאמן לקבוצה"><option value="">+ הוספת מתאמן לקבוצה…</option>${rest.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}</select>`:""}
       <form class="addrow" data-gnew="1"><input placeholder="שם חדש לקבוצה" autocomplete="off" aria-label="שם חדש לקבוצה"><button>הוספה</button></form></div>`;
 }
-function renderSes(){
+function renderSesOld(){
   const S=CO.ses,G=grpTr();S.present=G.map(t=>t.id);S.avail=EQ.map(e=>e[0]);   // (no equipment picker: everything is there)S.alt=S.alt||{};
   if(!G.length){
     $("sbody").innerHTML=`<p class="empty">עוד אין מתאמנים בקבוצה. מוסיפים כאן את מי שמתאמן בקבוצה.</p>${grpEdit(G)}`;
@@ -3373,6 +3403,88 @@ function finish(){
     (!ch.length&&!half.length&&!held.length?"<p>אף אחד לא סומן כעומד ביעד, אז הרמות נשארו כמו שהן.</p>":"");
   m.scrollIntoView({block:"center"});
 }
+
+// ================= group workout (new): one clear class plan for a small group, each trainee on their own level =====
+// Class order used by calisthenics coaches: warm-up -> skill practice while fresh -> strength in pairs (supersets,
+// same movement, each person on their own progression) -> core finisher -> cool-down. ~50 minutes.
+const GSKILL=[["hs","עמידת ידיים",[["עמידת ידיים","הכנה"],["עמידת ידיים","קיר"],["עמידת ידיים","עמידה חופשית"]]],
+  ["lsit","L-Sit",[["ליבה","L-Sit / V-Sit"]]],["fl","פרונט ליבר",[["סטטיקה","Front Lever"]]],["pl","פלאנש",[["סטטיקה","Planche"]]],
+  ["mu","מאסל-אפ",[["משיכה אנכית","Muscle-Up"]]],["bl","בק ליבר",[["סטטיקה","Back Lever"]]]];
+const GSTR=[["pp","דחיפה ומשיכה",[[["משיכה אנכית","מתח"],["דחיפה אופקית","שכיבות סמיכה"]],[["משיכה אופקית","חתירה"],["דחיפה אנכית","דיפס"]]]],
+  ["lc","רגליים וליבה",[[["רגליים","סקוואטים ותרגילים על רגל אחת"],["ליבה","Hollow / אנטי-אקסטנזיה"]],[["רגליים","שרשרת אחורית"],["ליבה","צד"]]]],
+  ["fb","כל הגוף",[[["משיכה אנכית","מתח"],["רגליים","סקוואטים ותרגילים על רגל אחת"]],[["דחיפה אופקית","שכיבות סמיכה"],["משיכה אופקית","חתירה"]]]]];
+const GFIN=[["ליבה","Hollow / אנטי-אקסטנזיה"],["ליבה","תלייה"],["ליבה","צד"]];
+let SG=(()=>{try{return JSON.parse(localStorage.getItem("cal-group2")||"null")}catch(e){return null}})()||{present:null,skill:"hs",str:"pp",done:{},tm:null};
+const sgSave=()=>{try{localStorage.setItem("cal-group2",JSON.stringify(SG))}catch(e){}};
+const gK=([t,l])=>K(t,l);
+// a trainee's step on a ladder (or on a path of several ladders: the furthest one they have a level on)
+function gStep(tr,refs){let best=null;refs.forEach((r,ri)=>{const k=gK(r),L=LAD(k);if(!L)return;const i=lvIdx(tr,k);if(i>=0)best={k,L,i};});
+  if(best)return best;const k=gK(refs[0]),L=LAD(k);return L?{k,L,i:0,unset:true}:null;}
+function gPresent(){const ids=CO.trainees.map(t=>t.id);if(!SG.present)SG.present=CO.trainees.filter(t=>t.grp!==false).map(t=>t.id);
+  SG.present=SG.present.filter(id=>ids.includes(id));return SG.present.map(trById).filter(Boolean);}
+function gWho(tr,refs,bk){const g=gStep(tr,refs);if(!g)return "";const s=g.L.steps[g.i],key=bk+"|"+tr.id,dn=!!SG.done[key];
+  return `<div class="gwho${dn?" ok":""}"><button class="gok" data-ok="${esc(key)}" aria-label="עמד ביעד">${dn?"✓":""}</button>
+    <span class="gnm">${esc(tr.name)}</span>
+    <button class="gex" data-open="${esc(g.k)}" data-x="${g.i}"><b>${esc(s.he||s.en||s.ex)}</b><small>${g.unset?"עוד לא נקבעה רמה · ":""}רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></small></button>
+    <span class="glv"><button data-lv="${esc(tr.id)}|${esc(g.k)}|-1" ${g.i<=0?"disabled":""} aria-label="שלב קל יותר">−</button><button data-lv="${esc(tr.id)}|${esc(g.k)}|1" ${g.i>=g.L.steps.length-1?"disabled":""} aria-label="שלב קשה יותר">+</button></span></div>`;}
+function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm${on?" on":""}" data-tm="${id}" data-min="${min}">${on?"⏹ עצירה":"▶ טיימר "+min+" דק׳"}</button>`;}
+function renderSes(){const P=gPresent();
+  const who=`<div class="gcard"><div class="ghd"><b>מי מתאמן היום</b><span>${P.length} מתאמנים</span></div>
+    <div class="gchips">${CO.trainees.map(t=>`<button class="gch${SG.present.includes(t.id)?" on":""}" data-p="${esc(t.id)}">${esc(t.name)}</button>`).join("")}</div>
+    <form class="gnew" data-gnew2><input placeholder="שם מתאמן חדש" autocomplete="off" aria-label="שם מתאמן חדש"><button>הוספה</button></form></div>`;
+  const pick=`<div class="gcard"><div class="ghd"><b>מה עובדים היום</b></div>
+    <p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div>
+    <p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
+  if(!P.length){$("sbody").innerHTML=`<h2 class="plh">אימון קבוצתי</h2>${who}<p class="empty">מסמנים למעלה מי מתאמן היום (או מוסיפים מתאמן), והאימון נבנה לבד לפי הרמה של כל אחד.</p>`;return;}
+  const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
+  const wu=["Wrist Prep — חימום שורש כף היד","Scapular Pull-Up","Bear Hold","Glute Bridge"].map(stepByEx).filter(Boolean);
+  const blk=(n,title,min,fmt,body,id)=>`<section class="gblk"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}</div>${body}</section>`;
+  const pair=(refs,lab)=>`<div class="gex2"><p class="gpl">${lab}: ${esc(shortName(LAD(gK(refs[0]))||{l:refs[0][1]}))}</p>${P.map(t=>gWho(t,refs,lab+gK(refs[0]))).join("")}</div>`;
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${who}${pick}`;
+  h+=blk(1,"חימום",8,"כולם ביחד, 2 סבבים",`<ul class="gwu">${wu.map(q=>`<li><button class="gex" data-open="${esc(q.L.key)}" data-x="${q.i}"><b>${esc(q.s.he||q.s.en)}</b><small><bdi dir="ltr">${esc(q.s.pass)}</bdi></small></button></li>`).join("")}
+      <li class="gtxt">סיבובי מפרקים: צוואר, כתפיים, אגן, ברכיים · 10 סקוואטים קלים</li></ul>`,"w");
+  h+=blk(2,"מיומנות: "+esc(sk[1]),12,"כל דקה: ניסיון או החזקה איכותית אחת, ומנוחה עד סוף הדקה",
+    `<p class="gtip">עובדים כשהגוף עוד רענן. איכות לפני כמות: עוצרים לפני שהטכניקה נשברת.</p>${P.map(t=>gWho(t,sk[2],"skill"+sk[0])).join("")}`,"s");
+  h+=blk(3,"כוח: "+esc(st[1]),20,"זוגות: A1 ואז A2 בלי הפסקה, מנוחה 90 שנ׳, 3 סבבים · ואז אותו דבר עם B",
+    `<p class="gtip">כולם עושים את אותה תנועה באותו זמן, כל אחד בשלב שלו בסולם.</p>${pair([st[2][0][0]],"A1")}${pair([st[2][0][1]],"A2")}${pair([st[2][1][0]],"B1")}${pair([st[2][1][1]],"B2")}`,"c");
+  h+=blk(4,"סיום: ליבה",6,"מעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>pair([r],"C"+(i+1))).join(""),"f");
+  h+=blk(5,"שחרור",5,"כולם ביחד",`<ul class="gwu"><li class="gtxt">מתיחת כתפיים וחזה בדלת או על המוט · 30 שנ׳</li><li class="gtxt">מתיחת מפשעה וירך אחורית · 30 שנ׳ לכל צד</li><li class="gtxt">תלייה רפויה על המוט · 20–30 שנ׳</li></ul>`,"r");
+  h+=`<p class="gtip">✓ ליד מתאמן = עמד ביעד בתרגיל. מי שעומד ביעד בשני אימונים ברצף, עולה שלב בסיום.</p><button class="pmsave" id="gfin">✓ סיום אימון</button>`;
+  $("sbody").innerHTML=h;}
+let gIv=0;
+function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
+  const b=document.querySelector(`.gtm[data-tm="${SG.tm.id}"]`);if(b)b.textContent=`⏹ ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}`;
+  if(left<=0){clearInterval(gIv);SG.tm=null;sgSave();try{beep(880)}catch(e){}renderSes();}}
+$("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
+  if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
+  else if(b.dataset.skill)SG.skill=b.dataset.skill;
+  else if(b.dataset.str)SG.str=b.dataset.str;
+  else if(b.dataset.ok){SG.done[b.dataset.ok]=!SG.done[b.dataset.ok];if(!SG.done[b.dataset.ok])delete SG.done[b.dataset.ok];}
+  else if(b.dataset.open){openStep(b.dataset.open,+b.dataset.x);return;}
+  else if(b.dataset.lv){const [id,k,d]=b.dataset.lv.split("|"),tr=trById(id),L=LAD(k);if(!tr||!L)return;
+    const i=Math.max(0,Math.min(L.steps.length-1,(lvIdx(tr,k)<0?0:lvIdx(tr,k))+(+d)));tr.lv=tr.lv||{};tr.lv[k]=L.steps[i].ex;if(tr.streak)delete tr.streak[k];csave();}
+  else if(b.dataset.tm){clearInterval(gIv);if(SG.tm&&SG.tm.id===b.dataset.tm)SG.tm=null;else{SG.tm={id:b.dataset.tm,end:Date.now()+(+b.dataset.min)*60000};gIv=setInterval(gTick,1000);try{beep(660)}catch(e){}}}
+  else if(b.id==="gfin"){gFinish();return;}
+  else return;
+  sgSave();renderSes();window.scrollTo(0,y);if(SG.tm)gTick();};
+$("sbody").onchange=null;
+$("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew2]");if(!f)return;e.preventDefault();
+  const n=f.querySelector("input").value.trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:true};CO.trainees.push(t);SG.present.push(t.id);csave();sgSave();renderSes();});
+// end of class: a target met in two classes in a row moves the trainee up one step on that ladder
+function gFinish(){const P=gPresent(),up=[],half=[];
+  const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
+  const items=[[sk[2],"skill"+sk[0]]];[["A1",st[2][0][0]],["A2",st[2][0][1]],["B1",st[2][1][0]],["B2",st[2][1][1]]].forEach(([l,r])=>items.push([[r],l+gK(r)]));
+  GFIN.forEach((r,i)=>items.push([[r],"C"+(i+1)+gK(r)]));
+  for(const tr of P){tr.streak=tr.streak||{};for(const [refs,bk] of items){const g=gStep(tr,refs);if(!g)continue;const k=g.k;
+    if(!SG.done[bk+"|"+tr.id]){continue;}
+    const n=(tr.streak[k]||0)+1;
+    if(n>=2&&g.i+1<g.L.steps.length){tr.lv[k]=g.L.steps[g.i+1].ex;delete tr.streak[k];up.push(`${tr.name}: ${g.L.steps[g.i+1].he||g.L.steps[g.i+1].en}`);}
+    else{tr.lv=tr.lv||{};if(g.unset)tr.lv[k]=g.L.steps[g.i].ex;tr.streak[k]=n;half.push(`${tr.name}: ${g.L.steps[g.i].he||g.L.steps[g.i].en}`);}}}
+  CO.log.push({d:new Date().toISOString(),n:P.length,plan:"g2:"+SG.skill+"/"+SG.str,ch:up});if(CO.log.length>300)CO.log=CO.log.slice(-300);
+  SG.done={};SG.tm=null;clearInterval(gIv);csave();sgSave();renderSes();
+  const m=$("smsg");m.hidden=false;m.innerHTML=`<b>האימון נשמר.</b>`+(up.length?`<p class="lbl">עלו שלב:</p>${up.map(x=>`<p>${esc(x)}</p>`).join("")}`:"")+
+    (half.length?`<p class="lbl">עמדו ביעד פעם ראשונה (עוד פעם אחת ועולים):</p>${half.map(x=>`<p>${esc(x)}</p>`).join("")}`:"")+(!up.length&&!half.length?"<p>אף אחד לא סומן כעומד ביעד, אז הרמות נשארו כמו שהן.</p>":"");
+  m.scrollIntoView({block:"center"});}
 let v0="lib";try{v0=localStorage.getItem("cal-view")||"lib"}catch(e){}
 if(!["lib","tr","plan","ses"].includes(v0)) v0="lib";
 show(v0);
