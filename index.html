@@ -772,7 +772,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261119170335";
+const BUILD="20261120084109";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1562,7 +1562,7 @@ function frames3d(ex,r){
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
-    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg,fout:fr.fout};
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg,fout:fr.fout,toe:!!fr.toe};
   });
 }
 return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), thumb:(ex,r)=>{const f=pick(ex,r);return f&&f.length?draw([f[f.length-1]]):"";}, frames3d, GY};
@@ -1602,7 +1602,7 @@ function lerpKeys0(a,b,t){const o={};
     if(n==="_c"){o._c={};for(const m of ["hL","hR","fL","fR"]){const p=x[m],q=y[m];
         // the same support in both keys: its contact point moves with the hand / foot (rings, walking hands)
         const step=p&&q&&(p.t!==q.t||((p.t==="flat"||p.t==="wall")&&Math.hypot(p.p[0]-q.p[0],p.p[1]-q.p[1],p.p[2]-q.p[2])>6));
-        if(p&&q&&!step) o._c[m]=Object.assign({},p,{p:p.p.map((z,i)=>z+(q.p[i]-z)*t)});
+        if(p&&q&&!step) o._c[m]=Object.assign({},p,{p:p.p.map((z,i)=>z+(q.p[i]-z)*t),toe:(p.toe||0)+((q.toe||0)-(p.toe||0))*t});
         else o._c[m]=(t<0.5?(p||q):(q||p))||null;
         // a step (foot from the floor onto the wall, a walking hand): let go, move free, then land
         if(step) o._st=(o._st||[]).concat(m);
@@ -1832,7 +1832,9 @@ function contactsOf(fr,k){
       else if(q.t==="bar"){d=Math.hypot(p[0]-q.x,p[1]-q.y);c={t:"bar",p:V3(q.x,q.y,p[2]),ax:q.ax};if(d>8)d=1e9;}
       else if(q.t==="flat"){const h=p[1]-q.y, inX=(q.x1==null||(p[0]>=q.x1&&p[0]<=q.x2))&&(q.z1==null||(p[2]>=q.z1&&p[2]<=q.z2));
         // a foot point is the ankle (drawn ~4 above the floor), a hand point sits on the surface
-        if(inX&&h>-4&&h<(isHand?8:10)){d=Math.abs(h-(isHand?0:4.5));c={t:"flat",p:V3(p[0],q.y,p[2]),n:[0,1,0],bar:!!q.bar};}}
+        if(inX&&h>-4&&h<(isHand?8:10)){d=Math.abs(h-(isHand?0:4.5));c={t:"flat",p:V3(p[0],q.y,p[2]),n:[0,1,0],bar:!!q.bar};}
+        // up on the toes (calf raise, sissy squat): the heel is off the floor, the ball of the foot still on it
+        else if(!isHand&&fr.toe&&inX&&h>=8&&h<30){d=h;c={t:"flat",p:V3(p[0],q.y,p[2]),n:[0,1,0],toe:1,ah:h};}}
       else if(q.t==="wall"){const dx=p[0]-q.x;if(Math.abs(dx)<9&&p[1]>q.y1-2&&p[1]<q.y2+4){d=Math.abs(dx);const sg=(k.pelv[0]-q.x)>=0?1:-1;/* the side the body is on */c={t:"wall",p:V3(q.x+sg,p[1],p[2]),n:[sg,0,0]};}}
       else if(q.t==="pole"&&isHand){const dx=p[0]-q.x;if(Math.abs(dx)<6.5&&p[1]>q.y1&&p[1]<q.y2){d=Math.abs(dx);c={t:"pole",p:V3(q.x,p[1],q.z||0),ax:[0,1,0]};}}
       if(c&&d<bd){bd=d;best=c;}}
@@ -2136,7 +2138,13 @@ function poseModel(Mo,k,cfg){
           if(c.t==="ring") t.cT=p3.clone();
           else {const pts=FOOTP[s].map(q=>v(q).applyQuaternion(t.Qc).multiplyScalar(MS));let lo=1e9;
             for(const q of pts) lo=Math.min(lo,q.dot(n));
-            t.cT=p3.clone();const pl=v(c.p);t.cT.addScaledVector(n,pl.dot(n)-p3.dot(n)-lo);}
+            t.cT=p3.clone();const pl=v(c.p);t.cT.addScaledVector(n,pl.dot(n)-p3.dot(n)-lo);
+            t.toe=0;if(c.toe>0){const ax=rr.hr.clone().applyQuaternion(Wsh).normalize(),ball=v(FOOTP[s][1]),pk=pl.dot(n);
+              // ankle height above the floor if the heel rose: the drawn ankle; foot angle so the ball touches the floor
+              const up=Math.max(0,p3.dot(n)-pk);let best=0,be=1e9;
+              for(let a=0;a<=1.05;a+=0.015){const q=new T.Quaternion().setFromAxisAngle(ax,a).multiply(t.Qc),y=ball.clone().applyQuaternion(q).multiplyScalar(MS).dot(n)+up;
+                if(Math.abs(y)<be){be=Math.abs(y);best=a;}}
+              t.toe=best*c.toe;t.Qc=new T.Quaternion().setFromAxisAngle(ax,t.toe).multiply(t.Qc);t.cT.lerp(p3,c.toe);}}
         }
       }
       tg[L[0]+s]=t;});
@@ -2247,7 +2255,7 @@ function poseModel(Mo,k,cfg){
       W[L[2]+s]=Qh2;}
     else {// feet: flat on what they stand on, pointed when free; a free foot close to the floor turns flat too
       const nf=cfg.g&&t.w<0.5?Math.max(0,Math.min(1,(GROUND()+24-r.Wp.y)/14)):0;
-      const thF=footAngle(Wl,rr,new T.Vector3(0,1,0),nf),th=t.c?thF+(footAngle(Wl,rr,v(t.c.n||[0,1,0]),1)-thF)*t.w:thF;
+      const thF=footAngle(Wl,rr,new T.Vector3(0,1,0),nf),th=(t.c?thF+(footAngle(Wl,rr,v(t.c.n||[0,1,0]),1)-thF)*t.w:thF)+(t.toe||0)*t.w;
       W[L[2]+s]=new T.Quaternion().setFromAxisAngle(rr.hr.clone().applyQuaternion(Wl).normalize(),th).multiply(Wl);}
     // the end bone's world position follows from the solved joint (needed by endLowest before the pose is applied)
     t.endPos=r.Wp.clone();
