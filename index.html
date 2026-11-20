@@ -114,7 +114,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 :root{--warn:#A4501A}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--warn:#E8A06B}}
 :root[data-theme="dark"]{--warn:#E8A06B}
-.tabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px -16px 16px;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px -16px 16px;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
 .tab{font:inherit;font-weight:700;font-size:.95rem;padding:9px 4px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .tab[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 .search,.addrow input,.fl textarea,.fl select,.srow select,#sadd{font:inherit;font-size:16px;width:100%;box-sizing:border-box;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
@@ -395,7 +395,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
 /* bottom tab bar */
 .tabs{position:fixed;inset:auto 12px calc(10px + env(safe-area-inset-bottom,0px)) 12px;top:auto;z-index:20;max-width:560px;margin:0 auto;
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:7px;border-radius:24px;border:1px solid var(--glass-b);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px;border-radius:24px;border:1px solid var(--glass-b);
   background:color-mix(in srgb,var(--surface) 70%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);box-shadow:0 18px 40px -12px rgba(0,0,0,.6)}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;padding:6px 4px;border:0!important;border-radius:18px;
   background:transparent!important;color:var(--muted)!important;font-weight:600;font-size:.78rem;letter-spacing:0}
@@ -496,6 +496,14 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.pwho{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;margin:0 -16px;padding-inline:16px;scrollbar-width:none}
+.pwho::-webkit-scrollbar{display:none}
+.pw{font:inherit;font-weight:800;flex:none;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
+.pw.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.pw.add{border-style:dashed;color:#FF8A1F;border-color:rgba(255,138,31,.6)}
+#trwrap{margin-top:18px}
+.plbk{margin-top:22px}
+
 .gcard{padding:14px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));margin-bottom:12px;display:grid;gap:10px}
 .ghd{display:flex;justify-content:space-between;align-items:center}.ghd b{font-size:1.05rem}.ghd span{color:#FF8A1F;font-weight:700;font-size:.85rem}
 .gchips{display:flex;flex-wrap:wrap;gap:8px}
@@ -711,8 +719,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
   </header>
   <nav class="tabs" id="tabs" aria-label="מסכים">
     <button class="tab" data-v="lib" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h5v-5h5v-5h5V5h3"/></svg><span>סולמות</span></button>
-    <button class="tab" data-v="tr" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.3.2 4 2 4 4.3"/></svg><span>מתאמנים</span></button>
-    <button class="tab" data-v="plan" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>התוכנית שלי</span></button>
+    <button class="tab" data-v="plan" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 14h7M8.5 18h4"/></svg><span>תוכניות אימון</span></button>
     <button class="tab" data-v="ses" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 10v3.8l2.6 2M9.5 3h5M19 6.5l1.3-1.3"/></svg><span>אימון קבוצתי</span></button>
   </nav>
   <section id="v-lib">
@@ -748,18 +755,16 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
   </div>
   </section>
 
-  <section id="v-tr" hidden>
-    <form id="addtr" class="addrow"><input id="trname" placeholder="שם מתאמן חדש" autocomplete="off" aria-label="שם מתאמן חדש"><button>הוספה</button></form>
-    <div id="trlist"></div>
-    <div class="bk">
+  <section id="v-tr" hidden><form id="addtr" class="addrow"><input id="trname"><button>הוספה</button></form></section>
+
+  <section id="v-plan" hidden>
+    <div id="plbody"></div>
+    <div id="trwrap" hidden><h3 class="pmt">פרטי המתאמן: רמה בכל סולם והערות</h3><div id="trlist"></div></div>
+    <div class="bk plbk">
       <button id="exp" type="button">גיבוי לקובץ</button>
       <label class="btnlike">שחזור מגיבוי<input type="file" id="imp" accept="application/json,.json" hidden></label>
     </div>
     <p class="fine">הנתונים נשמרים בטלפון הזה בלבד. כדאי לעשות גיבוי מדי פעם.</p>
-  </section>
-
-  <section id="v-plan" hidden>
-    <div id="plbody"></div>
   </section>
 
   <section id="v-ses" hidden>
@@ -772,7 +777,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261120084109";
+const BUILD="20261120134023";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2746,20 +2751,24 @@ const plDefault=ex=>{let st=null;for(const C of DATA)for(const T of C.tracks)for
 PL.list.forEach(p=>{p.items=(p.items||[]).map(it=>typeof it==="string"?plDefault(it):it);});
 const plHas=(p,ex)=>p.items.some(it=>it.ex===ex);
 let plPick=-1,plOpen=null,plAdding=false;
-const plNew=name=>{const p={id:"p"+Date.now().toString(36),name:name||"התוכנית שלי",items:[]};PL.list.push(p);plSave();return p;};
+let plWho=(()=>{try{return localStorage.getItem("cal-plan-who")||""}catch(e){return ""}})();
+const plWhoSave=()=>{try{localStorage.setItem("cal-plan-who",plWho)}catch(e){}};
+const plOwner=p=>{const t=p.who&&CO.trainees.find(x=>x.id===p.who);return t?t.name:"";};
+const plLabel=p=>plOwner(p)?`${p.name} · ${plOwner(p)}`:p.name;
+const plNew=(name,who)=>{const p={id:"p"+Date.now().toString(36),name:name||"תוכנית אימון",items:[],who:who==null?plWho:who};PL.list.push(p);plSave();return p;};
 function planBox(s,i){
   const inP=PL.list.filter(p=>plHas(p,s.ex));
-  const tags=inP.map(p=>`<span class="pltag">✓ בתוכנית: ${esc(p.name)} <button class="plrm" data-i="${i}" data-p="${p.id}" aria-label="הוצאה מהתוכנית">✕</button></span>`).join("");
+  const tags=inP.map(p=>`<span class="pltag">✓ בתוכנית: ${esc(plLabel(p))} <button class="plrm" data-i="${i}" data-p="${p.id}" aria-label="הוצאה מהתוכנית">✕</button></span>`).join("");
   const rest=PL.list.filter(p=>!plHas(p,s.ex));
   let act="";
-  if(plPick===i) act=`<div class="plchoose"><b>לאיזו תוכנית?</b>${rest.map(p=>`<button class="plpick" data-i="${i}" data-p="${p.id}">${esc(p.name)}</button>`).join("")}<button class="plpick" data-i="${i}" data-p="new">+ תוכנית חדשה</button><button class="plcancel">ביטול</button></div>`;
+  if(plPick===i) act=`<div class="plchoose"><b>לאיזו תוכנית?</b>${rest.map(p=>`<button class="plpick" data-i="${i}" data-p="${p.id}">${esc(plLabel(p))}</button>`).join("")}<button class="plpick" data-i="${i}" data-p="new">+ תוכנית חדשה</button><button class="plcancel">ביטול</button></div>`;
   else if(rest.length||!PL.list.length) act=`<button class="pladd" data-i="${i}">+ הוספה לתוכנית האימון</button>`;
   return `<div class="plbox">${tags}${act}</div>`;}
 function planToast(t){let el=$("pltoast");if(!el){el=document.createElement("div");el.id="pltoast";el.className="pltoast";document.body.appendChild(el);}
   el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),1800);}
 function planClick(b){
   const T=TR()[st.t],steps=st.l<0?T.ladders.flatMap(L=>L.steps):T.ladders[st.l].steps,x=steps[+b.dataset.i];
-  const addTo=p=>{if(!plHas(p,x.ex))p.items.push(plDefault(x.ex));plSave();planToast(`נוסף לתוכנית: ${p.name}`);};
+  const addTo=p=>{if(!plHas(p,x.ex))p.items.push(plDefault(x.ex));plSave();planToast(`נוסף לתוכנית: ${plLabel(p)}`);};
   if(b.classList.contains("pladd")){const rest=PL.list.filter(p=>!plHas(p,x.ex));
     if(!PL.list.length) addTo(plNew());
     else if(PL.list.length===1&&rest.length===1) addTo(rest[0]);
@@ -2772,8 +2781,10 @@ function planClick(b){
   renderRail();}
 const stepByEx=ex=>{for(const L of LADS){const i=L.steps.findIndex(s=>s.ex===ex);if(i>=0)return {L,i,s:L.steps[i]};}return null;};
 function renderPlan(){
-  if(plOpen&&!PL.list.some(p=>p.id===plOpen))plOpen=null;
-  if(!plOpen&&PL.list.length===1)plOpen=PL.list[0].id;
+  if(plWho&&!CO.trainees.some(t=>t.id===plWho))plWho="";
+  const mine=PL.list.filter(p=>(p.who||"")===plWho);
+  if(plOpen&&!mine.some(p=>p.id===plOpen))plOpen=null;
+  if(!plOpen&&mine.length===1)plOpen=mine[0].id;
   const P=prog();
   const card=p=>{const open=p.id===plOpen;
     const rows=p.items.map((it,k)=>{const q=stepByEx(it.ex);if(!q)return "";const s=q.s;
@@ -2786,13 +2797,19 @@ function renderPlan(){
       ${open?`<ol class="pllist">${rows||`<li class="plempty">עוד אין תרגילים. בוחרים תרגיל בסולמות ולוחצים "+ הוספה לתוכנית האימון".</li>`}</ol>
         <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button>${p.items.length?`<button class="plstart" data-p="${p.id}">▶ התחלת אימון</button>`:""}</div>`:""}</div>`;};
   if(plRun){renderRun();return;}
-  $("plbody").innerHTML=`<h2 class="plh">תוכניות האימון שלי</h2>
-    ${PL.list.length?PL.list.map(card).join(""):`<p class="empty">כאן בונים תוכנית אימון אישית. פותחים תרגיל בסולמות, לוחצים "+ הוספה לתוכנית האימון", והוא נכנס לכאן.</p>`}
+  const who=plWho?trById(plWho):null;
+  $("plbody").innerHTML=`<h2 class="plh">תוכניות אימון</h2>
+    <div class="pwho"><button class="pw${plWho?"":" on"}" data-who="">אני</button>${CO.trainees.map(t=>`<button class="pw${plWho===t.id?" on":""}" data-who="${esc(t.id)}">${esc(t.name)}</button>`).join("")}<button class="pw add" data-who="+">+ מתאמן</button></div>
+    ${mine.length?mine.map(card).join(""):`<p class="empty">${who?`עוד אין תוכנית ל${esc(who.name)}. לוחצים על + למטה ובונים לו תוכנית.`:`כאן בונים תוכנית אימון. פותחים תרגיל בסולמות, לוחצים "+ הוספה לתוכנית האימון", והוא נכנס לכאן.`}</p>`}
     ${plAdding?`<form id="plnewf" class="plnewf"><input id="plnewn" placeholder="שם התוכנית החדשה" autocomplete="off" aria-label="שם התוכנית החדשה" enterkeyhint="done">
       <div><button class="plok">יצירה</button><button type="button" class="plnewx">ביטול</button></div></form>`
       :`<button class="plplus" aria-label="תוכנית חדשה">+</button>`}`;
-  if(plAdding){const i=$("plnewn");if(i)i.focus();}}
+  if(plAdding){const i=$("plnewn");if(i)i.focus();}
+  // the selected trainee's details (levels on each ladder, notes) under their plans; backup at the bottom
+  $("trwrap").hidden=!plWho;renderTr();}
 $("plbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;const p=PL.list.find(q=>q.id===b.dataset.p);
+  if(b.dataset.who!=null){if(b.dataset.who==="+"){const n=(prompt("שם המתאמן החדש")||"").trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:false};CO.trainees.push(t);csave();plWho=t.id;}
+    else plWho=b.dataset.who;plWhoSave();plOpen=null;plAdding=false;renderPlan();return;}
   if(b.classList.contains("pltog")){plOpen=plOpen===p.id?null:p.id;}
   else if(b.classList.contains("plplus")){plAdding=true;renderPlan();return;}
   else if(b.classList.contains("plnewx")){plAdding=false;renderPlan();return;}
@@ -2995,13 +3012,13 @@ const fmtDate=d=>{try{return new Date(d).toLocaleDateString("he-IL",{day:"numeri
 
 // ---------- views ----------
 let view="lib";
-function show(v){
+function show(v){if(v==="tr")v="plan";
   view=v;closeCard();
-  [["lib","v-lib"],["tr","v-tr"],["plan","v-plan"],["ses","v-ses"]].forEach(([id,s])=>$(s).hidden=id!==v);
+  [["lib","v-lib"],["plan","v-plan"],["ses","v-ses"]].forEach(([id,s])=>$(s).hidden=id!==v);
   document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
   try{localStorage.setItem("cal-view",v)}catch(e){}
   if(v==="lib") showLib(lv.v||"home"); else TD.stop();
-  if(v==="tr") renderTr();
+
   if(v==="ses") renderSes();
   if(v==="plan") renderPlan();
 }
@@ -3033,7 +3050,8 @@ $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$(
 // ---------- trainees ----------
 const openTr=new Set();
 function renderTr(){
-  $("trlist").innerHTML=CO.trainees.length?CO.trainees.map(tr=>{
+  if(plWho)openTr.add(plWho);
+  $("trlist").innerHTML=CO.trainees.length?CO.trainees.filter(tr=>tr.id===plWho).map(tr=>{
     const keys=[...new Set([...MAIN,...Object.keys(tr.lv||{})])].filter(k=>LAD(k));
     const set=keys.filter(k=>lvIdx(tr,k)>=0).length;
     const others=LADS.filter(L=>!keys.includes(L.key));
@@ -3066,7 +3084,7 @@ $("trlist").onchange=e=>{
 $("trlist").onclick=e=>{
   const b=e.target.closest(".del");if(!b)return;const d=b.closest("details.tr"),tr=trById(d.dataset.id);
   if(!tr||!confirm(`למחוק את ${tr.name}?`))return;
-  CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);csave();renderTr();
+  CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);PL.list.forEach(p=>{if(p.who===tr.id)p.who="";});plSave();csave();plWho="";plWhoSave();renderPlan();
 };
 $("exp").onclick=async()=>{
   const txt=JSON.stringify({app:"calisthenics-coach",v:1,data:{trainees:CO.trainees,log:CO.log,plans:PL.list}},null,1);
@@ -3494,7 +3512,8 @@ function gFinish(){const P=gPresent(),up=[],half=[];
     (half.length?`<p class="lbl">עמדו ביעד פעם ראשונה (עוד פעם אחת ועולים):</p>${half.map(x=>`<p>${esc(x)}</p>`).join("")}`:"")+(!up.length&&!half.length?"<p>אף אחד לא סומן כעומד ביעד, אז הרמות נשארו כמו שהן.</p>":"");
   m.scrollIntoView({block:"center"});}
 let v0="lib";try{v0=localStorage.getItem("cal-view")||"lib"}catch(e){}
-if(!["lib","tr","plan","ses"].includes(v0)) v0="lib";
+if(v0==="tr") v0="plan";
+if(!["lib","plan","ses"].includes(v0)) v0="lib";
 show(v0);
 </script>
 
