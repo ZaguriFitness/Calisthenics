@@ -782,7 +782,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261122120250";
+const BUILD="20261122120449";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2805,7 +2805,7 @@ function renderPlan(){
   const who=plWho?trById(plWho):null;
   $("plbody").innerHTML=`<h2 class="plh">תוכניות אימון</h2>
     <div class="pwho"><button class="pw${plWho?"":" on"}" data-who="">אני</button>${CO.trainees.map(t=>`<button class="pw${plWho===t.id?" on":""}" data-who="${esc(t.id)}">${esc(t.name)}</button>`).join("")}<button class="pw add" data-who="+">+ מתאמן</button></div>
-    ${mine.length?mine.map(card).join(""):`<p class="empty">${who?`עוד אין תוכנית ל${esc(who.name)}. לוחצים על + למטה ובונים לו תוכנית.`:`כאן בונים תוכנית אימון. פותחים תרגיל בסולמות, לוחצים "+ הוספה לתוכנית האימון", והוא נכנס לכאן.`}</p>`}
+    ${mine.map(card).join("")}
     ${plAdding?`<form id="plnewf" class="plnewf"><input id="plnewn" placeholder="שם התוכנית החדשה" autocomplete="off" aria-label="שם התוכנית החדשה" enterkeyhint="done">
       <div><button class="plok">יצירה</button><button type="button" class="plnewx">ביטול</button></div></form>`
       :`<button class="plplus" aria-label="תוכנית חדשה">+</button>`}`;
