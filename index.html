@@ -496,6 +496,15 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.tr2{display:grid;gap:12px}
+.tsec{display:grid;gap:10px;padding:14px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface))}
+.tst{font-size:1rem}
+.tlv{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:14px;background:#0B0B0C}
+.tlv .gex small{display:block;color:#FF8A1F;font-weight:700;font-size:.74rem}
+.tlv .gex em{display:block;font-style:normal;color:var(--muted);font-size:.74rem}
+.tadd{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px dashed rgba(255,138,31,.6);background:transparent;color:#FF8A1F;font-weight:700}
+.tr2 .hist p{margin:0;color:var(--muted);font-size:.85rem}
+.tr2 .del{justify-self:center}
 .tcon{display:grid;gap:8px;margin-bottom:8px}
 .tcon input{font:inherit;font-size:16px;text-align:left}
 .tact{display:flex;flex-wrap:wrap;gap:8px}
@@ -764,7 +773,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 
   <section id="v-plan" hidden>
     <div id="plbody"></div>
-    <div id="trwrap" hidden><h3 class="pmt">פרטי המתאמן: רמה בכל סולם והערות</h3><div id="trlist"></div></div>
+    <div id="trwrap" hidden><h3 class="pmt">פרטי המתאמן</h3><div id="trlist"></div></div>
     <div class="bk plbk">
       <button id="exp" type="button">גיבוי לקובץ</button>
       <label class="btnlike">שחזור מגיבוי<input type="file" id="imp" accept="application/json,.json" hidden></label>
@@ -782,7 +791,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261122121030";
+const BUILD="20261122130217";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3062,31 +3071,27 @@ const telOf=n=>String(n||"").replace(/[^\d+]/g,"");
 const waOf=n=>{let d=telOf(n).replace(/^\+/,"");if(d.startsWith("0"))d="972"+d.slice(1);return d;};   // Israeli 05x -> 9725x
 function trContact(tr){const ph=tr.phone||"",em=tr.email||"";
   return `<div class="tcon">
-    <label class="fl">שם<input data-f="name" autocomplete="off" value="${esc(tr.name||"")}"></label>
+    <label class="fl">שם<input data-f="name" autocomplete="off" placeholder="שם המתאמן" value="${esc(tr.name||"")}"></label>
     <label class="fl">טלפון<input data-f="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-0000000" value="${esc(ph)}" dir="ltr"></label>
     ${telOf(ph)?`<div class="tact"><a class="tbtn" href="tel:${esc(telOf(ph))}">📞 התקשרות</a><a class="tbtn" href="https://wa.me/${esc(waOf(ph))}" target="_blank" rel="noopener">💬 וואטסאפ</a><a class="tbtn" href="sms:${esc(telOf(ph))}">✉️ SMS</a></div>`:""}
     <label class="fl">אימייל<input data-f="email" type="email" inputmode="email" autocomplete="email" placeholder="name@mail.com" value="${esc(em)}" dir="ltr"></label>
     ${/.+@.+\..+/.test(em)?`<div class="tact"><a class="tbtn" href="mailto:${esc(em)}">📧 שליחת מייל</a></div>`:""}
     ${("contacts" in navigator&&"ContactsManager" in window)?`<button class="tbtn tpick" type="button" data-pick="${esc(tr.id)}">👤 בחירה מאנשי הקשר</button>`:""}</div>`;}
 function renderTr(){
-  if(plWho)openTr.add(plWho);
-  $("trlist").innerHTML=CO.trainees.length?CO.trainees.filter(tr=>tr.id===plWho).map(tr=>{
-    const keys=[...new Set([...MAIN,...Object.keys(tr.lv||{})])].filter(k=>LAD(k));
-    const set=keys.filter(k=>lvIdx(tr,k)>=0).length;
-    const others=LADS.filter(L=>!keys.includes(L.key));
-    const hist=CO.log.flatMap(g=>(g.ch||[]).filter(c=>c.id===tr.id).map(c=>({...c,d:g.d}))).slice(-5).reverse();
-    return `<details class="tr" data-id="${tr.id}"${openTr.has(tr.id)?" open":""}>
-      <summary><span class="who2"><i class="av hue" ${hueStyle((CO.trainees.indexOf(tr)*67+188)%360)}>${esc([...tr.name.trim()][0]||"?")}</i><b>${esc(tr.name)}</b></span><span>${set} סולמות מוגדרים</span></summary>
-      <div class="trb">
-        ${trContact(tr)}
-        <label class="fl">הערות (פציעות, מטרות)<textarea data-f="note" rows="2">${esc(tr.note||"")}</textarea></label>
-        ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k);return `<label class="fl lv"><span>${ladLabel(L)}</span>
-          <select data-k="${esc(k)}">${stepOpts(L,i)}</select>${i>=0?`<em>${esc(L.steps[i].he||"")}${L.steps[i].he?" · ":""}יעד למעבר: ${esc(L.steps[i].pass)}</em>`:""}</label>`}).join("")}
-        <label class="fl">הוספת סולם נוסף<select data-add="1"><option value="">בחר סולם…</option>${others.map(L=>`<option value="${esc(L.key)}">${esc(lnHe(L.l))} (${esc(L.t)}${L.ci===1?", טבעות":""})</option>`).join("")}</select></label>
-        ${hist.length?`<div class="hist"><b>עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?lnHe(L.l):"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
-        <button class="del" type="button">מחיקת ${esc(tr.name)}</button>
-      </div></details>`}).join("")
-    :`<p class="empty">עוד אין מתאמנים. כותבים שם ולוחצים "הוספה".</p>`;
+  const tr=trById(plWho);if(!tr){$("trlist").innerHTML="";return;}
+  // levels: only the ladders this trainee has a level on, one compact row each (- / + to move a step)
+  const keys=Object.keys(tr.lv||{}).filter(k=>LAD(k)&&lvIdx(tr,k)>=0);
+  const others=LADS.filter(L=>!keys.includes(L.key));
+  const hist=CO.log.flatMap(g=>(g.ch||[]).filter(c=>c.id===tr.id).map(c=>({...c,d:g.d}))).slice(-5).reverse();
+  $("trlist").innerHTML=`<div class="tr2" data-id="${esc(tr.id)}">
+    <div class="tsec">${trContact(tr)}
+      <label class="fl">הערות<textarea data-f="note" rows="2" placeholder="פציעות, מטרות">${esc(tr.note||"")}</textarea></label></div>
+    <div class="tsec"><b class="tst">רמות</b>
+      ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k),s=L.steps[i];return `<div class="tlv"><button class="gex" data-open="${esc(k)}" data-x="${i}"><small>${esc(lnHe(L.l))}</small><b>${esc(s.he||s.en||s.ex)}</b><em>רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></em></button>
+        <span class="glv"><button data-tl="${esc(k)}|-1" ${i<=0?"disabled":""} aria-label="שלב קל יותר">−</button><button data-tl="${esc(k)}|1" ${i>=L.steps.length-1?"disabled":""} aria-label="שלב קשה יותר">+</button><button data-tl="${esc(k)}|x" aria-label="הסרה">✕</button></span></div>`;}).join("")}
+      <select class="tadd" data-add="1"><option value="">+ הוספת רמה בסולם…</option>${others.map(L=>`<option value="${esc(L.key)}">${esc(lnHe(L.l))}${L.ci===1?" (טבעות)":""}</option>`).join("")}</select></div>
+    ${hist.length?`<div class="tsec hist"><b class="tst">עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?lnHe(L.l):"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
+    <button class="del" type="button">מחיקת ${esc(tr.name)}</button></div>`;
 }
 $("addtr").onsubmit=e=>{
   e.preventDefault();const n=$("trname").value.trim();if(!n)return;
@@ -3095,19 +3100,23 @@ $("addtr").onsubmit=e=>{
 };
 $("trlist").addEventListener("toggle",e=>{const d=e.target.closest&&e.target.closest("details.tr");if(!d)return;d.open?openTr.add(d.dataset.id):openTr.delete(d.dataset.id);},true);
 $("trlist").onchange=e=>{
-  const d=e.target.closest("details.tr");if(!d)return;const tr=trById(d.dataset.id);if(!tr)return;tr.lv=tr.lv||{};
+  const d=e.target.closest(".tr2");if(!d)return;const tr=trById(d.dataset.id);if(!tr)return;tr.lv=tr.lv||{};
   const t=e.target;
   if(t.dataset.f==="note"){tr.note=t.value;csave();return;}
   if(t.dataset.f==="name"){const n=t.value.trim();if(!n){t.value=tr.name;return;}tr.name=n;csave();renderPlan();return;}
   if(t.dataset.f==="phone"||t.dataset.f==="email"){tr[t.dataset.f]=t.value.trim();csave();renderTr();return;}
-  if(t.dataset.add){if(t.value){tr.lv[t.value]=tr.lv[t.value]||"";csave();renderTr();}return;}
+  if(t.dataset.add){if(t.value){const L=LAD(t.value);if(L&&lvIdx(tr,t.value)<0)tr.lv[t.value]=L.steps[0].ex;csave();renderTr();}return;}
   if(t.dataset.k){const L=LAD(t.dataset.k);tr.lv[t.dataset.k]=t.value===""?"":L.steps[+t.value].ex;csave();renderTr();}
 };
 $("trlist").addEventListener("click",async e=>{const b=e.target.closest(".tpick");if(!b)return;const tr=trById(b.dataset.pick);if(!tr)return;
   try{const [c]=await navigator.contacts.select(["tel","email","name"],{multiple:false});if(!c)return;
     if(c.tel&&c.tel[0])tr.phone=c.tel[0];if(c.email&&c.email[0])tr.email=c.email[0];csave();renderTr();}catch(_){}});
 $("trlist").onclick=e=>{
-  const b=e.target.closest(".del");if(!b)return;const d=b.closest("details.tr"),tr=trById(d.dataset.id);
+  const o=e.target.closest(".gex[data-open]");if(o){openStep(o.dataset.open,+o.dataset.x);return;}
+  const lb=e.target.closest("[data-tl]");if(lb){const tr=trById(plWho),[k,d]=lb.dataset.tl.split("|"),L=LAD(k);if(!tr||!L)return;
+    if(d==="x")delete tr.lv[k];else{const i=Math.max(0,Math.min(L.steps.length-1,lvIdx(tr,k)+(+d)));tr.lv[k]=L.steps[i].ex;if(tr.streak)delete tr.streak[k];}
+    csave();renderTr();return;}
+  const b=e.target.closest(".del");if(!b)return;const d=b.closest(".tr2"),tr=trById(d.dataset.id);
   if(!tr||!confirm(`למחוק את ${tr.name}?`))return;
   CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);PL.list.forEach(p=>{if(p.who===tr.id)p.who="";});plSave();csave();plWho="";plWhoSave();renderPlan();
 };
