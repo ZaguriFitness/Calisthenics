@@ -782,7 +782,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261122115927";
+const BUILD="20261122120250";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3059,6 +3059,7 @@ const telOf=n=>String(n||"").replace(/[^\d+]/g,"");
 const waOf=n=>{let d=telOf(n).replace(/^\+/,"");if(d.startsWith("0"))d="972"+d.slice(1);return d;};   // Israeli 05x -> 9725x
 function trContact(tr){const ph=tr.phone||"",em=tr.email||"";
   return `<div class="tcon">
+    <label class="fl">שם<input data-f="name" autocomplete="off" value="${esc(tr.name||"")}"></label>
     <label class="fl">טלפון<input data-f="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-0000000" value="${esc(ph)}" dir="ltr"></label>
     ${telOf(ph)?`<div class="tact"><a class="tbtn" href="tel:${esc(telOf(ph))}">📞 התקשרות</a><a class="tbtn" href="https://wa.me/${esc(waOf(ph))}" target="_blank" rel="noopener">💬 וואטסאפ</a><a class="tbtn" href="sms:${esc(telOf(ph))}">✉️ SMS</a></div>`:""}
     <label class="fl">אימייל<input data-f="email" type="email" inputmode="email" autocomplete="email" placeholder="name@mail.com" value="${esc(em)}" dir="ltr"></label>
@@ -3094,6 +3095,7 @@ $("trlist").onchange=e=>{
   const d=e.target.closest("details.tr");if(!d)return;const tr=trById(d.dataset.id);if(!tr)return;tr.lv=tr.lv||{};
   const t=e.target;
   if(t.dataset.f==="note"){tr.note=t.value;csave();return;}
+  if(t.dataset.f==="name"){const n=t.value.trim();if(!n){t.value=tr.name;return;}tr.name=n;csave();renderPlan();return;}
   if(t.dataset.f==="phone"||t.dataset.f==="email"){tr[t.dataset.f]=t.value.trim();csave();renderTr();return;}
   if(t.dataset.add){if(t.value){tr.lv[t.value]=tr.lv[t.value]||"";csave();renderTr();}return;}
   if(t.dataset.k){const L=LAD(t.dataset.k);tr.lv[t.dataset.k]=t.value===""?"":L.steps[+t.value].ex;csave();renderTr();}
