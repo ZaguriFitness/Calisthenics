@@ -496,6 +496,11 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.tcon{display:grid;gap:8px;margin-bottom:8px}
+.tcon input{font:inherit;font-size:16px;text-align:left}
+.tact{display:flex;flex-wrap:wrap;gap:8px}
+.tbtn{font:inherit;font-weight:800;font-size:.88rem;padding:9px 14px;border-radius:999px;border:1.5px solid #FF8A1F;background:transparent;color:#FF8A1F;text-decoration:none;cursor:pointer}
+.tact .tbtn:first-child{background:#FF8A1F;color:#111}
 .pwho{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;margin:0 -16px;padding-inline:16px;scrollbar-width:none}
 .pwho::-webkit-scrollbar{display:none}
 .pw{font:inherit;font-weight:800;flex:none;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
@@ -777,7 +782,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261120134023";
+const BUILD="20261122115927";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3049,6 +3054,16 @@ $("qres").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;$(
 
 // ---------- trainees ----------
 const openTr=new Set();
+// a trainee's phone and email: tap to call, WhatsApp, text or email (the phone's own apps open)
+const telOf=n=>String(n||"").replace(/[^\d+]/g,"");
+const waOf=n=>{let d=telOf(n).replace(/^\+/,"");if(d.startsWith("0"))d="972"+d.slice(1);return d;};   // Israeli 05x -> 9725x
+function trContact(tr){const ph=tr.phone||"",em=tr.email||"";
+  return `<div class="tcon">
+    <label class="fl">טלפון<input data-f="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-0000000" value="${esc(ph)}" dir="ltr"></label>
+    ${telOf(ph)?`<div class="tact"><a class="tbtn" href="tel:${esc(telOf(ph))}">📞 התקשרות</a><a class="tbtn" href="https://wa.me/${esc(waOf(ph))}" target="_blank" rel="noopener">💬 וואטסאפ</a><a class="tbtn" href="sms:${esc(telOf(ph))}">✉️ SMS</a></div>`:""}
+    <label class="fl">אימייל<input data-f="email" type="email" inputmode="email" autocomplete="email" placeholder="name@mail.com" value="${esc(em)}" dir="ltr"></label>
+    ${/.+@.+\..+/.test(em)?`<div class="tact"><a class="tbtn" href="mailto:${esc(em)}">📧 שליחת מייל</a></div>`:""}
+    ${("contacts" in navigator&&"ContactsManager" in window)?`<button class="tbtn tpick" type="button" data-pick="${esc(tr.id)}">👤 בחירה מאנשי הקשר</button>`:""}</div>`;}
 function renderTr(){
   if(plWho)openTr.add(plWho);
   $("trlist").innerHTML=CO.trainees.length?CO.trainees.filter(tr=>tr.id===plWho).map(tr=>{
@@ -3059,6 +3074,7 @@ function renderTr(){
     return `<details class="tr" data-id="${tr.id}"${openTr.has(tr.id)?" open":""}>
       <summary><span class="who2"><i class="av hue" ${hueStyle((CO.trainees.indexOf(tr)*67+188)%360)}>${esc([...tr.name.trim()][0]||"?")}</i><b>${esc(tr.name)}</b></span><span>${set} סולמות מוגדרים</span></summary>
       <div class="trb">
+        ${trContact(tr)}
         <label class="fl">הערות (פציעות, מטרות)<textarea data-f="note" rows="2">${esc(tr.note||"")}</textarea></label>
         ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k);return `<label class="fl lv"><span>${ladLabel(L)}</span>
           <select data-k="${esc(k)}">${stepOpts(L,i)}</select>${i>=0?`<em>${esc(L.steps[i].he||"")}${L.steps[i].he?" · ":""}יעד למעבר: ${esc(L.steps[i].pass)}</em>`:""}</label>`}).join("")}
@@ -3078,9 +3094,13 @@ $("trlist").onchange=e=>{
   const d=e.target.closest("details.tr");if(!d)return;const tr=trById(d.dataset.id);if(!tr)return;tr.lv=tr.lv||{};
   const t=e.target;
   if(t.dataset.f==="note"){tr.note=t.value;csave();return;}
+  if(t.dataset.f==="phone"||t.dataset.f==="email"){tr[t.dataset.f]=t.value.trim();csave();renderTr();return;}
   if(t.dataset.add){if(t.value){tr.lv[t.value]=tr.lv[t.value]||"";csave();renderTr();}return;}
   if(t.dataset.k){const L=LAD(t.dataset.k);tr.lv[t.dataset.k]=t.value===""?"":L.steps[+t.value].ex;csave();renderTr();}
 };
+$("trlist").addEventListener("click",async e=>{const b=e.target.closest(".tpick");if(!b)return;const tr=trById(b.dataset.pick);if(!tr)return;
+  try{const [c]=await navigator.contacts.select(["tel","email","name"],{multiple:false});if(!c)return;
+    if(c.tel&&c.tel[0])tr.phone=c.tel[0];if(c.email&&c.email[0])tr.email=c.email[0];csave();renderTr();}catch(_){}});
 $("trlist").onclick=e=>{
   const b=e.target.closest(".del");if(!b)return;const d=b.closest("details.tr"),tr=trById(d.dataset.id);
   if(!tr||!confirm(`למחוק את ${tr.name}?`))return;
