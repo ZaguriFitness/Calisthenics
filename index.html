@@ -496,12 +496,6 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
-.plist{display:grid;gap:8px;margin-bottom:12px}
-.prow2{font:inherit;display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));color:var(--ink);cursor:pointer;text-align:start}
-.prow2>span:nth-child(2){flex:1;min-width:0}.prow2 b{display:block;font-size:1.05rem}.prow2 small{display:block;color:var(--muted);font-size:.8rem}
-.av2{font-style:normal;flex:none;width:40px;height:40px;border-radius:50%;background:#FF8A1F;color:#111;font-weight:900;display:grid;place-items:center}
-.padd{width:100%;padding:12px!important}
-.plhead .pldel svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block;margin:auto}
 .gex.hasgt{display:flex;align-items:center;gap:10px}
 .gth{flex:none;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#F6ECDC;display:grid;place-items:center}
 .gth svg{width:100%;height:100%;background:#0B0B0C}
@@ -809,7 +803,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261124152003";
+const BUILD="20261124164721";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2790,7 +2784,7 @@ const plDefault=ex=>{let st=null;for(const C of DATA)for(const T of C.tracks)for
   return {ex,u:/שנ/.test(pass)?"s":"r",sets:Array.from({length:n},()=>({r,w:0}))};};
 PL.list.forEach(p=>{p.items=(p.items||[]).map(it=>typeof it==="string"?plDefault(it):it);});
 const plHas=(p,ex)=>p.items.some(it=>it.ex===ex);
-let plPick=-1,plOpen=null,plAdding=false,plPage=false;   // plPage: a person's page is open (else the list of people)
+let plPick=-1,plOpen=null,plAdding=false;
 let plWho=(()=>{try{return localStorage.getItem("cal-plan-who")||""}catch(e){return ""}})();
 const plWhoSave=()=>{try{localStorage.setItem("cal-plan-who",plWho)}catch(e){}};
 const plOwner=p=>{const t=p.who&&CO.trainees.find(x=>x.id===p.who);return t?t.name:"";};
@@ -2833,29 +2827,26 @@ function renderPlan(){
     return `<div class="plcard${open?" open":""}"><div class="plhead">
         <input class="plname" data-p="${p.id}" value="${esc(p.name)}" aria-label="שם התוכנית (אפשר לשנות)" enterkeyhint="done" autocomplete="off">
         <button class="pltog" data-p="${p.id}" aria-expanded="${open}"><span>${p.items.length} תרגילים</span><i>${open?"▴":"▾"}</i></button>
-        <button class="pldel" data-p="${p.id}" aria-label="מחיקת התוכנית"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button></div>
+        <button class="pldel" data-p="${p.id}" aria-label="מחיקת התוכנית">✕</button></div>
       ${open?`<ol class="pllist">${rows||`<li class="plempty">עוד אין תרגילים. בוחרים תרגיל בסולמות ולוחצים "+ הוספה לתוכנית האימון".</li>`}</ol>
         <div class="plbtns"><button class="pladdmore">+ הוספת תרגיל</button>${p.items.length?`<button class="plstart" data-p="${p.id}">▶ התחלת אימון</button>`:""}</div>`:""}</div>`;};
   if(plRun){renderRun();return;}
   const who=plWho?trById(plWho):null;
-  if(!plPage){   // the list of people: me first, then every trainee; tapping one opens their page
-    const np=w=>PL.list.filter(p=>(p.who||"")===w).length,row=(w,n,sub)=>`<button class="prow2" data-who="${esc(w)}"><i class="av2">${esc([...n.trim()][0]||"?")}</i><span><b>${esc(n)}</b><small>${sub}</small></span><span class="lgo">‹</span></button>`;
-    $("plbody").innerHTML=`<h2 class="plh">תוכניות אימון</h2><div class="plist">${row("","אני",np("")+" תוכניות")}
-      ${CO.trainees.map(t=>row(t.id,t.name,np(t.id)+" תוכניות"+(t.phone?" · "+esc(t.phone):""))).join("")}</div>
-      <button class="pw add padd" data-who="+">+ מתאמן חדש</button>`;
-    $("trwrap").hidden=true;return;}
-  $("plbody").innerHTML=`<div class="vhead"><button class="back" id="plback" aria-label="חזרה לרשימה">→</button><h2>${who?esc(who.name):"התוכניות שלי"}</h2></div>
+  $("plbody").innerHTML=`<h2 class="plh">תוכניות אימון</h2>
+    <div class="pwho"><button class="pw${plWho?"":" on"}" data-who="">אני</button>${CO.trainees.map(t=>`<button class="pw${plWho===t.id?" on":""}" data-who="${esc(t.id)}">${esc(t.name)}</button>`).join("")}<button class="pw add" data-who="+">+ מתאמן</button></div>
     ${mine.map(card).join("")}
     ${plAdding?`<form id="plnewf" class="plnewf"><input id="plnewn" placeholder="שם התוכנית החדשה" autocomplete="off" aria-label="שם התוכנית החדשה" enterkeyhint="done">
       <div><button class="plok">יצירה</button><button type="button" class="plnewx">ביטול</button></div></form>`
       :`<button class="plplus" aria-label="תוכנית חדשה">+</button>`}`;
   if(plAdding){const i=$("plnewn");if(i)i.focus();}
+  // keep the selected person's chip in view (centred in the row), instead of the row jumping back to its start
+  {const row=document.querySelector("#plbody .pwho"),on=row&&row.querySelector(".pw.on");
+   if(row&&on){const r=row.getBoundingClientRect(),c=on.getBoundingClientRect();row.scrollLeft+=(c.left+c.width/2)-(r.left+r.width/2);}}
   // the selected trainee's details (levels on each ladder, notes) under their plans; backup at the bottom
   $("trwrap").hidden=!plWho;renderTr();}
 $("plbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;const p=PL.list.find(q=>q.id===b.dataset.p);
   if(b.dataset.who!=null){if(b.dataset.who==="+"){const n=(prompt("שם המתאמן החדש")||"").trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:false};CO.trainees.push(t);csave();plWho=t.id;}
-    else plWho=b.dataset.who;plWhoSave();plOpen=null;plAdding=false;plPage=true;renderPlan();window.scrollTo(0,0);return;}
-  if(b.id==="plback"){plPage=false;plAdding=false;renderPlan();window.scrollTo(0,0);return;}
+    else plWho=b.dataset.who;plWhoSave();plOpen=null;plAdding=false;renderPlan();return;}
   if(b.classList.contains("pltog")){plOpen=plOpen===p.id?null:p.id;}
   else if(b.classList.contains("plplus")){plAdding=true;renderPlan();return;}
   else if(b.classList.contains("plnewx")){plAdding=false;renderPlan();return;}
@@ -3147,7 +3138,7 @@ $("trlist").onclick=e=>{
     csave();renderTr();return;}
   const b=e.target.closest(".del");if(!b)return;const d=b.closest(".tr2"),tr=trById(d.dataset.id);
   if(!tr||!confirm(`למחוק את ${tr.name}?`))return;
-  CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);PL.list.forEach(p=>{if(p.who===tr.id)p.who="";});plSave();csave();plWho="";plWhoSave();plPage=false;renderPlan();
+  CO.trainees=CO.trainees.filter(x=>x!==tr);CO.ses.present=CO.ses.present.filter(x=>x!==tr.id);PL.list.forEach(p=>{if(p.who===tr.id)p.who="";});plSave();csave();plWho="";plWhoSave();renderPlan();
 };
 $("exp").onclick=async()=>{
   const txt=JSON.stringify({app:"calisthenics-coach",v:1,data:{trainees:CO.trainees,log:CO.log,plans:PL.list}},null,1);
