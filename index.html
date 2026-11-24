@@ -496,6 +496,11 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gex.hasgt{display:flex;align-items:center;gap:10px}
+.gth{flex:none;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#F6ECDC;display:grid;place-items:center}
+.gth svg{width:100%;height:100%;background:#0B0B0C}
+.gtx{flex:1;min-width:0;display:block}
+.gwu li{padding:6px 8px!important}
 .wimg{opacity:.55;pointer-events:none}
 .wseg path.wedge{fill:none;stroke:#FF8A1F;stroke-width:1.8;pointer-events:none}
 .wseg:first-of-type path{}
@@ -798,7 +803,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261124050458";
+const BUILD="20261124050731";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3099,7 +3104,7 @@ function renderTr(){
     <div class="tsec">${trContact(tr)}
       <label class="fl">הערות<textarea data-f="note" rows="2" placeholder="פציעות, מטרות">${esc(tr.note||"")}</textarea></label></div>
     <div class="tsec"><b class="tst">רמות</b>
-      ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k),s=L.steps[i];return `<div class="tlv"><button class="gex" data-open="${esc(k)}" data-x="${i}"><small>${esc(lnHe(L.l))}</small><b>${esc(s.he||s.en||s.ex)}</b><em>רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></em></button>
+      ${keys.map(k=>{const L=LAD(k),i=lvIdx(tr,k),s=L.steps[i];return `<div class="tlv"><button class="gex hasgt" data-open="${esc(k)}" data-x="${i}"><span class="gth">${thumb(s)}</span><span class="gtx"><small>${esc(lnHe(L.l))}</small><b>${esc(s.he||s.en||s.ex)}</b><em>רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></em></span></button>
         <span class="glv"><button data-tl="${esc(k)}|-1" ${i<=0?"disabled":""} aria-label="שלב קל יותר">−</button><button data-tl="${esc(k)}|1" ${i>=L.steps.length-1?"disabled":""} aria-label="שלב קשה יותר">+</button><button data-tl="${esc(k)}|x" aria-label="הסרה">✕</button></span></div>`;}).join("")}
       <select class="tadd" data-add="1"><option value="">+ הוספת רמה בסולם…</option>${others.map(L=>`<option value="${esc(L.key)}">${esc(lnHe(L.l))}${L.ci===1?" (טבעות)":""}</option>`).join("")}</select></div>
     ${hist.length?`<div class="tsec hist"><b class="tst">עליות אחרונות</b>${hist.map(h=>{const L=LAD(h.k);return `<p>${fmtDate(h.d)} · ${esc(L?lnHe(L.l):"")}: ${esc(exByKey(h.k,h.to))}</p>`}).join("")}</div>`:""}
@@ -3497,7 +3502,7 @@ function gPresent(){const ids=CO.trainees.map(t=>t.id);if(!SG.present)SG.present
 function gWho(tr,refs,bk){const g=gStep(tr,refs);if(!g)return "";const s=g.L.steps[g.i],key=bk+"|"+tr.id,dn=!!SG.done[key];
   return `<div class="gwho${dn?" ok":""}"><button class="gok" data-ok="${esc(key)}" aria-label="עמד ביעד">${dn?"✓":""}</button>
     <span class="gnm">${esc(tr.name)}</span>
-    <button class="gex" data-open="${esc(g.k)}" data-x="${g.i}"><b>${esc(s.he||s.en||s.ex)}</b><small>${g.unset?"עוד לא נקבעה רמה · ":""}רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></small></button>
+    <button class="gex hasgt" data-open="${esc(g.k)}" data-x="${g.i}"><span class="gth">${thumb(s)}</span><span class="gtx"><b>${esc(s.he||s.en||s.ex)}</b><small>${g.unset?"עוד לא נקבעה רמה · ":""}רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></small></span></button>
     <span class="glv"><button data-lv="${esc(tr.id)}|${esc(g.k)}|-1" ${g.i<=0?"disabled":""} aria-label="שלב קל יותר">−</button><button data-lv="${esc(tr.id)}|${esc(g.k)}|1" ${g.i>=g.L.steps.length-1?"disabled":""} aria-label="שלב קשה יותר">+</button></span></div>`;}
 function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm${on?" on":""}" data-tm="${id}" data-min="${min}">${on?"⏹ עצירה":"▶ טיימר "+min+" דק׳"}</button>`;}
 function renderSes(){const P=gPresent();
@@ -3513,7 +3518,7 @@ function renderSes(){const P=gPresent();
   const blk=(n,title,min,fmt,body,id)=>`<section class="gblk"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}</div>${body}</section>`;
   const pair=(refs,lab)=>`<div class="gex2"><p class="gpl">${lab}: ${esc(shortName(LAD(gK(refs[0]))||{l:refs[0][1]}))}</p>${P.map(t=>gWho(t,refs,lab+gK(refs[0]))).join("")}</div>`;
   let h=`<h2 class="plh">אימון קבוצתי</h2>${who}${pick}`;
-  h+=blk(1,"חימום",8,"כולם ביחד, 2 סבבים",`<ul class="gwu">${wu.map(q=>`<li><button class="gex" data-open="${esc(q.L.key)}" data-x="${q.i}"><b>${esc(q.s.he||q.s.en)}</b><small><bdi dir="ltr">${esc(q.s.pass)}</bdi></small></button></li>`).join("")}
+  h+=blk(1,"חימום",8,"כולם ביחד, 2 סבבים",`<ul class="gwu">${wu.map(q=>`<li><button class="gex hasgt" data-open="${esc(q.L.key)}" data-x="${q.i}"><span class="gth">${thumb(q.s)}</span><span class="gtx"><b>${esc(q.s.he||q.s.en)}</b><small><bdi dir="ltr">${esc(q.s.pass)}</bdi></small></span></button></li>`).join("")}
       <li class="gtxt">סיבובי מפרקים: צוואר, כתפיים, אגן, ברכיים · 10 סקוואטים קלים</li></ul>`,"w");
   h+=blk(2,"מיומנות: "+esc(sk[1]),12,"כל דקה: ניסיון או החזקה איכותית אחת, ומנוחה עד סוף הדקה",
     `<p class="gtip">עובדים כשהגוף עוד רענן. איכות לפני כמות: עוצרים לפני שהטכניקה נשברת.</p>${P.map(t=>gWho(t,sk[2],"skill"+sk[0])).join("")}`,"s");
