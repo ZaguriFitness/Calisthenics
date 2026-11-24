@@ -803,7 +803,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261124050731";
+const BUILD="20261124080717";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1083,6 +1083,9 @@ const CHAIR=(e)=>X({H:[80,145],t:-90,ua:90,fa:0,pr:[{k:"hbar",y:127,x1:72,x2:114
 const SIT=(e)=>X({H:[70,194],t:-88,L:[143,199],A:[66,199],g:1},e);
 const LS=(e)=>X({H:[78,170],t:-88,A:[80,176],g:1,pr:[PAR(80,176)]},e);
 const TUCKL=[102,150];
+// tuck in an L-sit: thighs up in front of the body (hips bent a little past 90°), knees bent ~90°, shins hanging
+// down in front of the parallettes, feet off the floor; the knees stay in front of the belly, not in it
+const LTUCK={L:null,th:-40,sh:112},LTUCK2={L2:null,th2:-40,sh2:112};
 
 // ---------- SIDE: statics ----------
 const BEAR={H:[85,148],t:-3.4,A:[135,199],L:[50,199],kb:[0.6,1],g:1};
@@ -1337,8 +1340,8 @@ const ILL={
  "Hanging Windshield Wipers":(()=>{const up=HG(X(TTB,{L:[113,68]})),sw=d=>k=>K3.rotY(k,["hpL","hpR","knL","knR","ftL","ftR"],d,k.pelv);
    return [X(up,{sg:1,label:"רגליים למעלה"}),X(up,{post:sw(55),label:"לצד אחד"}),X(up,{post:sw(-55),label:"לצד השני"})];})(),
  "Seated Leg Lift — Compression Lift":[SIT(),SIT({L:add([70,194],73,-12)})],
- "Tuck L-Sit":[LS({L:TUCKL,kb:[1,-1]})],
- "One-Leg L-Sit":[LS({L:add([78,170],73,0),L2:TUCKL,kb2:[1,-1]})],
+ "Tuck L-Sit":[LS(LTUCK)],
+ "One-Leg L-Sit":[LS(X({L:add([78,170],73,0)},LTUCK2))],
  "L-Sit":[LS({L:add([78,170],73,0)})],
  "V-Sit Progression":[LS({H:[84,168],t:-100,A:[72,176],L:add([84,168],73,-30),pr:[PAR(72,176)]})],
  "V-Sit":[LS({H:[88,166],t:-112,A:[66,176],L:add([88,166],73,-60),pr:[PAR(66,176)]})],
