@@ -803,7 +803,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261124164721";
+const BUILD="20261125134057";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1356,14 +1356,24 @@ const ILL={
    X(HLINE([96,200],-128),{pr:[{k:"wall",x:12,y1:20}],label:"הליכה במעלה הקיר"}),
    X(HLINE([58,200],-108),{pr:[{k:"wall",x:12,y1:20}],label:"ידיים קרוב לקיר"})],
  "Chest-to-Wall Handstand":[X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"החזקה, בטן לקיר"})],
- "Bail — יציאה מבוקרת מעמידת ידיים":[
+ // pirouette bail: overbalancing, the weight goes onto one hand, the body turns a quarter around it while the legs
+ // split, the lead leg comes down past the hands (a cartwheel exit) and you land on your feet facing sideways
+ "Bail — יציאה מבוקרת מעמידת ידיים":(()=>{const PV=[100,0];return [
    HS([100,200],{label:"מאבדים איזון"}),
-   {H:[106,98],t:Math.atan2(146-98,101-106)*180/Math.PI,A:[100,200],L:add([106,98],73,-62),L2:add([106,98],73,-25),kb2:[1,0],g:1,rotY:45,pivot:[100,0],label:"סיבוב על יד אחת"},
-   {H:[132,128],t:-78,A:[150,118],eb:[0,1],L:[148,200],kb:[1,-0.3],L2:[112,200],kb2:[0.3,1],g:1,rotY:90,pivot:[100,0],label:"נחיתה על הרגליים"}],
- "Handstand Kick-Up":[
-   {H:[78,128],t:-90,L:[104,200],kb:[1,-0.2],L2:[42,200],kb2:[0.2,1],ua:-90,fa:-90,g:1,label:"מכרע, ידיים למעלה"},
-   {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,label:"ידיים לרצפה, בעיטה"},
-   HS([128,200],{label:"עמידת ידיים"})],
+   X({H:[101,96],t:89,A:[100,200],L:add([101,96],73,-62),L2:add([101,96],73,-112),kb:[1,0],kb2:[1,0],g:1,rotY:35,pivot:PV},{via:true}),
+   X({H:[106,100],t:Math.atan2(146-100,100-106)*180/Math.PI,A:[100,200],L:add([106,100],73,-8),kb:[1,-0.2],L2:add([106,100],73,-75),g:1,rotY:90,pivot:PV},{via:true}),
+   {H:[147,129],t:Math.atan2(146-129,100-147)*180/Math.PI,A:[100,200],L:[160,200],kb:[-1,-0.3],L2:add([147,129],73,-62),kb2:[-1,0],g:1,face:-1,rotY:90,pivot:PV,label:"רגל ראשונה נוחתת"},
+   X({H:[154,128],t:-115,ua:115,fa:105,L:[162,200],kb:[-1,-0.3],L2:[140,196],kb2:[-1,0],g:1,face:-1,rotY:90,pivot:PV},{via:true}),
+   {H:[156,128],t:-90,ua:95,fa:95,L:[164,200],kb:[-1,-0.1],L2:[146,200],kb2:[-1,0.1],g:1,face:-1,rotY:90,pivot:PV,label:"נחיתה על הרגליים"}];})(),
+ // the arms stay locked by the ears (in line with the torso) while the body tips forward as one line over the front leg
+ // and the back leg rises behind; then the hands land shoulder-width under the shoulders (arms straight) and the
+ // back leg kicks the hips up over the hands. Never do the arms swing down / back around the shoulder.
+ "Handstand Kick-Up":(()=>{const tip=(H,a,e)=>{const S=add(H,50,a);return X({H,t:a,A:add(S,54,a),L:[104,200],kb:[1,-0.2],L2:add(H,73,a+180),kb2:[0,1],g:1,via:true},e);};
+   return [{H:[78,128],t:-90,L:[104,200],kb:[1,-0.2],L2:[42,200],kb2:[0.2,1],ua:-90,fa:-90,g:1,label:"מכרע, ידיים למעלה"},
+   tip([84,127],-52),tip([90,128],-18),
+   {H:[82,124],t:Math.atan2(146-124,128-82)*180/Math.PI,A:[128,200],L:[100,198],kb:[1,-0.3],L2:add([82,124],73,-135),g:1,face:-1,label:"ידיים לרצפה, בעיטה"},
+   X({H:[118,100],t:Math.atan2(146-100,128-118)*180/Math.PI,A:[128,200],L:add([118,100],73,175),kb:[1,0.4],L2:add([118,100],73,-110),g:1,face:-1},{via:true}),
+   HS([128,200],{label:"עמידת ידיים"})];})(),
  "Freestanding Handstand":[HS([100,200],{label:"החזקה"})],
  "Wrist Prep — חימום שורש כף היד":[
    {H:[83,163],t:Math.atan2(146-163,130-83)*180/Math.PI,A:[130,200],th:90,sh:180,g:1,label:"על ארבע"},
@@ -1377,13 +1387,19 @@ const ILL={
    // facing the wall a step away: lunge, hands down ~20 cm from the wall, the back leg kicks up behind, the hips come
    // over the hands with the kicking leg leading, and both heels come to rest on the wall (back to the wall)
    {H:[62,128],t:-90,L:[90,200],kb:[1,-0.2],L2:[30,199],kb2:[0.2,1],ua:-90,fa:-90,g:1,pr:[{k:"wall",x:142,y1:10}],label:"מכרע מול הקיר, ידיים למעלה"},
+   // arms stay by the ears while the body tips forward over the front leg (never swinging down and back)
+   ...[[70,128,-55],[80,128,-20]].map(([x,y,an])=>{const H=[x,y],S=add(H,50,an);return X({H,t:an,A:add(S,54,an),L:[90,200],kb:[1,-0.2],L2:add(H,73,an+180),kb2:[0,1],g:1,pr:[{k:"wall",x:142,y1:10}]},{via:true});}),
    {H:[86,126],t:Math.atan2(150-126,126-86)*180/Math.PI,A:[128,200],L:[98,198],kb:[1,-0.3],L2:add([86,126],73,-125),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"ידיים לרצפה, בעיטה"},
    {H:[120,99],t:Math.atan2(146-99,127-120)*180/Math.PI,A:[128,200],L:add([120,99],73,-150),kb:[1,0.6],L2:add([120,99],73,-84),g:1,face:-1,pr:[{k:"wall",x:142,y1:10}],label:"אגן מעל הידיים"},
    X(HLINE([128,200],-84),{face:-1,pr:[{k:"wall",x:142,y1:10}],label:"עקבים על הקיר"})],
  "Wall Toe Pulls — שחרור רגליים מהקיר":[
    X(HLINE([104,200],-95),{pr:[{k:"wall",x:85,y1:10}],label:"בטן לקיר"}),
    X(HLINE([104,200],-90),{pr:[{k:"wall",x:85,y1:10}],label:"רגליים משתחררות מהקיר"})],
- "Handstand Shoulder Taps":[HS([100,200],{label:"עמידת ידיים"}),HS([100,200],{H:[103,96],A2:[90,146],eb2:[-1,0.3],post:k=>K3.tap(k,"R",[-6,-3],[-6,-18]),label:"נגיעה בכתף הנגדית"})],
+ "Handstand Shoulder Taps":[HS([100,200],{label:"עמידת ידיים"}),HS([100,200],{H:[103,96],A2:[90,146],eb2:[-1,0.3],post:k=>{
+     // the weight moves over the support hand before the other hand lifts: the whole body shifts sideways toward it
+     // (centre of mass over the left hand), the support arm stays straight under its shoulder
+     const zc=(k.wrL[2]+k.wrR[2])/2,d=(k.wrL[2]-zc)*0.75;for(const n in k){const q=k[n];if(n[0]==="_"||n==="wrL"||!Array.isArray(q)||q.length!==3)continue;k[n]=[q[0],q[1],q[2]+d];}
+     K3.tap(k,"R",[-6,-3],[-6,-18]);},label:"נגיעה בכתף הנגדית"})],
  "Pike Float":[{H:[76,127],t:Math.atan2(148-127,118-76)*180/Math.PI,A:[118,200],L:[74,200],g:1,face:-1,label:"קיפול, ידיים לרצפה"},{H:[106.5,104.0],t:60.7,A:[118,200],L:[96.4,176.3],g:1,label:"כפות הרגליים מתרוממות"}],
  "Press to Handstand Progression":(()=>{const W=[118,200];
    return [{H:[76,127],t:Math.atan2(148-127,118-76)*180/Math.PI,A:W,L:[74,200],g:1,face:-1,label:"קיפול, ידיים לרצפה"},
@@ -1598,7 +1614,7 @@ function frames3d(ex,r){
     if(fr.v==="front") return {kind:"front",J:frontJ(fr),g:false};
     const J=sideJ(fr);
     const pr=(fr.pr||[]).map(q=>{const o=Object.assign({},q);for(const k of ["at","from","to","via"]) if(o[k]!=null){if(typeof o[k]==="string") o[k+"Ref"]=o[k];o[k]=pt(J,o[k]);}return o;});
-    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg,fout:fr.fout,toe:!!fr.toe};
+    return {kind:"side",J,pr,g:!!fr.g,rotY:fr.rotY||0,pivot:fr.pivot,lie:!!fr.lie,face:fr.face||1,post:fr.post,sg:fr.sg,fout:fr.fout,toe:!!fr.toe,via:!!fr.via};
   });
 }
 return {has:(ex,r)=>!!pick(ex,r), draw:(ex,r)=>draw(pick(ex,r)), thumb:(ex,r)=>{const f=pick(ex,r);return f&&f.length?draw([f[f.length-1]]):"";}, frames3d, GY};
@@ -1620,7 +1636,7 @@ function stop(){if(cur){cur.stop();cur=null;}}
 const JMAP={W:"wr",F:"ft",K:"kn",E:"el",H:"pelv",S:"neck",C:"head"};
 
 // 2D frame → named 3D points (Y up, 1 unit = 1 drawing px). Side view: left/right limbs split along Z.
-function to3d(fr){const k=to3dPts(fr),c=contactsOf(fr,k);if(fr.fout) k._fout=fr.fout;
+function to3d(fr){const k=to3dPts(fr),c=contactsOf(fr,k);if(fr.fout) k._fout=fr.fout;if(fr.via) k._via=1;
   k._c=c;k._cw=["hL","hR","fL","fR"].map(n=>c[n]?1:0);return k;}
 // keys between two frames: points move in a straight line; contacts fade in/out with their weights
 function lerpKeys(a,b,t){
@@ -2492,6 +2508,9 @@ function build(host,frames,opt){opt=opt||{};
     if(opt.neg){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.15:0.6,move:2.6/(keys.length-1)});
       TL.push({a:keys.length-1,b:0,hold:0.45,move:0.9});}   // (an easy return to the start, not a snap)
     // one-way moves (kick-up, bail, muscle-up...): show only the active part, then snap back to the start
+    else if(opt.fwd&&keys.some(k=>k._via)){   // a move through in-between keys (kick-up): no stop on them, and back the same way
+      const mv=i=>keys[i]._via?0.45:0.8;for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:keys[i]._via?0:(i?0.5:0.6),move:mv(i+1)});
+      for(let i=keys.length-1;i>0;i--) TL.push({a:i,b:i-1,hold:keys[i]._via?0:1.2,move:mv(i-1)*1.1});}
     else if(opt.fwd){for(let i=0;i+1<keys.length;i++) TL.push({a:i,b:i+1,hold:i?0.25:0.6,move:opt.fast?0.55:opt.walk?0.7:1.1});
       TL.push({a:keys.length-1,b:0,hold:0.6,move:0.9});}
     else{const seq=[...keys.keys(),...[...keys.keys()].reverse().slice(1,-1)];
