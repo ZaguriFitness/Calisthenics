@@ -496,6 +496,17 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gdays{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 14px}
+.gday{font:inherit;font-weight:800;font-size:1rem;padding:14px 8px;border-radius:16px;border:1.5px solid var(--card-b,var(--line));background:var(--card,var(--surface));color:var(--ink);cursor:pointer}
+.gday.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.gwarm{display:grid;gap:3px;padding:12px 14px;border-radius:16px;background:rgba(255,138,31,.12);margin-bottom:6px}
+.gwarm b{color:#FF8A1F}.gwarm span{color:var(--ink);font-size:.88rem}
+.gmus{display:flex;align-items:baseline;gap:8px;margin:18px 0 8px;font-size:1.25rem}
+.gmus small{color:var(--muted);font-size:.8rem;font-weight:600}
+.gex3{display:grid;gap:6px;padding:12px;border-radius:18px;border:1px solid var(--card-b,var(--line));background:var(--card,var(--surface));margin-bottom:10px}
+.gx3h{display:flex;align-items:center;gap:10px}
+.gx3h i{font-style:normal;flex:none;width:28px;height:28px;border-radius:50%;background:#FF8A1F;color:#111;font-weight:900;display:grid;place-items:center;font-size:.85rem}
+.gx3h b{flex:1;font-size:1.05rem}.gx3h span{color:#FF8A1F;font-weight:800;font-size:.9rem;unicode-bidi:isolate}
 .gex.hasgt{display:flex;align-items:center;gap:10px}
 .gth{flex:none;width:44px;height:44px;border-radius:10px;overflow:hidden;background:#F6ECDC;display:grid;place-items:center}
 .gth svg{width:100%;height:100%;background:#0B0B0C}
@@ -551,7 +562,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .gwho.ok{box-shadow:inset 0 0 0 1.5px #FF8A1F}
 .gok{flex:none;width:30px;height:30px;border-radius:9px;border:2px solid rgba(255,138,31,.55);background:transparent;color:#111;font-weight:900;cursor:pointer;padding:0}
 .gwho.ok .gok{background:#FF8A1F;border-color:#FF8A1F}
-.gnm{flex:none;width:58px;font-weight:800;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gnm{flex:none;width:50px;font-weight:800;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gex{font:inherit;flex:1;min-width:0;text-align:start;border:0;background:transparent;color:var(--ink);cursor:pointer;padding:0}
 .gex b{display:block;font-size:.92rem}.gex small{display:block;color:var(--muted);font-size:.74rem}
 .glv{flex:none;display:flex;gap:4px}
@@ -803,7 +814,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261125134057";
+const BUILD="20261125134746";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3524,31 +3535,36 @@ function gPresent(){const ids=CO.trainees.map(t=>t.id);if(!SG.present)SG.present
 function gWho(tr,refs,bk){const g=gStep(tr,refs);if(!g)return "";const s=g.L.steps[g.i],key=bk+"|"+tr.id,dn=!!SG.done[key];
   return `<div class="gwho${dn?" ok":""}"><button class="gok" data-ok="${esc(key)}" aria-label="עמד ביעד">${dn?"✓":""}</button>
     <span class="gnm">${esc(tr.name)}</span>
-    <button class="gex hasgt" data-open="${esc(g.k)}" data-x="${g.i}"><span class="gth">${thumb(s)}</span><span class="gtx"><b>${esc(s.he||s.en||s.ex)}</b><small>${g.unset?"עוד לא נקבעה רמה · ":""}רמה ${esc(s.lvn)} · <bdi dir="ltr">${esc(s.pass)}</bdi></small></span></button>
+    <button class="gex hasgt" data-open="${esc(g.k)}" data-x="${g.i}"><span class="gth">${thumb(s)}</span><span class="gtx"><b>${esc(s.he||s.en||s.ex)}</b><small>רמה ${esc(s.lvn)}</small></span></button>
     <span class="glv"><button data-lv="${esc(tr.id)}|${esc(g.k)}|-1" ${g.i<=0?"disabled":""} aria-label="שלב קל יותר">−</button><button data-lv="${esc(tr.id)}|${esc(g.k)}|1" ${g.i>=g.L.steps.length-1?"disabled":""} aria-label="שלב קשה יותר">+</button></span></div>`;}
 function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm${on?" on":""}" data-tm="${id}" data-min="${min}">${on?"⏹ עצירה":"▶ טיימר "+min+" דק׳"}</button>`;}
-function renderSes(){const P=gPresent();
+// a simple gym-style class: pick the day, and it lists the muscles with 2-3 exercises each (sets × reps);
+// under every exercise, each trainee gets their own version of it (their step on that ladder)
+const GDAYS=[["push","דחיפה",[["חזה",[[["דחיפה אופקית","שכיבות סמיכה"],"3 × 8–12"],[["דחיפה אנכית","דיפס"],"3 × 6–10"]]],
+    ["כתפיים",[[["דחיפה אנכית","דחיפה מעל הראש"],"3 × 6–10"],[["עמידת ידיים","קיר"],"3 × 20–30 שנ׳"]]],
+    ["ליבה",[[["ליבה","Hollow / אנטי-אקסטנזיה"],"3 × 20–30 שנ׳"]]]]],
+  ["pull","משיכה",[["גב",[[["משיכה אנכית","מתח"],"3 × 5–8"],[["משיכה אופקית","חתירה"],"3 × 8–12"],[["סטטיקה","Front Lever"],"3 × 10 שנ׳"]]],
+    ["ליבה",[[["ליבה","תלייה"],"3 × 8–12"]]]]],
+  ["legs","רגליים וליבה",[["רגליים",[[["רגליים","סקוואטים ותרגילים על רגל אחת"],"3 × 8–12"],[["רגליים","שרשרת אחורית"],"3 × 10–15"],[["רגליים","תאומים"],"3 × 15"]]],
+    ["ליבה",[[["ליבה","Hollow / אנטי-אקסטנזיה"],"3 × 20–30 שנ׳"],[["ליבה","צד"],"3 × 20 שנ׳ לכל צד"],[["ליבה","גב תחתון"],"3 × 10–12"]]]]],
+  ["full","כל הגוף",[["גב",[[["משיכה אנכית","מתח"],"3 × 5–8"],[["משיכה אופקית","חתירה"],"3 × 8–12"]]],
+    ["חזה וכתפיים",[[["דחיפה אופקית","שכיבות סמיכה"],"3 × 8–12"],[["דחיפה אנכית","דיפס"],"3 × 6–10"]]],
+    ["רגליים",[[["רגליים","סקוואטים ותרגילים על רגל אחת"],"3 × 8–12"]]],["ליבה",[[["ליבה","Hollow / אנטי-אקסטנזיה"],"3 × 20–30 שנ׳"]]]]]];
+const gDay=()=>GDAYS.find(d=>d[0]===SG.day)||GDAYS[0];
+function renderSes(){const P=gPresent(),D=gDay();
   const who=`<div class="gcard"><div class="ghd"><b>מי מתאמן היום</b><span>${P.length} מתאמנים</span></div>
     <div class="gchips">${CO.trainees.map(t=>`<button class="gch${SG.present.includes(t.id)?" on":""}" data-p="${esc(t.id)}">${esc(t.name)}</button>`).join("")}</div>
     <form class="gnew" data-gnew2><input placeholder="שם מתאמן חדש" autocomplete="off" aria-label="שם מתאמן חדש"><button>הוספה</button></form></div>`;
-  const pick=`<div class="gcard"><div class="ghd"><b>מה עובדים היום</b></div>
-    <p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div>
-    <p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
-  if(!P.length){$("sbody").innerHTML=`<h2 class="plh">אימון קבוצתי</h2>${who}<p class="empty">מסמנים למעלה מי מתאמן היום (או מוסיפים מתאמן), והאימון נבנה לבד לפי הרמה של כל אחד.</p>`;return;}
-  const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
-  const wu=["Wrist Prep — חימום שורש כף היד","Scapular Pull-Up","Bear Hold","Glute Bridge"].map(stepByEx).filter(Boolean);
-  const blk=(n,title,min,fmt,body,id)=>`<section class="gblk"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}</div>${body}</section>`;
-  const pair=(refs,lab)=>`<div class="gex2"><p class="gpl">${lab}: ${esc(shortName(LAD(gK(refs[0]))||{l:refs[0][1]}))}</p>${P.map(t=>gWho(t,refs,lab+gK(refs[0]))).join("")}</div>`;
-  let h=`<h2 class="plh">אימון קבוצתי</h2>${who}${pick}`;
-  h+=blk(1,"חימום",8,"כולם ביחד, 2 סבבים",`<ul class="gwu">${wu.map(q=>`<li><button class="gex hasgt" data-open="${esc(q.L.key)}" data-x="${q.i}"><span class="gth">${thumb(q.s)}</span><span class="gtx"><b>${esc(q.s.he||q.s.en)}</b><small><bdi dir="ltr">${esc(q.s.pass)}</bdi></small></span></button></li>`).join("")}
-      <li class="gtxt">סיבובי מפרקים: צוואר, כתפיים, אגן, ברכיים · 10 סקוואטים קלים</li></ul>`,"w");
-  h+=blk(2,"מיומנות: "+esc(sk[1]),12,"כל דקה: ניסיון או החזקה איכותית אחת, ומנוחה עד סוף הדקה",
-    `<p class="gtip">עובדים כשהגוף עוד רענן. איכות לפני כמות: עוצרים לפני שהטכניקה נשברת.</p>${P.map(t=>gWho(t,sk[2],"skill"+sk[0])).join("")}`,"s");
-  h+=blk(3,"כוח: "+esc(st[1]),20,"זוגות: A1 ואז A2 בלי הפסקה, מנוחה 90 שנ׳, 3 סבבים · ואז אותו דבר עם B",
-    `<p class="gtip">כולם עושים את אותה תנועה באותו זמן, כל אחד בשלב שלו בסולם.</p>${pair([st[2][0][0]],"A1")}${pair([st[2][0][1]],"A2")}${pair([st[2][1][0]],"B1")}${pair([st[2][1][1]],"B2")}`,"c");
-  h+=blk(4,"סיום: ליבה",6,"מעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>pair([r],"C"+(i+1))).join(""),"f");
-  h+=blk(5,"שחרור",5,"כולם ביחד",`<ul class="gwu"><li class="gtxt">מתיחת כתפיים וחזה בדלת או על המוט · 30 שנ׳</li><li class="gtxt">מתיחת מפשעה וירך אחורית · 30 שנ׳ לכל צד</li><li class="gtxt">תלייה רפויה על המוט · 20–30 שנ׳</li></ul>`,"r");
-  h+=`<p class="gtip">✓ ליד מתאמן = עמד ביעד בתרגיל. מי שעומד ביעד בשני אימונים ברצף, עולה שלב בסיום.</p><button class="pmsave" id="gfin">✓ סיום אימון</button>`;
+  const days=`<div class="gdays">${GDAYS.map(([id,n])=>`<button class="gday${D[0]===id?" on":""}" data-day="${id}">${esc(n)}</button>`).join("")}</div>`;
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${who}<p class="glbl">איזה אימון היום?</p>${days}`;
+  if(!P.length){$("sbody").innerHTML=h;return;}
+  h+=`<div class="gwarm"><b>חימום · 5–8 דק׳</b><span>סיבובי מפרקים, שורש כף היד, 10 סקוואטים קלים, 10 מתח שכמות</span></div>`;
+  let n=0;
+  for(const [mus,list] of D[2]){
+    h+=`<h3 class="gmus">${esc(mus)}<small>${list.length} ${list.length===1?"תרגיל":"תרגילים"}</small></h3>`;
+    for(const [ref,sets] of list){n++;const L=LAD(gK(ref));if(!L)continue;const bk="d"+D[0]+n+gK(ref);
+      h+=`<section class="gex3"><div class="gx3h"><i>${n}</i><b>${esc(lnHe(L.l))}</b><span dir="ltr">${esc(sets)}</span></div>${P.map(t=>gWho(t,[ref],bk)).join("")}</section>`;}}
+  h+=`<p class="gtip">מנוחה בין סטים: 60–90 שנ׳. כל מתאמן עושה את הגרסה שלו. ✓ = עמד ביעד, ומי שעומד ביעד בשני אימונים ברצף עולה שלב.</p><button class="pmsave" id="gfin">✓ סיום אימון</button>`;
   $("sbody").innerHTML=h;}
 let gIv=0;
 function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
@@ -3557,6 +3573,7 @@ function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Da
 $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.skill)SG.skill=b.dataset.skill;
+  else if(b.dataset.day)SG.day=b.dataset.day;
   else if(b.dataset.str)SG.str=b.dataset.str;
   else if(b.dataset.ok){SG.done[b.dataset.ok]=!SG.done[b.dataset.ok];if(!SG.done[b.dataset.ok])delete SG.done[b.dataset.ok];}
   else if(b.dataset.open){openStep(b.dataset.open,+b.dataset.x);return;}
@@ -3570,16 +3587,14 @@ $("sbody").onchange=null;
 $("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew2]");if(!f)return;e.preventDefault();
   const n=f.querySelector("input").value.trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:true};CO.trainees.push(t);SG.present.push(t.id);csave();sgSave();renderSes();});
 // end of class: a target met in two classes in a row moves the trainee up one step on that ladder
-function gFinish(){const P=gPresent(),up=[],half=[];
-  const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
-  const items=[[sk[2],"skill"+sk[0]]];[["A1",st[2][0][0]],["A2",st[2][0][1]],["B1",st[2][1][0]],["B2",st[2][1][1]]].forEach(([l,r])=>items.push([[r],l+gK(r)]));
-  GFIN.forEach((r,i)=>items.push([[r],"C"+(i+1)+gK(r)]));
+function gFinish(){const P=gPresent(),up=[],half=[],D=gDay(),items=[];let n=0;
+  for(const [,list] of D[2])for(const [ref] of list){n++;items.push([[ref],"d"+D[0]+n+gK(ref)]);}
   for(const tr of P){tr.streak=tr.streak||{};for(const [refs,bk] of items){const g=gStep(tr,refs);if(!g)continue;const k=g.k;
     if(!SG.done[bk+"|"+tr.id]){continue;}
     const n=(tr.streak[k]||0)+1;
     if(n>=2&&g.i+1<g.L.steps.length){tr.lv[k]=g.L.steps[g.i+1].ex;delete tr.streak[k];up.push(`${tr.name}: ${g.L.steps[g.i+1].he||g.L.steps[g.i+1].en}`);}
     else{tr.lv=tr.lv||{};if(g.unset)tr.lv[k]=g.L.steps[g.i].ex;tr.streak[k]=n;half.push(`${tr.name}: ${g.L.steps[g.i].he||g.L.steps[g.i].en}`);}}}
-  CO.log.push({d:new Date().toISOString(),n:P.length,plan:"g2:"+SG.skill+"/"+SG.str,ch:up});if(CO.log.length>300)CO.log=CO.log.slice(-300);
+  CO.log.push({d:new Date().toISOString(),n:P.length,plan:"g3:"+D[0],ch:up});if(CO.log.length>300)CO.log=CO.log.slice(-300);
   SG.done={};SG.tm=null;clearInterval(gIv);csave();sgSave();renderSes();
   const m=$("smsg");m.hidden=false;m.innerHTML=`<b>האימון נשמר.</b>`+(up.length?`<p class="lbl">עלו שלב:</p>${up.map(x=>`<p>${esc(x)}</p>`).join("")}`:"")+
     (half.length?`<p class="lbl">עמדו ביעד פעם ראשונה (עוד פעם אחת ועולים):</p>${half.map(x=>`<p>${esc(x)}</p>`).join("")}`:"")+(!up.length&&!half.length?"<p>אף אחד לא סומן כעומד ביעד, אז הרמות נשארו כמו שהן.</p>":"");
