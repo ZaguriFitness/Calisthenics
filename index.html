@@ -507,7 +507,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .gsth{display:flex;align-items:center;gap:8px}.gsth b{font-size:1.02rem}
 .gsth i{font-style:normal;flex:none;min-width:28px;height:28px;padding:0 6px;border-radius:999px;background:#FF8A1F;color:#111;font-weight:900;display:grid;place-items:center;font-size:.8rem}
 .gvar{display:flex;gap:6px;align-items:stretch;overflow-x:auto}.gvar>span{color:var(--muted);font-size:.75rem;align-self:center}
-.gvb{font:inherit;flex:1;min-width:84px;display:grid;justify-items:center;gap:2px;padding:6px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;text-align:center}
+.gvar{scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}.gvar::-webkit-scrollbar{display:none}
+.gvb{scroll-snap-align:start;font:inherit;flex:0 0 calc((100% - 12px)/3);min-width:0;display:grid;justify-items:center;gap:2px;padding:6px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;text-align:center}
 .gvb small{color:#FF8A1F;font-weight:800;font-size:.7rem}.gvb b{font-size:.72rem;font-weight:600;line-height:1.2}
 .gwhos{display:flex;flex-wrap:wrap;gap:6px}
 .gwc{font:inherit;font-size:.8rem;padding:6px 10px;border-radius:999px;border:0;background:rgba(255,138,31,.14);color:var(--ink);cursor:pointer}
@@ -835,7 +836,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126124309";
+const BUILD="20261126130252";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3583,9 +3584,9 @@ function gGroups(N){if(N<=2)return [N];if(N===3)return [1,1,1];
 const GNAMES=["א׳","ב׳","ג׳","ד׳"];
 // a station: the exercise and its versions (easy / medium / hard) - everyone picks the one that fits them
 function gStation(ref,letter){const L=LAD(gK(ref));if(!L)return "";
-  const n=L.steps.length,pick=[0,Math.floor((n-1)*0.5),n-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>L.steps[i]);
+  const pick=L.steps;   // every step of the ladder, easiest on the right; swipe left for the harder ones
   return `<div class="gst"><div class="gsth"><i>${letter}</i><b>${esc(lnHe(L.l))}</b></div>
-    <div class="gvar">${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>${["קלה","בינונית","קשה"][k]||""}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
+    <div class="gvar">${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>רמה ${esc(s.lvn)}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
 // warm-up from the top down, all together
 const GWARM=[["צוואר","סיבובים איטיים, הטיות לצדדים · 5 לכל כיוון"],["כתפיים","סיבובי ידיים קדימה ואחורה · 10 לכל כיוון"],
   ["מרפקים","כיפוף ויישור, סיבובי אמה · 10"],["שורש כף היד","סיבובים, ועל ארבע: נדנוד קדימה ואחורה · 10"],
