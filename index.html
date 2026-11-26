@@ -871,7 +871,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126142158";
+const BUILD="20261126142418";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3636,7 +3636,8 @@ const gSnap=()=>JSON.stringify({n:SG.n,skill:SG.skill,str:SG.str,order:SG.order|
 let gUndo=[];
 function gCommit(before){if(before!==gSnap()){gUndo.push(before);if(gUndo.length>50)gUndo.shift();}}
 function gApply(js){const o=JSON.parse(js);SG.n=o.n;SG.skill=o.skill;SG.str=o.str;if(o.order)SG.order=o.order;else delete SG.order;SG.cust2=o.cust2||{};gEdit="";sgSave();}
-const gOrder=()=>{const o=(SG.order||[]).filter(x=>GORDER0.includes(x));GORDER0.forEach(x=>{if(!o.includes(x))o.push(x);});return o;};
+// warm-up always opens the class and cool-down always closes it; only the middle frames move
+const gOrder=()=>{const o=(SG.order||[]).filter(x=>GORDER0.includes(x)&&x!=="w"&&x!=="r");GORDER0.forEach(x=>{if(x!=="w"&&x!=="r"&&!o.includes(x))o.push(x);});return ["w",...o,"r"];};
 function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust();
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
   const skBox=`<div class="gsub" data-drag="pick" data-k="s"><p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div></div>`;
@@ -3647,7 +3648,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const GR=gGroups(N),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]].map((r,i)=>gRef("c:"+st[0]+":"+i,r));
   const has=pre=>Object.keys(cu).some(k=>k.startsWith(pre));
   const reset=pre=>has(pre)?`<button class="greset" data-pre="${esc(pre)}">החזרת התרגילים המקוריים</button>`:"";
-  const blk=(n,title,min,fmt,body,id)=>`<section class="gblk${SG.open===id?" gopen":""}" data-drag="blk" data-k="${id}"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}<em class="gchev" aria-hidden="true"></em></div>${body}</section>`;
+  const blk=(n,title,min,fmt,body,id)=>`<section class="gblk${SG.open===id?" gopen":""}" data-drag="${id==="w"||id==="r"?"fix":"blk"}" data-k="${id}"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}<em class="gchev" aria-hidden="true"></em></div>${body}</section>`;
   const B={};
   B.w=n=>blk(n,"חימום",8,"כולם ביחד, מלמעלה למטה",`<ol class="gwl">${GWARM.map(([a,b])=>`<li><b>${a}</b><span>${b}</span></li>`).join("")}</ol>`,"w");
   B.s=n=>blk(n,"מיומנות: "+esc(sk[1]),12,"כולם ביחד, בתורות: ניסיון אחד איכותי, והבא בתור",
@@ -3663,7 +3664,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     return blk(n,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),slotOf(x))).join("")+reset("c:"+st[0]+":"),"c");};
   B.f=n=>blk(n,"ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(gRef("f:"+i,r),"C"+(i+1),"f:"+i)).join("")+reset("f:"),"f");
   B.r=n=>blk(n,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
-  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה על מסגרת פותחת אותה. לחיצה ארוכה וגרירה משנה את הסדר.</p>`;
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה על מסגרת פותחת אותה. לחיצה ארוכה וגרירה משנה את הסדר (החימום תמיד ראשון והשחרור תמיד אחרון).</p>`;
   O.forEach((k,i)=>{h+=B[k](i+1);});
   const changed=!!SG.order||Object.keys(cu).length>0;
   if(gUndo.length||changed)h+=`<div class="gundo">${gUndo.length?`<button class="gun">↶ חזור צעד</button>`:""}${changed?`<button class="gorig">חזרה למקור</button>`:""}</div>`;
@@ -3681,12 +3682,12 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     x.getAnimations().forEach(a=>{if(a.id==="gslide")a.cancel();});
     x.animate([{transform:`translateY(${d}px)`},{transform:"none"}],{duration:320,easing:"cubic-bezier(.22,.9,.24,1)",id:"gslide"});});
   const follow=y=>{const el=drag.el;el.style.transform=`translateY(${y-center(el)}px) scale(1.03)`;};
-  host.addEventListener("pointerdown",e=>{const el=e.target.closest("[data-drag]");if(!el||!free(e.target)||drag)return;
+  host.addEventListener("pointerdown",e=>{const el=e.target.closest("[data-drag]:not([data-drag=fix])");if(!el||!free(e.target)||drag)return;
     lp={el,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!lp)return;const y=lp.y;drag={el,before:gSnap(),y};lp=null;
       document.body.classList.add("gdragging");el.classList.add("gdrag");
       if(el.dataset.drag==="blk")gFold(el);   // fold every frame to its title, gently
       follow(y);try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}},420)};});
-  const blks=()=>[...host.querySelectorAll('.gblk[data-drag="blk"]')];
+  const blks=()=>[...host.querySelectorAll('.gblk[data-k]')];
   // keep `el` under the finger while the frames around it change height
   const pin=(el,yy,ms,done)=>{const t0=performance.now();const f=()=>{const d=center(el)-yy;if(Math.abs(d)>.5)window.scrollBy(0,d);
       if(drag&&drag.el===el)follow(drag.y);if(performance.now()-t0<ms)requestAnimationFrame(f);else done&&done();};requestAnimationFrame(f);};
@@ -3718,7 +3719,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const end=()=>{cancel();if(!drag)return;window.gDragT=Date.now();const el=drag.el,before=drag.before,yy=drag.y;drag=null;el.style.transform="";el.classList.remove("gdrag");
     host.classList.remove("gfold","ganim");document.body.classList.remove("gdragging");blks().forEach(b=>b.style.height="");
     const ks=sibs(el).map(x=>x.dataset.k);let O=gOrder();
-    if(el.dataset.drag==="blk")O=ks;
+    if(el.dataset.drag==="blk")O=["w",...ks,"r"];
     else{const a=O.indexOf("s"),b=O.indexOf("c");if((ks[0]==="s")!==(a<b)){O[a]="c";O[b]="s";}}
     if(O.join()===GORDER0.join())delete SG.order;else SG.order=O;
     gCommit(before);sgSave();renderSes();
@@ -3731,7 +3732,7 @@ let gIv=0;
 function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
   const b=document.querySelector(`.gtm[data-tm="${SG.tm.id}"]`);if(b)b.textContent=`⏹ ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}`;
   if(left<=0){clearInterval(gIv);SG.tm=null;sgSave();try{beep(880)}catch(e){}renderSes();}}
-function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[data-drag="blk"]')],k=sec.dataset.k,opening=SG.open!==k;
+function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[data-k]')],k=sec.dataset.k,opening=SG.open!==k;
   const H0=B.map(b=>b.offsetHeight),top0=sec.getBoundingClientRect().top;
   if(opening)SG.open=k;else delete SG.open;sgSave();
   B.forEach(b=>b.classList.toggle("gopen",b.dataset.k===SG.open));
@@ -3746,7 +3747,7 @@ function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[d
         const t=sec.getBoundingClientRect().top;if(opening&&(t<70||t>innerHeight*.45))window.scrollTo({top:scrollY+t-80,behavior:"smooth"});}};
     requestAnimationFrame(f);});}
 $("sbody").onclick=e=>{const b=e.target.closest("button");
-  if(!b){const h=e.target.closest(".gbh");if(h&&Date.now()-(window.gDragT||0)>500){const sec=h.closest('.gblk[data-drag="blk"]');if(sec)gToggle(sec);}return;}$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
+  if(!b){const h=e.target.closest(".gbh");if(h&&Date.now()-(window.gDragT||0)>500){const sec=h.closest('.gblk[data-k]');if(sec)gToggle(sec);}return;}$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
   if(b.classList.contains("gun")){const v=gUndo.pop();if(v)gApply(v);renderSes();window.scrollTo(0,y);return;}
   if(b.classList.contains("gorig")){if(!confirm("לחזור לאימון המקורי? הסדר והתרגילים שהחלפת יחזרו למקור."))return;gUndo.push(before);delete SG.order;SG.cust2={};gEdit="";sgSave();renderSes();window.scrollTo(0,y);return;}
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
