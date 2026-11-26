@@ -871,7 +871,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126141740";
+const BUILD="20261126142158";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3674,7 +3674,12 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const free=t=>!t.closest("button,select,input,a,.gvar,table");
   const sibs=el=>[...el.parentNode.children].filter(x=>x.dataset&&x.dataset.drag===el.dataset.drag);
   const cancel=()=>{if(lp){clearTimeout(lp.t);lp=null;}};
-  const center=el=>{const t=el.style.transform;el.style.transform="";const r=el.getBoundingClientRect();el.style.transform=t;return r.top+r.height/2;};
+  // layout centre, ignoring any transform or running slide animation
+  const center=el=>{const P=el.parentNode;return P.getBoundingClientRect().top+el.offsetTop-P.offsetTop+el.offsetHeight/2;};
+  const ltop=el=>{const P=el.parentNode;return P.getBoundingClientRect().top+el.offsetTop-P.offsetTop;};
+  const slide=(S,tops)=>S.forEach((x,i)=>{const d=tops[i]-ltop(x);if(Math.abs(d)<1)return;
+    x.getAnimations().forEach(a=>{if(a.id==="gslide")a.cancel();});
+    x.animate([{transform:`translateY(${d}px)`},{transform:"none"}],{duration:320,easing:"cubic-bezier(.22,.9,.24,1)",id:"gslide"});});
   const follow=y=>{const el=drag.el;el.style.transform=`translateY(${y-center(el)}px) scale(1.03)`;};
   host.addEventListener("pointerdown",e=>{const el=e.target.closest("[data-drag]");if(!el||!free(e.target)||drag)return;
     lp={el,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!lp)return;const y=lp.y;drag={el,before:gSnap(),y};lp=null;
@@ -3701,9 +3706,11 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
         if(performance.now()-t0<420)requestAnimationFrame(f);else{host.classList.remove("ganim");B.forEach(b=>b.style.height="");}};
       requestAnimationFrame(f);});};
   const move=(x,y)=>{if(lp&&Math.hypot(x-lp.x,y-lp.y)>8)cancel();if(!drag)return;drag.y=y;const el=drag.el;
+    const S0=sibs(el).filter(x=>x!==el),T0=S0.map(x=>x.getBoundingClientRect().top);
     for(let k=0;k<6;k++){const S=sibs(el),i=S.indexOf(el),prev=S[i-1],next=S[i+1];
       if(prev&&y<center(prev)){el.parentNode.insertBefore(el,prev);continue;}
       if(next&&y>center(next)){el.parentNode.insertBefore(next,el);continue;}break;}
+    slide(S0,T0);
     follow(y);
     if(!host.classList.contains("gfold")){if(y<90)window.scrollBy(0,-10);else if(y>innerHeight-120)window.scrollBy(0,10);}};
   host.addEventListener("pointermove",e=>move(e.clientX,e.clientY));
