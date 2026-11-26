@@ -496,11 +496,16 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
-#sbody.gfold .gblk>:not(.gbh){display:none}
+#sbody.gfold .gblk>:not(.gbh){opacity:0;pointer-events:none}
 #sbody.gfold .gblk{padding:10px 14px;margin-bottom:8px}
 #sbody.gfold .gblk .gtm{display:none}
 #sbody.gfold .gblk:not(.gdrag){opacity:.75}
-.gdrag{transition:none!important;z-index:5}
+#sbody .gblk{box-sizing:border-box}
+#sbody .gblk>:not(.gbh){transition:opacity .22s ease}
+#sbody.ganim .gblk{overflow:hidden;transition:height .38s cubic-bezier(.22,.9,.24,1),padding .38s cubic-bezier(.22,.9,.24,1),margin .38s cubic-bezier(.22,.9,.24,1),opacity .3s,box-shadow .15s}
+#sbody.gnoanim .gblk,#sbody.gnoanim .gblk>*{transition:none!important}
+.gdrag{z-index:5}
+#sbody:not(.ganim) .gdrag{transition:none!important}
 .gundo{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;justify-content:center;gap:10px;margin-top:14px;pointer-events:none}
 .gundo button{pointer-events:auto;font:inherit;font-weight:800;padding:12px 18px;border-radius:999px;border:1.5px solid #FF8A1F;background:#111;color:#FF8A1F;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .gundo .gun{background:#FF8A1F;color:#111}
@@ -858,7 +863,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126141058";
+const BUILD="20261126141417";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3666,9 +3671,27 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   host.addEventListener("pointerdown",e=>{const el=e.target.closest("[data-drag]");if(!el||!free(e.target)||drag)return;
     lp={el,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!lp)return;const y=lp.y;drag={el,before:gSnap(),y};lp=null;
       document.body.classList.add("gdragging");el.classList.add("gdrag");
-      if(el.dataset.drag==="blk"){host.classList.add("gfold");   // fold every frame to its title
-        const r=el.getBoundingClientRect();window.scrollBy(0,r.top+r.height/2-y);}
+      if(el.dataset.drag==="blk")gFold(el);   // fold every frame to its title, gently
       follow(y);try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}},420)};});
+  const blks=()=>[...host.querySelectorAll('.gblk[data-drag="blk"]')];
+  // keep `el` under the finger while the frames around it change height
+  const pin=(el,yy,ms,done)=>{const t0=performance.now();const f=()=>{const d=center(el)-yy;if(Math.abs(d)>.5)window.scrollBy(0,d);
+      if(drag&&drag.el===el)follow(drag.y);if(performance.now()-t0<ms)requestAnimationFrame(f);else done&&done();};requestAnimationFrame(f);};
+  const gFold=el=>{const B=blks();host.classList.add("gnoanim");B.forEach(b=>b.style.height=b.offsetHeight+"px");void host.offsetHeight;
+    host.classList.remove("gnoanim");host.classList.add("ganim","gfold");
+    B.forEach(b=>{const h=b.querySelector(".gbh");b.style.height=(h?h.offsetHeight:24)+20+(b.offsetHeight-b.clientHeight)+"px";});
+    pin(el,drag.y,420);};
+  const gUnfold=(k,yy)=>{const B=blks(),el=B.find(b=>b.dataset.k===k);
+    const H=B.map(b=>b.offsetHeight);           // full heights of the fresh render
+    host.classList.add("gnoanim","gfold","ganim");
+    B.forEach(b=>{const h=b.querySelector(".gbh");b.style.height=(h?h.offsetHeight:24)+20+(b.offsetHeight-b.clientHeight)+"px";});
+    if(el){const r=el.getBoundingClientRect();window.scrollBy(0,r.top+r.height/2-yy);}
+    void host.offsetHeight;host.classList.remove("gnoanim");
+    requestAnimationFrame(()=>{host.classList.remove("gfold");B.forEach((b,i)=>b.style.height=H[i]+"px");
+      const t0=performance.now(),top=el?el.getBoundingClientRect().top:0;
+      const f=()=>{if(el){const d=el.getBoundingClientRect().top-top;if(Math.abs(d)>.5)window.scrollBy(0,d);}
+        if(performance.now()-t0<420)requestAnimationFrame(f);else{host.classList.remove("ganim");B.forEach(b=>b.style.height="");}};
+      requestAnimationFrame(f);});};
   const move=(x,y)=>{if(lp&&Math.hypot(x-lp.x,y-lp.y)>8)cancel();if(!drag)return;drag.y=y;const el=drag.el;
     for(let k=0;k<6;k++){const S=sibs(el),i=S.indexOf(el),prev=S[i-1],next=S[i+1];
       if(prev&&y<center(prev)){el.parentNode.insertBefore(el,prev);continue;}
@@ -3677,13 +3700,15 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     if(!host.classList.contains("gfold")){if(y<90)window.scrollBy(0,-10);else if(y>innerHeight-120)window.scrollBy(0,10);}};
   host.addEventListener("pointermove",e=>move(e.clientX,e.clientY));
   host.addEventListener("touchmove",e=>{if(drag){e.preventDefault();const t=e.touches[0];move(t.clientX,t.clientY);}},{passive:false});
-  const end=()=>{cancel();if(!drag)return;const el=drag.el,before=drag.before;drag=null;el.style.transform="";el.classList.remove("gdrag");
-    host.classList.remove("gfold");document.body.classList.remove("gdragging");
+  const end=()=>{cancel();if(!drag)return;const el=drag.el,before=drag.before,yy=drag.y;drag=null;el.style.transform="";el.classList.remove("gdrag");
+    host.classList.remove("gfold","ganim");document.body.classList.remove("gdragging");blks().forEach(b=>b.style.height="");
     const ks=sibs(el).map(x=>x.dataset.k);let O=gOrder();
     if(el.dataset.drag==="blk")O=ks;
     else{const a=O.indexOf("s"),b=O.indexOf("c");if((ks[0]==="s")!==(a<b)){O[a]="c";O[b]="s";}}
     if(O.join()===GORDER0.join())delete SG.order;else SG.order=O;
-    gCommit(before);sgSave();renderSes();const n=host.querySelector(`[data-drag="${el.dataset.drag}"][data-k="${el.dataset.k}"]`);
+    gCommit(before);sgSave();renderSes();
+    if(el.dataset.drag==="blk"){gUnfold(el.dataset.k,yy);return;}
+    const n=host.querySelector(`[data-drag="${el.dataset.drag}"][data-k="${el.dataset.k}"]`);
     if(n)n.scrollIntoView({block:"start"});window.scrollBy(0,-80);};
   host.addEventListener("pointerup",end);host.addEventListener("pointercancel",()=>{if(!drag)cancel();});host.addEventListener("touchend",end);
   host.addEventListener("contextmenu",e=>{if(e.target.closest("[data-drag]"))e.preventDefault();});})();
