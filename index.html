@@ -496,6 +496,9 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.grot td:has(.gcell),.grot td:has(.gsel){padding:0}
+.gcell{font:inherit;width:100%;padding:7px 4px;border:0;border-radius:8px;background:transparent;color:var(--ink);cursor:pointer;text-decoration:underline dotted rgba(255,138,31,.6);text-underline-offset:4px}
+.grot .gsel{font-size:.82rem;padding:6px 2px;width:100%}
 .gsth b{flex:1}
 .gswap{font:inherit;font-weight:700;font-size:.8rem;flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,138,31,.55);background:transparent;color:#FF8A1F;cursor:pointer}
 .gsel{font:inherit;font-weight:800;font-size:1.02rem;flex:1;min-width:0;padding:7px 10px;border-radius:10px;border:1.5px dashed rgba(255,138,31,.6);background:transparent;color:var(--ink)}
@@ -840,7 +843,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126134435";
+const BUILD="20261126135228";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3583,7 +3586,8 @@ function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm
 //   1–2: everyone together at each station, taking turns (one works, one rests)
 //   3:   three stations, one person at each, rotate after every set (the rotation is the rest)
 //   4+:  pairs (or threes) at stations, partners alternate sets, groups rotate between stations
-let gEdit=-1;   // the strength station whose exercise is being changed
+let gEdit=-1;
+const gSel=(L,slot)=>`<select class="gsel" data-slot="${slot}" aria-label="החלפת התרגיל">${LADS.filter(x=>x.ci===0).map(x=>`<option value="${esc(x.t+"|"+x.l)}"${L&&x.key===L.key?" selected":""}>${esc(lnHe(x.l))}</option>`).join("")}</select>`;   // the strength station whose exercise is being changed
 function gGroups(N){if(N<=2)return [N];if(N===3)return [1,1,1];
   const G=Math.min(4,Math.ceil(N/2)),out=Array(G).fill(0);for(let i=0;i<N;i++)out[i%G]++;return out;}
 const GNAMES=["א׳","ב׳","ג׳","ד׳"];
@@ -3616,7 +3620,8 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4));
     org=`<p class="gorg"><b>${N} מתאמנים: ${N===3?"כל אחד בתחנה משלו":G+" קבוצות ("+GR.join(" + ")+")"}, ${stations.length} תחנות.</b> ${GR.some(g=>g>1)?"בתוך קבוצה עושים סטים לסירוגין. ":""}אחרי כל סט, כל קבוצה עוברת לתחנה הבאה. 3 סיבובים.</p>
       ${(G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations]).map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}</p>`:""}
       <table class="grot"><tr><th>סט</th>${GR.map((g,i)=>`<th>קבוצה ${GNAMES[i]}</th>`).join("")}</tr>
-      ${part.map((_,r)=>`<tr><td>${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x));return `<td>${esc(L?lnHe(L.l):"")}</td>`;}).join("")}</tr>`).join("")}</table>`).join("")}`;}
+      ${part.map((_,r)=>`<tr><td>${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x)),sl=ST.indexOf(x);
+        return `<td>${gEdit===sl?gSel(L,sl):`<button class="gcell" data-slot="${sl}">${esc(L?lnHe(L.l):"")}</button>`}</td>`;}).join("")}</tr>`).join("")}</table>`).join("")}`;}
   h+=blk(3,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),ST.indexOf(x))).join("")+(cu.length?`<button class="greset">החזרת התרגילים המקוריים</button>`:""),"c");
   h+=blk(4,"סיום: ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(r,"C"+(i+1))).join(""),"f");
   h+=blk(5,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
@@ -3628,7 +3633,7 @@ function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Da
 $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
-  else if(b.classList.contains("gswap")){gEdit=+b.dataset.slot;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);const t=document.querySelector(".gsel");if(t)t.focus();return;}
+  else if(b.classList.contains("gcell")||b.classList.contains("gswap")){if(gEdit===+b.dataset.slot){gEdit=-1;renderSes();return;}gEdit=+b.dataset.slot;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);const t=b.classList.contains("gcell")?document.querySelector(".grot .gsel"):document.querySelector(".gst .gsel");if(t)t.focus();return;}
   else if(b.classList.contains("greset")){if(SG.cust)delete SG.cust[SG.str||GSTR[0][0]];}
   else if(b.dataset.skill)SG.skill=b.dataset.skill;
   else if(b.dataset.day)SG.day=b.dataset.day;
