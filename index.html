@@ -496,6 +496,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gsth b{flex:1}
+.gswap{font:inherit;font-weight:700;font-size:.8rem;flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,138,31,.55);background:transparent;color:#FF8A1F;cursor:pointer}
 .gsel{font:inherit;font-weight:800;font-size:1.02rem;flex:1;min-width:0;padding:7px 10px;border-radius:10px;border:1.5px dashed rgba(255,138,31,.6);background:transparent;color:var(--ink)}
 .greset{font:inherit;font-weight:700;justify-self:center;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
 .gnum{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
@@ -838,7 +840,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126134404";
+const BUILD="20261126134435";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3581,13 +3583,14 @@ function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm
 //   1–2: everyone together at each station, taking turns (one works, one rests)
 //   3:   three stations, one person at each, rotate after every set (the rotation is the rest)
 //   4+:  pairs (or threes) at stations, partners alternate sets, groups rotate between stations
+let gEdit=-1;   // the strength station whose exercise is being changed
 function gGroups(N){if(N<=2)return [N];if(N===3)return [1,1,1];
   const G=Math.min(4,Math.ceil(N/2)),out=Array(G).fill(0);for(let i=0;i<N;i++)out[i%G]++;return out;}
 const GNAMES=["א׳","ב׳","ג׳","ד׳"];
 // a station: the exercise and its versions (easy / medium / hard) - everyone picks the one that fits them
 function gStation(ref,letter,slot){const L=LAD(gK(ref));if(!L)return "";
   const pick=L.steps;   // every step of the ladder, easiest on the right; swipe left for the harder ones
-  const head=slot==null?`<b>${esc(lnHe(L.l))}</b>`:`<select class="gsel" data-slot="${slot}" aria-label="החלפת התרגיל בתחנה">${LADS.filter(x=>x.ci===0).map(x=>`<option value="${esc(x.t+"|"+x.l)}"${x.key===L.key?" selected":""}>${esc(lnHe(x.l))}</option>`).join("")}</select>`;
+  const head=slot==null||gEdit!==slot?`<b>${esc(lnHe(L.l))}</b>${slot==null?"":`<button class="gswap" data-slot="${slot}">⇄ החלפה</button>`}`:`<select class="gsel" data-slot="${slot}" aria-label="החלפת התרגיל בתחנה">${LADS.filter(x=>x.ci===0).map(x=>`<option value="${esc(x.t+"|"+x.l)}"${x.key===L.key?" selected":""}>${esc(lnHe(x.l))}</option>`).join("")}</select>`;
   return `<div class="gst"><div class="gsth"><i>${letter}</i>${head}</div>
     <div class="gvar">${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>רמה ${esc(s.lvn)}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
 // warm-up from the top down, all together
@@ -3625,6 +3628,7 @@ function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Da
 $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
+  else if(b.classList.contains("gswap")){gEdit=+b.dataset.slot;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);const t=document.querySelector(".gsel");if(t)t.focus();return;}
   else if(b.classList.contains("greset")){if(SG.cust)delete SG.cust[SG.str||GSTR[0][0]];}
   else if(b.dataset.skill)SG.skill=b.dataset.skill;
   else if(b.dataset.day)SG.day=b.dataset.day;
@@ -3638,7 +3642,7 @@ $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg")
   else return;
   sgSave();renderSes();window.scrollTo(0,y);if(SG.tm)gTick();};
 $("sbody").onchange=e=>{const t=e.target.closest(".gsel");if(!t)return;const st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
-  SG.cust=SG.cust||{};const c=SG.cust[st[0]]=SG.cust[st[0]]||[];c[+t.dataset.slot]=t.value.split("|");sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
+  SG.cust=SG.cust||{};const c=SG.cust[st[0]]=SG.cust[st[0]]||[];c[+t.dataset.slot]=t.value.split("|");gEdit=-1;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
 $("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew2]");if(!f)return;e.preventDefault();
   const n=f.querySelector("input").value.trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:true};CO.trainees.push(t);SG.present.push(t.id);csave();sgSave();renderSes();});
 // end of class: a target met in two classes in a row moves the trainee up one step on that ladder
