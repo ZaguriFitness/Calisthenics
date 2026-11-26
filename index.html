@@ -874,7 +874,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126142654";
+const BUILD="20261126142926";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -2594,7 +2594,7 @@ function build(host,frames,opt){opt=opt||{};
   const all=keys.flatMap(k=>Object.keys(k).filter(n=>n[0]!=="_"&&k[n]).map(n=>k[n]));
   const mn=[0,1,2].map(i=>Math.min(...all.map(p=>p[i]))), mx=[0,1,2].map(i=>Math.max(...all.map(p=>p[i])));
   const ctr=V(mn.map((v,i)=>(v+mx[i])/2)), size=Math.max(mx[0]-mn[0],mx[1]-mn[1],110);
-  let az=f0.kind==="front"?0.55:(f0.kind==="raw"?0.35:(Mo?0.8*(f0.face||1):-0.75)), el=0.22, dist=size*(f0.kind==="front"?2.0:2.25);
+  let az=f0.kind==="front"?0.55:(f0.kind==="raw"?0.35:(Mo?0.8*(f0.face||1):-0.75)), el=0.22, dist=size*(f0.kind==="front"?2.3:2.6);
   function camUpdate(){cam.position.set(ctr.x+dist*Math.sin(az)*Math.cos(el),ctr.y+dist*Math.sin(el),ctr.z+dist*Math.cos(az)*Math.cos(el));cam.lookAt(ctr);}
   camUpdate();
   let drag=null;
