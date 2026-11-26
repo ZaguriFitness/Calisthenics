@@ -496,6 +496,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gsel{font:inherit;font-weight:800;font-size:1.02rem;flex:1;min-width:0;padding:7px 10px;border-radius:10px;border:1.5px dashed rgba(255,138,31,.6);background:transparent;color:var(--ink)}
+.greset{font:inherit;font-weight:700;justify-self:center;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
 .gnum{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
 .gn{font:inherit;font-weight:900;font-size:1.05rem;height:42px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
 .gn.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
@@ -836,7 +838,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126130252";
+const BUILD="20261126134404";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3583,9 +3585,10 @@ function gGroups(N){if(N<=2)return [N];if(N===3)return [1,1,1];
   const G=Math.min(4,Math.ceil(N/2)),out=Array(G).fill(0);for(let i=0;i<N;i++)out[i%G]++;return out;}
 const GNAMES=["א׳","ב׳","ג׳","ד׳"];
 // a station: the exercise and its versions (easy / medium / hard) - everyone picks the one that fits them
-function gStation(ref,letter){const L=LAD(gK(ref));if(!L)return "";
+function gStation(ref,letter,slot){const L=LAD(gK(ref));if(!L)return "";
   const pick=L.steps;   // every step of the ladder, easiest on the right; swipe left for the harder ones
-  return `<div class="gst"><div class="gsth"><i>${letter}</i><b>${esc(lnHe(L.l))}</b></div>
+  const head=slot==null?`<b>${esc(lnHe(L.l))}</b>`:`<select class="gsel" data-slot="${slot}" aria-label="החלפת התרגיל בתחנה">${LADS.filter(x=>x.ci===0).map(x=>`<option value="${esc(x.t+"|"+x.l)}"${x.key===L.key?" selected":""}>${esc(lnHe(x.l))}</option>`).join("")}</select>`;
+  return `<div class="gst"><div class="gsth"><i>${letter}</i>${head}</div>
     <div class="gvar">${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>רמה ${esc(s.lvn)}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
 // warm-up from the top down, all together
 const GWARM=[["צוואר","סיבובים איטיים, הטיות לצדדים · 5 לכל כיוון"],["כתפיים","סיבובי ידיים קדימה ואחורה · 10 לכל כיוון"],
@@ -3598,7 +3601,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4));
     <p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div>
     <p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
-  const GR=gGroups(N),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]];
+  const GR=gGroups(N),G=GR.length,ST0=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]],cu=(SG.cust||{})[st[0]]||[],ST=ST0.map((r,i)=>cu[i]||r);
   const blk=(n,title,min,fmt,body,id)=>`<section class="gblk"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}</div>${body}</section>`;
   let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}`;
   h+=blk(1,"חימום",8,"כולם ביחד, מלמעלה למטה",`<ol class="gwl">${GWARM.map(([a,b])=>`<li><b>${a}</b><span>${b}</span></li>`).join("")}</ol>`,"w");
@@ -3611,7 +3614,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4));
       ${(G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations]).map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}</p>`:""}
       <table class="grot"><tr><th>סט</th>${GR.map((g,i)=>`<th>קבוצה ${GNAMES[i]}</th>`).join("")}</tr>
       ${part.map((_,r)=>`<tr><td>${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x));return `<td>${esc(L?lnHe(L.l):"")}</td>`;}).join("")}</tr>`).join("")}</table>`).join("")}`;}
-  h+=blk(3,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1))).join(""),"c");
+  h+=blk(3,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),ST.indexOf(x))).join("")+(cu.length?`<button class="greset">החזרת התרגילים המקוריים</button>`:""),"c");
   h+=blk(4,"סיום: ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(r,"C"+(i+1))).join(""),"f");
   h+=blk(5,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
   $("sbody").innerHTML=h;}
@@ -3622,6 +3625,7 @@ function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Da
 $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
+  else if(b.classList.contains("greset")){if(SG.cust)delete SG.cust[SG.str||GSTR[0][0]];}
   else if(b.dataset.skill)SG.skill=b.dataset.skill;
   else if(b.dataset.day)SG.day=b.dataset.day;
   else if(b.dataset.str)SG.str=b.dataset.str;
@@ -3633,7 +3637,8 @@ $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg")
   else if(b.id==="gfin"){gFinish();return;}
   else return;
   sgSave();renderSes();window.scrollTo(0,y);if(SG.tm)gTick();};
-$("sbody").onchange=null;
+$("sbody").onchange=e=>{const t=e.target.closest(".gsel");if(!t)return;const st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
+  SG.cust=SG.cust||{};const c=SG.cust[st[0]]=SG.cust[st[0]]||[];c[+t.dataset.slot]=t.value.split("|");sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
 $("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew2]");if(!f)return;e.preventDefault();
   const n=f.querySelector("input").value.trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:true};CO.trainees.push(t);SG.present.push(t.id);csave();sgSave();renderSes();});
 // end of class: a target met in two classes in a row moves the trainee up one step on that ladder
