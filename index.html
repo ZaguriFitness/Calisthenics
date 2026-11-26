@@ -835,7 +835,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126090702";
+const BUILD="20261126124309";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -1524,7 +1524,9 @@ const ILL={
  // rings beside the hips (hands a little wider than the body), knees slightly bent, as on the low parallel bars
  "Low Ring Support — רגליים על הקרקע":[{H:[86.3,129.2],t:-80,A:[95,134],L:[104,200],g:1,wz:21,pr:[ring("W",55)],label:"החזקה, רגליים על הקרקע"}],
  "RTO Support Hold":[X(ringTop(),{label:"החזקה, טבעות מסובבות החוצה"})],
- "Ring Tuck L-Sit":[X(ringTop(),{L:[118,92],kb:[1,-1],label:"החזקה"})],
+ // ring support with the knees pulled up in front of the chest (thighs up ~45°, knees bent, shins hanging down),
+ // body upright, arms straight with the rings beside the hips
+ "Ring Tuck L-Sit":[X(ringTop(),{L:null,kb:null,th:-48,sh:100,label:"החזקה"})],
  "Ring L-Sit":[X(ringTop(),{H:[94,108],L:add([94,108],73,0),label:"החזקה"})],
  "Ring Plank — רגליים בטבעות":[X(RPL,{label:"החזקה"})],
  "Ring Knee Tuck":[RPL,RKT],
