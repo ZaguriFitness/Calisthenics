@@ -611,6 +611,9 @@ body.gdragging{overflow:hidden;touch-action:none}
 .gchev{flex:none;width:10px;height:10px;border-left:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(-45deg);margin:0 4px 4px;transition:transform .3s}
 .gopen .gchev{transform:rotate(135deg);margin-bottom:-4px;border-color:#FF8A1F}
 #sbody .gblk.gfade>:not(.gbh){opacity:0}
+.gpkh{cursor:pointer;gap:10px;-webkit-user-select:none;user-select:none}.gpkh .gpks{margin-inline-start:auto;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity .25s}
+.gpick.gclosed .gpks{opacity:1}.gpick.gclosed>:not(.ghd){display:none}.gpick>:not(.ghd){transition:opacity .22s}.gpick.gfade>:not(.ghd){opacity:0}
+.gpick:not(.gclosed) .gchev{transform:rotate(135deg);margin-bottom:-4px;border-color:#FF8A1F}
 .gopen .gbh{flex-wrap:wrap;row-gap:10px}.gopen .gbh>div{flex:1 1 calc(100% - 90px)}.gopen .gbh .gchev{order:1}.gopen .gbh .gtm{order:2;margin-inline-start:46px}
 .gtip{margin:0;color:var(--muted);font-size:.82rem;line-height:1.5}
 .gpl{margin:6px 0 2px;font-weight:800;color:#FF8A1F;font-size:.9rem}
@@ -871,7 +874,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126142418";
+const BUILD="20261126142654";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3642,7 +3645,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
   const skBox=`<div class="gsub" data-drag="pick" data-k="s"><p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div></div>`;
   const stBox=`<div class="gsub" data-drag="pick" data-k="c"><p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
-  const pick=`<div class="gcard"><div class="ghd"><b>כמה הגיעו?</b></div>
+  const pick=`<div class="gcard gpick${SG.pickC?" gclosed":""}"><div class="ghd gpkh"><b>כמה הגיעו?</b><span class="gpks">${N} · ${esc(sk[1])} · ${esc(st[1])}</span><em class="gchev" aria-hidden="true"></em></div>
     <div class="gnum">${[1,2,3,4,5,6,7,8].map(k=>`<button class="gn${k===N?" on":""}" data-n="${k}">${k}</button>`).join("")}</div>
     <div class="gsubs">${O.indexOf("s")<O.indexOf("c")?skBox+stBox:stBox+skBox}</div></div>`;
   const GR=gGroups(N),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]].map((r,i)=>gRef("c:"+st[0]+":"+i,r));
@@ -3732,6 +3735,12 @@ let gIv=0;
 function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
   const b=document.querySelector(`.gtm[data-tm="${SG.tm.id}"]`);if(b)b.textContent=`⏹ ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}`;
   if(left<=0){clearInterval(gIv);SG.tm=null;sgSave();try{beep(880)}catch(e){}renderSes();}}
+function gTogglePick(c){const H0=c.offsetHeight,closing=!SG.pickC;if(closing)SG.pickC=1;else delete SG.pickC;sgSave();
+  c.classList.toggle("gclosed",closing);const H1=c.offsetHeight;
+  c.style.boxSizing="border-box";c.style.overflow="hidden";c.style.height=H0+"px";if(!closing)c.classList.add("gfade");void c.offsetHeight;
+  c.style.transition="height .38s cubic-bezier(.22,.9,.24,1)";
+  requestAnimationFrame(()=>{c.style.height=H1+"px";c.classList.remove("gfade");
+    setTimeout(()=>{c.style.height=c.style.transition=c.style.overflow="";},420);});}
 function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[data-k]')],k=sec.dataset.k,opening=SG.open!==k;
   const H0=B.map(b=>b.offsetHeight),top0=sec.getBoundingClientRect().top;
   if(opening)SG.open=k;else delete SG.open;sgSave();
@@ -3747,6 +3756,7 @@ function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[d
         const t=sec.getBoundingClientRect().top;if(opening&&(t<70||t>innerHeight*.45))window.scrollTo({top:scrollY+t-80,behavior:"smooth"});}};
     requestAnimationFrame(f);});}
 $("sbody").onclick=e=>{const b=e.target.closest("button");
+  if(!b&&e.target.closest(".gpkh")){gTogglePick(e.target.closest(".gpick"));return;}
   if(!b){const h=e.target.closest(".gbh");if(h&&Date.now()-(window.gDragT||0)>500){const sec=h.closest('.gblk[data-k]');if(sec)gToggle(sec);}return;}$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
   if(b.classList.contains("gun")){const v=gUndo.pop();if(v)gApply(v);renderSes();window.scrollTo(0,y);return;}
   if(b.classList.contains("gorig")){if(!confirm("לחזור לאימון המקורי? הסדר והתרגילים שהחלפת יחזרו למקור."))return;gUndo.push(before);delete SG.order;SG.cust2={};gEdit="";sgSave();renderSes();window.scrollTo(0,y);return;}
