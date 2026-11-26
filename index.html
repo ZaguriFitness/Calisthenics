@@ -506,8 +506,8 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 #sbody.gnoanim .gblk,#sbody.gnoanim .gblk>*{transition:none!important}
 .gdrag{z-index:5}
 #sbody:not(.ganim) .gdrag{transition:none!important}
-.gundo{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;justify-content:center;gap:10px;margin-top:14px;pointer-events:none}
-.gundo button{pointer-events:auto;font:inherit;font-weight:800;padding:12px 18px;border-radius:999px;border:1.5px solid #FF8A1F;background:#111;color:#FF8A1F;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.gundo{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;justify-content:center;gap:8px;margin-top:14px;pointer-events:none}
+.gundo button{pointer-events:auto;font:inherit;font-weight:800;font-size:.8rem;padding:7px 12px;border-radius:999px;border:1.5px solid #FF8A1F;background:#111;color:#FF8A1F;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .gundo .gun{background:#FF8A1F;color:#111}
 .gsubs{display:grid;gap:10px}
 .gsub{padding:10px 12px 12px;border-radius:14px;border:1px solid var(--line);background:#0B0B0C;display:grid;gap:8px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s,box-shadow .15s}
@@ -874,7 +874,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126142926";
+const BUILD="20261126143059";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3636,8 +3636,8 @@ const GWARM=[["צוואר","סיבובים · 5 לכל כיוון"],["כתפיי
   ["סקוואטים","סקוואטים קלים · 10 חזרות"]];
 const GORDER0=["w","s","c","f","r"];
 const gSnap=()=>JSON.stringify({n:SG.n,skill:SG.skill,str:SG.str,order:SG.order||null,cust2:gCust()});
-let gUndo=[];
-function gCommit(before){if(before!==gSnap()){gUndo.push(before);if(gUndo.length>50)gUndo.shift();}}
+let gUndo=[],gRedo=[];
+function gCommit(before){if(before!==gSnap()){gUndo.push(before);if(gUndo.length>50)gUndo.shift();gRedo=[];}}
 function gApply(js){const o=JSON.parse(js);SG.n=o.n;SG.skill=o.skill;SG.str=o.str;if(o.order)SG.order=o.order;else delete SG.order;SG.cust2=o.cust2||{};gEdit="";sgSave();}
 // warm-up always opens the class and cool-down always closes it; only the middle frames move
 const gOrder=()=>{const o=(SG.order||[]).filter(x=>GORDER0.includes(x)&&x!=="w"&&x!=="r");GORDER0.forEach(x=>{if(x!=="w"&&x!=="r"&&!o.includes(x))o.push(x);});return ["w",...o,"r"];};
@@ -3670,7 +3670,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה על מסגרת פותחת אותה. לחיצה ארוכה וגרירה משנה את הסדר (החימום תמיד ראשון והשחרור תמיד אחרון).</p>`;
   O.forEach((k,i)=>{h+=B[k](i+1);});
   const changed=!!SG.order||Object.keys(cu).length>0;
-  if(gUndo.length||changed)h+=`<div class="gundo">${gUndo.length?`<button class="gun">↶ חזור צעד</button>`:""}${changed?`<button class="gorig">חזרה למקור</button>`:""}</div>`;
+  if(gUndo.length||gRedo.length||changed)h+=`<div class="gundo">${gUndo.length?`<button class="gun">↶ חזור צעד</button>`:""}${gRedo.length?`<button class="gre">צעד קדימה ↷</button>`:""}${changed?`<button class="gorig">חזרה למקור</button>`:""}</div>`;
   $("sbody").innerHTML=h;}
 // ---- long press on an empty spot of a frame: the class folds to its titles (like moving an app icon), the frame
 // follows the finger and the others make room; let go and it unfolds in the new order ----
@@ -3758,8 +3758,9 @@ function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[d
 $("sbody").onclick=e=>{const b=e.target.closest("button");
   if(!b&&e.target.closest(".gpkh")){gTogglePick(e.target.closest(".gpick"));return;}
   if(!b){const h=e.target.closest(".gbh");if(h&&Date.now()-(window.gDragT||0)>500){const sec=h.closest('.gblk[data-k]');if(sec)gToggle(sec);}return;}$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
-  if(b.classList.contains("gun")){const v=gUndo.pop();if(v)gApply(v);renderSes();window.scrollTo(0,y);return;}
-  if(b.classList.contains("gorig")){if(!confirm("לחזור לאימון המקורי? הסדר והתרגילים שהחלפת יחזרו למקור."))return;gUndo.push(before);delete SG.order;SG.cust2={};gEdit="";sgSave();renderSes();window.scrollTo(0,y);return;}
+  if(b.classList.contains("gun")){const v=gUndo.pop();if(v){gRedo.push(before);gApply(v);}renderSes();window.scrollTo(0,y);return;}
+  if(b.classList.contains("gre")){const v=gRedo.pop();if(v){gUndo.push(before);gApply(v);}renderSes();window.scrollTo(0,y);return;}
+  if(b.classList.contains("gorig")){if(!confirm("לחזור לאימון המקורי? הסדר והתרגילים שהחלפת יחזרו למקור."))return;gUndo.push(before);gRedo=[];delete SG.order;SG.cust2={};gEdit="";sgSave();renderSes();window.scrollTo(0,y);return;}
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
   else if(b.classList.contains("gcell")||b.classList.contains("gswap")){if(gEdit===b.dataset.slot){gEdit="";renderSes();window.scrollTo(0,y);return;}gEdit=b.dataset.slot;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);const t=document.querySelector(b.classList.contains("gcell")?".grot .gsel":".gst .gsel");if(t)t.focus();return;}
