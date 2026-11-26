@@ -496,6 +496,9 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gundo{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;justify-content:center;gap:10px;margin-top:14px;pointer-events:none}
+.gundo button{pointer-events:auto;font:inherit;font-weight:800;padding:12px 18px;border-radius:999px;border:1.5px solid #FF8A1F;background:#111;color:#FF8A1F;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.gundo .gun{background:#FF8A1F;color:#111}
 .gsubs{display:grid;gap:10px}
 .gsub{padding:10px 12px 12px;border-radius:14px;border:1px solid var(--line);background:#0B0B0C;display:grid;gap:8px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s,box-shadow .15s}
 .gblk{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s,box-shadow .15s}
@@ -850,7 +853,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126140103";
+const BUILD="20261126140301";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3611,6 +3614,10 @@ const GWARM=[["צוואר","סיבובים איטיים, הטיות לצדדים
   ["אגן","סיבובי אגן לשני הכיוונים · 10"],["ברכיים","סיבובים קטנים עם ידיים על הברכיים · 10"],["קרסוליים","סיבובים, ועלייה על קצות האצבעות · 10"],
   ["סקוואטים","10 סקוואטים קלים"]];
 const GORDER0=["w","s","c","f","r"];
+const gSnap=()=>JSON.stringify({n:SG.n,skill:SG.skill,str:SG.str,order:SG.order||null,cust2:gCust()});
+let gUndo=[];
+function gCommit(before){if(before!==gSnap()){gUndo.push(before);if(gUndo.length>50)gUndo.shift();}}
+function gApply(js){const o=JSON.parse(js);SG.n=o.n;SG.skill=o.skill;SG.str=o.str;if(o.order)SG.order=o.order;else delete SG.order;SG.cust2=o.cust2||{};gEdit="";sgSave();}
 const gOrder=()=>{const o=(SG.order||[]).filter(x=>GORDER0.includes(x));GORDER0.forEach(x=>{if(!o.includes(x))o.push(x);});return o;};
 function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust();
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
@@ -3638,8 +3645,10 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     return blk(n,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),slotOf(x))).join("")+reset("c:"+st[0]+":"),"c");};
   B.f=n=>blk(n,"ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(gRef("f:"+i,r),"C"+(i+1),"f:"+i)).join("")+reset("f:"),"f");
   B.r=n=>blk(n,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
-  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה ארוכה על מקום ריק במסגרת, ואז גרירה, משנה את הסדר.${SG.order?` <button class="greset gro">סדר מקורי</button>`:""}</p>`;
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה ארוכה על מקום ריק במסגרת, ואז גרירה, משנה את הסדר.</p>`;
   O.forEach((k,i)=>{h+=B[k](i+1);});
+  const changed=!!SG.order||Object.keys(cu).length>0;
+  if(gUndo.length||changed)h+=`<div class="gundo">${gUndo.length?`<button class="gun">↶ חזור צעד</button>`:""}${changed?`<button class="gorig">חזרה למקור</button>`:""}</div>`;
   $("sbody").innerHTML=h;}
 // ---- long press on an empty spot of a frame, then drag it up or down to change the order ----
 (function(){let lp=null,drag=null;const host=$("sbody");
@@ -3647,7 +3656,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const sibs=el=>[...el.parentNode.children].filter(x=>x.dataset&&x.dataset.drag===el.dataset.drag);
   const cancel=()=>{if(lp){clearTimeout(lp.t);lp=null;}};
   host.addEventListener("pointerdown",e=>{const el=e.target.closest("[data-drag]");if(!el||!free(e.target)||drag)return;
-    lp={el,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!lp)return;drag={el,id:lp.id};lp=null;el.classList.add("gdrag");document.body.classList.add("gdragging");try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}},450)};});
+    lp={el,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(()=>{if(!lp)return;drag={el,id:lp.id,before:gSnap()};lp=null;el.classList.add("gdrag");document.body.classList.add("gdragging");try{navigator.vibrate&&navigator.vibrate(15)}catch(_){}},450)};});
   const move=(x,y)=>{if(lp&&Math.hypot(x-lp.x,y-lp.y)>8)cancel();if(!drag)return;const el=drag.el,S=sibs(el),i=S.indexOf(el);
     const prev=S[i-1],next=S[i+1];
     // (tall frames: crossing ~60px into the neighbour is enough)
@@ -3657,18 +3666,22 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     if(y<90)window.scrollBy(0,-12);else if(y>innerHeight-120)window.scrollBy(0,12);};
   host.addEventListener("pointermove",e=>move(e.clientX,e.clientY));
   host.addEventListener("touchmove",e=>{if(drag){e.preventDefault();const t=e.touches[0];move(t.clientX,t.clientY);}},{passive:false});
-  const end=()=>{cancel();if(!drag)return;const el=drag.el;drag=null;el.classList.remove("gdrag");document.body.classList.remove("gdragging");
+  const end=()=>{cancel();if(!drag)return;const el=drag.el,before=drag.before;drag=null;el.classList.remove("gdrag");document.body.classList.remove("gdragging");
     const ks=sibs(el).map(x=>x.dataset.k);
-    if(el.dataset.drag==="blk")SG.order=ks;
-    else{const O=gOrder(),a=O.indexOf("s"),b=O.indexOf("c");if((ks[0]==="s")!==(a<b)){O[a]="c";O[b]="s";}SG.order=O;}
-    sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
+    let O=gOrder();
+    if(el.dataset.drag==="blk")O=ks;
+    else{const a=O.indexOf("s"),b=O.indexOf("c");if((ks[0]==="s")!==(a<b)){O[a]="c";O[b]="s";}}
+    if(O.join()===GORDER0.join())delete SG.order;else SG.order=O;
+    gCommit(before);sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
   host.addEventListener("pointerup",end);host.addEventListener("pointercancel",()=>{if(!drag)cancel();});host.addEventListener("touchend",end);
   host.addEventListener("contextmenu",e=>{if(e.target.closest("[data-drag]"))e.preventDefault();});})();
 let gIv=0;
 function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
   const b=document.querySelector(`.gtm[data-tm="${SG.tm.id}"]`);if(b)b.textContent=`⏹ ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}`;
   if(left<=0){clearInterval(gIv);SG.tm=null;sgSave();try{beep(880)}catch(e){}renderSes();}}
-$("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
+$("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
+  if(b.classList.contains("gun")){const v=gUndo.pop();if(v)gApply(v);renderSes();window.scrollTo(0,y);return;}
+  if(b.classList.contains("gorig")){if(!confirm("לחזור לאימון המקורי? הסדר והתרגילים שהחלפת יחזרו למקור."))return;gUndo.push(before);delete SG.order;SG.cust2={};gEdit="";sgSave();renderSes();window.scrollTo(0,y);return;}
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
   else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
   else if(b.classList.contains("gcell")||b.classList.contains("gswap")){if(gEdit===b.dataset.slot){gEdit="";renderSes();window.scrollTo(0,y);return;}gEdit=b.dataset.slot;sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);const t=document.querySelector(b.classList.contains("gcell")?".grot .gsel":".gst .gsel");if(t)t.focus();return;}
@@ -3684,9 +3697,9 @@ $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg")
   else if(b.dataset.tm){clearInterval(gIv);if(SG.tm&&SG.tm.id===b.dataset.tm)SG.tm=null;else{SG.tm={id:b.dataset.tm,end:Date.now()+(+b.dataset.min)*60000};gIv=setInterval(gTick,1000);try{beep(660)}catch(e){}}}
   else if(b.id==="gfin"){gFinish();return;}
   else return;
-  sgSave();renderSes();window.scrollTo(0,y);if(SG.tm)gTick();};
-$("sbody").onchange=e=>{const t=e.target.closest(".gsel");if(!t)return;
-  gCust()[t.dataset.slot]=t.value.split("|");gEdit="";sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
+  gCommit(before);sgSave();renderSes();window.scrollTo(0,y);if(SG.tm)gTick();};
+$("sbody").onchange=e=>{const t=e.target.closest(".gsel");if(!t)return;const before=gSnap();
+  gCust()[t.dataset.slot]=t.value.split("|");gEdit="";gCommit(before);sgSave();const y=window.scrollY;renderSes();window.scrollTo(0,y);};
 $("sbody").addEventListener("submit",e=>{const f=e.target.closest("form[data-gnew2]");if(!f)return;e.preventDefault();
   const n=f.querySelector("input").value.trim();if(!n)return;const t={id:uid(),name:n,note:"",lv:{},grp:true};CO.trainees.push(t);SG.present.push(t.id);csave();sgSave();renderSes();});
 // end of class: a target met in two classes in a row moves the trainee up one step on that ladder
