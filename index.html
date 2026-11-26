@@ -611,8 +611,10 @@ body.gdragging{overflow:hidden;touch-action:none}
 .gchev{flex:none;width:10px;height:10px;border-left:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(-45deg);margin:0 4px 4px;transition:transform .3s}
 .gopen .gchev{transform:rotate(135deg);margin-bottom:-4px;border-color:#FF8A1F}
 #sbody .gblk.gfade>:not(.gbh){opacity:0}
-.gpkh{cursor:pointer;gap:10px;-webkit-user-select:none;user-select:none}.gpkh .gpks{margin-inline-start:auto;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity .25s}
-.gpick.gclosed .gpks{opacity:1}.gpick.gclosed>:not(.ghd){display:none}.gpick>:not(.ghd){transition:opacity .22s}.gpick.gfade>:not(.ghd){opacity:0}
+.gpkh{cursor:pointer;gap:10px;-webkit-user-select:none;user-select:none}
+.gpks{display:none;flex-wrap:wrap;gap:6px;cursor:pointer}.gpks span{display:inline-flex;align-items:baseline;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,138,31,.12);border:1px solid rgba(255,138,31,.35);color:#FF8A1F;font-weight:800;font-size:.85rem}
+.gpks small{color:var(--muted);font-weight:700;font-size:.72rem}
+.gpick.gclosed .gpks{display:flex}.gpick.gclosed>:not(.ghd):not(.gpks){display:none}.gpick>:not(.ghd){transition:opacity .22s}.gpick.gfade>:not(.ghd){opacity:0}
 .gpick:not(.gclosed) .gchev{transform:rotate(135deg);margin-bottom:-4px;border-color:#FF8A1F}
 .gopen .gbh{flex-wrap:wrap;row-gap:10px}.gopen .gbh>div{flex:1 1 calc(100% - 90px)}.gopen .gbh .gchev{order:1}.gopen .gbh .gtm{order:2;margin-inline-start:46px}
 .gtip{margin:0;color:var(--muted);font-size:.82rem;line-height:1.5}
@@ -874,7 +876,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126143208";
+const BUILD="20261126143434";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3645,8 +3647,9 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
   const skBox=`<div class="gsub" data-drag="pick" data-k="s"><p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div></div>`;
   const stBox=`<div class="gsub" data-drag="pick" data-k="c"><p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
-  const pick=`<div class="gcard gpick${SG.pickC?" gclosed":""}"><div class="ghd gpkh"><b>כמה הגיעו?</b><span class="gpks">${N} · ${esc(sk[1])} · ${esc(st[1])}</span><em class="gchev" aria-hidden="true"></em></div>
-    <div class="gnum">${[1,2,3,4,5,6,7,8].map(k=>`<button class="gn${k===N?" on":""}" data-n="${k}">${k}</button>`).join("")}</div>
+  const pick=`<div class="gcard gpick${SG.pickC?" gclosed":""}"><div class="ghd gpkh"><b>הגדרת האימון</b><em class="gchev" aria-hidden="true"></em></div>
+    <div class="gpks"><span><small>מתאמנים</small>${N}</span><span><small>מיומנות</small>${esc(sk[1])}</span><span><small>כוח</small>${esc(st[1])}</span></div>
+    <p class="glbl">כמה מתאמנים הגיעו?</p><div class="gnum">${[1,2,3,4,5,6,7,8].map(k=>`<button class="gn${k===N?" on":""}" data-n="${k}">${k}</button>`).join("")}</div>
     <div class="gsubs">${O.indexOf("s")<O.indexOf("c")?skBox+stBox:stBox+skBox}</div></div>`;
   const GR=gGroups(N),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]].map((r,i)=>gRef("c:"+st[0]+":"+i,r));
   const has=pre=>Object.keys(cu).some(k=>k.startsWith(pre));
@@ -3756,7 +3759,7 @@ function gToggle(sec){const host=$("sbody"),B=[...host.querySelectorAll('.gblk[d
         const t=sec.getBoundingClientRect().top;if(opening&&(t<70||t>innerHeight*.45))window.scrollTo({top:scrollY+t-80,behavior:"smooth"});}};
     requestAnimationFrame(f);});}
 $("sbody").onclick=e=>{const b=e.target.closest("button");
-  if(!b&&e.target.closest(".gpkh")){gTogglePick(e.target.closest(".gpick"));return;}
+  if(!b&&e.target.closest(".gpkh,.gpks")){gTogglePick(e.target.closest(".gpick"));return;}
   if(!b){const h=e.target.closest(".gbh");if(h&&Date.now()-(window.gDragT||0)>500){const sec=h.closest('.gblk[data-k]');if(sec)gToggle(sec);}return;}$("smsg").hidden=true;const y=window.scrollY,before=gSnap();
   if(b.classList.contains("gun")){const v=gUndo.pop();if(v){gRedo.push(before);gApply(v);}renderSes();window.scrollTo(0,y);return;}
   if(b.classList.contains("gre")){const v=gRedo.pop();if(v){gUndo.push(before);gApply(v);}renderSes();window.scrollTo(0,y);return;}
