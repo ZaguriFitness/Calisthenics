@@ -853,7 +853,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126140301";
+const BUILD="20261126140536";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3609,10 +3609,10 @@ function gStation(ref,letter,slot){const L=LAD(gK(ref));if(!L)return "";
   const head=gEdit===slot?gSel(L,slot):`<b>${esc(lnHe(L.l))}</b><button class="gswap" data-slot="${slot}">⇄ החלפה</button>`;
   return `<div class="gst"><div class="gsth"><i>${letter}</i>${head}</div>
     <div class="gvar">${L.steps.map(s=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>רמה ${esc(s.lvn)}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
-const GWARM=[["צוואר","סיבובים איטיים, הטיות לצדדים · 5 לכל כיוון"],["כתפיים","סיבובי ידיים קדימה ואחורה · 10 לכל כיוון"],
-  ["מרפקים","כיפוף ויישור, סיבובי אמה · 10"],["שורש כף היד","סיבובים, ועל ארבע: נדנוד קדימה ואחורה · 10"],
-  ["אגן","סיבובי אגן לשני הכיוונים · 10"],["ברכיים","סיבובים קטנים עם ידיים על הברכיים · 10"],["קרסוליים","סיבובים, ועלייה על קצות האצבעות · 10"],
-  ["סקוואטים","10 סקוואטים קלים"]];
+const GWARM=[["צוואר","סיבובים · 5 לכל כיוון"],["כתפיים","סיבובי ידיים · 10 לכל כיוון"],
+  ["מרפקים","סיבובי אמה · 10 לכל כיוון"],["שורש כף היד","סיבובים · 10 לכל כיוון"],
+  ["אגן","סיבובים · 10 לכל כיוון"],["ברכיים","סיבובים · 10 לכל כיוון"],["קרסוליים","סיבובים · 10 לכל כיוון"],
+  ["סקוואטים","סקוואטים קלים · 10 חזרות"]];
 const GORDER0=["w","s","c","f","r"];
 const gSnap=()=>JSON.stringify({n:SG.n,skill:SG.skill,str:SG.str,order:SG.order||null,cust2:gCust()});
 let gUndo=[];
