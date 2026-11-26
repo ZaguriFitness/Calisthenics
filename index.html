@@ -874,7 +874,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126143059";
+const BUILD="20261126143208";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3667,7 +3667,7 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
     return blk(n,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),slotOf(x))).join("")+reset("c:"+st[0]+":"),"c");};
   B.f=n=>blk(n,"ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(gRef("f:"+i,r),"C"+(i+1),"f:"+i)).join("")+reset("f:"),"f");
   B.r=n=>blk(n,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
-  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}<p class="ghint">לחיצה על מסגרת פותחת אותה. לחיצה ארוכה וגרירה משנה את הסדר (החימום תמיד ראשון והשחרור תמיד אחרון).</p>`;
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}`;
   O.forEach((k,i)=>{h+=B[k](i+1);});
   const changed=!!SG.order||Object.keys(cu).length>0;
   if(gUndo.length||gRedo.length||changed)h+=`<div class="gundo">${gUndo.length?`<button class="gun">↶ חזור צעד</button>`:""}${gRedo.length?`<button class="gre">צעד קדימה ↷</button>`:""}${changed?`<button class="gorig">חזרה למקור</button>`:""}</div>`;
