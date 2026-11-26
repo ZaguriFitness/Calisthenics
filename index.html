@@ -828,7 +828,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261125135417";
+const BUILD="20261126090123";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3358,7 +3358,19 @@ function openCard(p,bi,ci){
   $("mbody").innerHTML=h;$("modal").hidden=false;document.body.classList.add("noscroll");$("mback").focus();
   const td=$("mbody").querySelector(".td");if(td) TD.mount(td,st.ex,ring);
 }
-function closeCard(){if($("modal").hidden)return;TD.stop();$("modal").hidden=true;$("mbody").innerHTML="";document.body.classList.remove("noscroll");}
+// one exercise in the pop-up (group class): its 3D, how-to and boxes; "→ חזור" closes it and the class stays where it was
+function openEx(k,i){const L=LAD(k),st=L&&L.steps[i];if(!st)return;const ring=L.ci===1||!!st.ring;
+  const h=`<p class="mcap">${esc(lnHe(L.l))} · רמה ${esc(st.lvn)}</p>
+    <h3 class="mtitle">${st.he?`<bdi>${esc(st.he)}</bdi> | `:""}<bdi>${esc(exName(st))}</bdi>${st.ring?RTAG:""}</h3>
+    ${ILLV.has(st.ex,ring)?`<div class="td"><div class="tdbar"><span class="tdmsg">טוען תלת-ממד…</span><button class="tdplay" hidden>⏸ עצירה</button></div></div>`:""}
+    <p class="how">${esc(st.how)}</p>
+    <div class="box pass"><b>מתי עוברים לשלב הבא</b>${esc(st.pass)}</div>
+    <div class="grid2"><div class="box"><b>אם קשה מדי</b>${esc(st.assist)}</div><div class="box"><b>ציוד</b>${esc(st.equip)}</div>
+      <div class="box"><b>דגשים</b>${esc(st.cues)}</div><div class="box"><b>טעויות נפוצות</b>${esc(st.mist)}</div></div>`;
+  const mc=$("modal").querySelector(".mcard");mc.classList.remove("hue");
+  openEx.y=window.scrollY;$("mbody").innerHTML=h;$("modal").hidden=false;document.body.classList.add("noscroll");$("mback").focus({preventScroll:true});
+  const td=$("mbody").querySelector(".td");if(td) TD.mount(td,st.ex,ring);}
+function closeCard(){const y=openEx.y;openEx.y=null;if(y!=null)requestAnimationFrame(()=>window.scrollTo(0,y));if($("modal").hidden)return;TD.stop();$("modal").hidden=true;$("mbody").innerHTML="";document.body.classList.remove("noscroll");}
 $("mback").onclick=closeCard;
 $("modal").onclick=e=>{if(e.target===$("modal"))closeCard();};
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeCard();});
@@ -3607,7 +3619,7 @@ $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg")
   else if(b.dataset.day)SG.day=b.dataset.day;
   else if(b.dataset.str)SG.str=b.dataset.str;
   else if(b.dataset.ok){SG.done[b.dataset.ok]=!SG.done[b.dataset.ok];if(!SG.done[b.dataset.ok])delete SG.done[b.dataset.ok];}
-  else if(b.dataset.open){openStep(b.dataset.open,+b.dataset.x);return;}
+  else if(b.dataset.open){openEx(b.dataset.open,+b.dataset.x);return;}
   else if(b.dataset.lv){const [id,k,d]=b.dataset.lv.split("|"),tr=trById(id),L=LAD(k);if(!tr||!L)return;
     const i=Math.max(0,Math.min(L.steps.length-1,(lvIdx(tr,k)<0?0:lvIdx(tr,k))+(+d)));tr.lv=tr.lv||{};tr.lv[k]=L.steps[i].ex;if(tr.streak)delete tr.streak[k];csave();}
   else if(b.dataset.tm){clearInterval(gIv);if(SG.tm&&SG.tm.id===b.dataset.tm)SG.tm=null;else{SG.tm={id:b.dataset.tm,end:Date.now()+(+b.dataset.min)*60000};gIv=setInterval(gTick,1000);try{beep(660)}catch(e){}}}
