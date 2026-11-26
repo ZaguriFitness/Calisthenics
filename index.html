@@ -496,6 +496,13 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 .wlab.on{color:#111}.wlab.dim{opacity:.45}
 #lfam .wheelwrap{display:none}
 #nextcard{display:none}
+.gnum{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.gn{font:inherit;font-weight:900;font-size:1.05rem;height:42px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0}
+.gn.on{background:#FF8A1F;border-color:#FF8A1F;color:#111}
+.gwl{margin:0;padding:0;list-style:none;display:grid;gap:6px;counter-reset:w}
+.gwl li{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border-radius:12px;background:#0B0B0C;counter-increment:w}
+.gwl li::before{content:counter(w);color:#FF8A1F;font-weight:900;flex:none;width:16px}
+.gwl b{flex:none;min-width:84px}.gwl span{color:var(--muted);font-size:.86rem}
 .gst{display:grid;gap:8px;padding:10px;border-radius:14px;background:#0B0B0C}
 .gsth{display:flex;align-items:center;gap:8px}.gsth b{font-size:1.02rem}
 .gsth i{font-style:normal;flex:none;min-width:28px;height:28px;padding:0 6px;border-radius:999px;background:#FF8A1F;color:#111;font-weight:900;display:grid;place-items:center;font-size:.8rem}
@@ -828,7 +835,7 @@ h1,h2,h3,.cat,.ladhead h2,.num,.tab,.track,.prow b{font-family:var(--display)}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126090123";
+const BUILD="20261126090702";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -955,11 +962,11 @@ function frontFrame(fr){
 }
 // ---------- layout ----------
 const DEF={1:["החזקה"],2:["התחלה","סיום"],3:["התחלה","מעבר","סיום"]};
-function draw(frames){
+function draw(frames){frames=frames.filter(f=>!f.via);   // in-between keys are for the 3D motion only
   const parts=frames.map(fr=>fr.v==="front"?frontFrame(fr):sideFrame(fr));
   const n=parts.length, GAP=30;
   const bb=parts.map((p,i)=>{const xs=p.pts.map(q=>q[0]);let a=Math.min(...xs)-6,z=Math.max(...xs)+6;
-    const lw=((frames[i].label||DEF[n][i]).length*6.6)+6;
+    const lw=((frames[i].label||(DEF[n]||[])[i]||"").length*6.6)+6;
     if(z-a<lw){const c=(a+z)/2;a=c-lw/2;z=c+lw/2;}return [a,z]});
   const ys=parts.flatMap(p=>p.pts.map(q=>q[1]));
   const anyG=parts.some(p=>p.ground);
@@ -974,7 +981,7 @@ function draw(frames){
     s+=`<g transform="translate(${f(o)},0)">`;
     if(p.ground) s+=`<line class="gr" x1="${f(bb[i][0]-4)}" y1="${GY+4}" x2="${f(bb[i][1]+4)}" y2="${GY+4}"/>`;
     s+=p.svg+`</g>`;
-    s+=`<text class="lb" x="${f(cx)}" y="${f(maxY+16)}" text-anchor="middle">${frames[i].label||DEF[n][i]}</text>`;
+    s+=`<text class="lb" x="${f(cx)}" y="${f(maxY+16)}" text-anchor="middle">${frames[i].label||(DEF[n]||[])[i]||""}</text>`;
   });
   for(let i=0;i<n-1;i++){const xr=offs[i]+bb[i][0], xm=xr-GAP/2, y=(minY+maxY)/2;
     s+=`<path class="ar" d="M${f(xm+8)},${f(y)} H${f(xm-8)} M${f(xm-2)},${f(y-6)} L${f(xm-8)},${f(y)} L${f(xm-2)},${f(y+6)}"/>`;}
@@ -3569,45 +3576,41 @@ function gTimer(id,min){const on=SG.tm&&SG.tm.id===id;return `<button class="gtm
 //   1–2: everyone together at each station, taking turns (one works, one rests)
 //   3:   three stations, one person at each, rotate after every set (the rotation is the rest)
 //   4+:  pairs (or threes) at stations, partners alternate sets, groups rotate between stations
-function gGroups(P){const N=P.length;if(N<=2)return [P];if(N===3)return P.map(t=>[t]);
-  const G=Math.min(4,Math.ceil(N/2)),out=Array.from({length:G},()=>[]);P.forEach((t,i)=>out[i%G].push(t));return out;}
+function gGroups(N){if(N<=2)return [N];if(N===3)return [1,1,1];
+  const G=Math.min(4,Math.ceil(N/2)),out=Array(G).fill(0);for(let i=0;i<N;i++)out[i%G]++;return out;}
 const GNAMES=["א׳","ב׳","ג׳","ד׳"];
-function gStation(ref,P,letter){const L=LAD(gK(ref));if(!L)return "";
+// a station: the exercise and its versions (easy / medium / hard) - everyone picks the one that fits them
+function gStation(ref,letter){const L=LAD(gK(ref));if(!L)return "";
   const n=L.steps.length,pick=[0,Math.floor((n-1)*0.5),n-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>L.steps[i]);
   return `<div class="gst"><div class="gsth"><i>${letter}</i><b>${esc(lnHe(L.l))}</b></div>
-    <div class="gvar"><span>גרסאות:</span>${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>${["קלה","בינונית","קשה"][k]||""}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div>
-    <div class="gwhos">${P.map(t=>{const g=gStep(t,[ref]);const s=g.L.steps[g.i];return `<button class="gwc" data-open="${esc(g.k)}" data-x="${g.i}"><b>${esc(t.name)}</b>${esc(s.he||s.en)}</button>`;}).join("")}</div></div>`;}
-function renderSes(){const P=gPresent();
-  const who=`<div class="gcard"><div class="ghd"><b>מי הגיע היום</b><span>${P.length} מתאמנים</span></div>
-    <div class="gchips">${CO.trainees.map(t=>`<button class="gch${SG.present.includes(t.id)?" on":""}" data-p="${esc(t.id)}">${esc(t.name)}</button>`).join("")}</div>
-    <form class="gnew" data-gnew2><input placeholder="שם מתאמן חדש" autocomplete="off" aria-label="שם מתאמן חדש"><button>הוספה</button></form></div>`;
-  const pick=`<div class="gcard"><div class="ghd"><b>מה עובדים היום</b></div>
+    <div class="gvar">${pick.map((s,k)=>`<button class="gvb" data-open="${esc(L.key)}" data-x="${L.steps.indexOf(s)}"><span class="gth">${thumb(s)}</span><small>${["קלה","בינונית","קשה"][k]||""}</small><b>${esc(s.he||s.en)}</b></button>`).join("")}</div></div>`;}
+// warm-up from the top down, all together
+const GWARM=[["צוואר","סיבובים איטיים, הטיות לצדדים · 5 לכל כיוון"],["כתפיים","סיבובי ידיים קדימה ואחורה · 10 לכל כיוון"],
+  ["מרפקים","כיפוף ויישור, סיבובי אמה · 10"],["שורש כף היד","סיבובים, ועל ארבע: נדנוד קדימה ואחורה · 10"],
+  ["אגן","סיבובי אגן לשני הכיוונים · 10"],["ברכיים","סיבובים קטנים עם ידיים על הברכיים · 10"],["קרסוליים","סיבובים, ועלייה על קצות האצבעות · 10"],
+  ["סקוואטים","10 סקוואטים קלים"]];
+function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4));
+  const pick=`<div class="gcard"><div class="ghd"><b>כמה הגיעו?</b></div>
+    <div class="gnum">${[1,2,3,4,5,6,7,8].map(k=>`<button class="gn${k===N?" on":""}" data-n="${k}">${k}</button>`).join("")}</div>
     <p class="glbl">מיומנות</p><div class="gchips">${GSKILL.map(([id,n])=>`<button class="gch${SG.skill===id?" on":""}" data-skill="${id}">${esc(n)}</button>`).join("")}</div>
     <p class="glbl">כוח</p><div class="gchips">${GSTR.map(([id,n])=>`<button class="gch${SG.str===id?" on":""}" data-str="${id}">${esc(n)}</button>`).join("")}</div></div>`;
-  let h=`<h2 class="plh">אימון קבוצתי</h2>${who}${pick}`;
-  if(!P.length){$("sbody").innerHTML=h;return;}
   const sk=GSKILL.find(x=>x[0]===SG.skill)||GSKILL[0],st=GSTR.find(x=>x[0]===SG.str)||GSTR[0];
-  const GR=gGroups(P),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]];
-  const wu=["Wrist Prep — חימום שורש כף היד","Scapular Pull-Up","Bear Hold","Glute Bridge"].map(stepByEx).filter(Boolean);
+  const GR=gGroups(N),G=GR.length,ST=[st[2][0][0],st[2][0][1],st[2][1][0],st[2][1][1]];
   const blk=(n,title,min,fmt,body,id)=>`<section class="gblk"><div class="gbh"><i>${n}</i><div><b>${title}</b><small>${min} דק׳ · ${fmt}</small></div>${gTimer(id,min)}</div>${body}</section>`;
-  h+=blk(1,"חימום",10,"כולם ביחד",`<ul class="gwu">${wu.map(q=>`<li><button class="gex hasgt" data-open="${esc(q.L.key)}" data-x="${q.i}"><span class="gth">${thumb(q.s)}</span><span class="gtx"><b>${esc(q.s.he||q.s.en)}</b><small><bdi dir="ltr">${esc(q.s.pass)}</bdi></small></span></button></li>`).join("")}
-      <li class="gtxt">סיבובי מפרקים: צוואר, כתפיים, אגן, ברכיים · 10 סקוואטים קלים</li></ul>`,"w");
+  let h=`<h2 class="plh">אימון קבוצתי</h2>${pick}`;
+  h+=blk(1,"חימום",8,"כולם ביחד, מלמעלה למטה",`<ol class="gwl">${GWARM.map(([a,b])=>`<li><b>${a}</b><span>${b}</span></li>`).join("")}</ol>`,"w");
   h+=blk(2,"מיומנות: "+esc(sk[1]),12,"כולם ביחד, בתורות: ניסיון אחד איכותי, והבא בתור",
-    `<p class="gtip">כל אחד בגרסה שלו. בזמן שאחד מנסה, האחרים נחים ומסתכלים, וזה גם זמן לתקן טכניקה.</p>${gStation(sk[2][sk[2].length-1],P,"★").replace('<div class="gvar">','<div class="gvar" hidden>')}`,"s");
-  // strength: organisation by group size
-  let org="",stations;
-  if(G===1){stations=ST;org=`<p class="gorg"><b>${P.length===1?"מתאמן אחד":"2 מתאמנים"}: כולם יחד בכל תחנה.</b> ${P.length>1?"אחד עושה סט, השני נח ומסתכל, ומחליפים. ":""}A1 ואז A2, 3 סבבים, ואחר כך B1 ו-B2.</p>`;}
+    `<p class="gtip">כל אחד בגרסה שמתאימה לו. בזמן שאחד מנסה, האחרים נחים, וזה הזמן לתקן טכניקה.</p>${gStation(sk[2][sk[2].length-1],"★")}`,"s");
+  let org,stations;
+  if(G===1){stations=ST;org=`<p class="gorg"><b>${N===1?"מתאמן אחד":"2 מתאמנים"}: כולם יחד בכל תחנה.</b> ${N>1?"אחד עושה סט, השני נח, ומחליפים. ":""}1 ואז 2, 3 סבבים, ואחר כך 3 ו-4.</p>`;}
   else{stations=G===2?ST:ST.slice(0,Math.min(4,G));
-    org=`<p class="gorg"><b>${P.length} מתאמנים: ${G} קבוצות, ${stations.length} תחנות.</b> ${GR.some(g=>g.length>1)?"בתוך קבוצה עושים סטים לסירוגין (אחד עובד, השני נח). ":""}אחרי כל סט, כל קבוצה עוברת לתחנה הבאה. 3 סיבובים מלאים.</p>
-      <div class="ggrp">${GR.map((g,i)=>`<span><i>${GNAMES[i]}</i>${g.map(t=>esc(t.name)).join(" + ")}</span>`).join("")}</div>
-      ${(G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations]).map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}${pi?" (אחרי 3 סיבובים של החלק הראשון)":""}</p>`:""}
+    org=`<p class="gorg"><b>${N} מתאמנים: ${N===3?"כל אחד בתחנה משלו":G+" קבוצות ("+GR.join(" + ")+")"}, ${stations.length} תחנות.</b> ${GR.some(g=>g>1)?"בתוך קבוצה עושים סטים לסירוגין. ":""}אחרי כל סט, כל קבוצה עוברת לתחנה הבאה. 3 סיבובים.</p>
+      ${(G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations]).map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}</p>`:""}
       <table class="grot"><tr><th>סט</th>${GR.map((g,i)=>`<th>קבוצה ${GNAMES[i]}</th>`).join("")}</tr>
       ${part.map((_,r)=>`<tr><td>${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x));return `<td>${esc(L?lnHe(L.l):"")}</td>`;}).join("")}</tr>`).join("")}</table>`).join("")}`;}
-  const letters=G===1?["A1","A2","B1","B2"]:["1","2","3","4"];
-  h+=blk(3,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,P,letters[i])).join(""),"c");
-  h+=blk(4,"סיום: ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(r,P,"C"+(i+1))).join(""),"f");
-  h+=blk(5,"שחרור",5,"כולם ביחד",`<ul class="gwu"><li class="gtxt">מתיחת כתפיים וחזה בדלת או על המוט · 30 שנ׳</li><li class="gtxt">מתיחת מפשעה וירך אחורית · 30 שנ׳ לכל צד</li><li class="gtxt">תלייה רפויה על המוט · 20–30 שנ׳</li></ul>`,"r");
-  h+=`<p class="gtip">כדי לשנות למתאמן את הגרסה שהוא עושה: תוכניות אימון ← בוחרים אותו ← רמות.</p><button class="pmsave" id="gfin">✓ סיום אימון</button>`;
+  h+=blk(3,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1))).join(""),"c");
+  h+=blk(4,"סיום: ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(r,"C"+(i+1))).join(""),"f");
+  h+=blk(5,"שחרור",5,"כולם ביחד",`<ol class="gwl"><li><b>כתפיים וחזה</b><span>מתיחה על המוט או בדלת · 30 שנ׳</span></li><li><b>מפשעה וירך אחורית</b><span>30 שנ׳ לכל צד</span></li><li><b>תלייה רפויה</b><span>על המוט · 20–30 שנ׳</span></li></ol>`,"r");
   $("sbody").innerHTML=h;}
 let gIv=0;
 function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Date.now())/1000));
@@ -3615,6 +3618,7 @@ function gTick(){if(!SG.tm)return;const left=Math.max(0,Math.round((SG.tm.end-Da
   if(left<=0){clearInterval(gIv);SG.tm=null;sgSave();try{beep(880)}catch(e){}renderSes();}}
 $("sbody").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("smsg").hidden=true;const y=window.scrollY;
   if(b.dataset.p){const id=b.dataset.p;SG.present=SG.present.includes(id)?SG.present.filter(x=>x!==id):[...SG.present,id];}
+  else if(b.dataset.n&&b.classList.contains("gn"))SG.n=+b.dataset.n;
   else if(b.dataset.skill)SG.skill=b.dataset.skill;
   else if(b.dataset.day)SG.day=b.dataset.day;
   else if(b.dataset.str)SG.str=b.dataset.str;
