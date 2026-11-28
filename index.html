@@ -544,6 +544,8 @@ body.gdragging{overflow:hidden;touch-action:none}
 .ggrp{display:flex;flex-wrap:wrap;gap:6px}.ggrp span{padding:6px 10px;border-radius:999px;background:#0B0B0C;font-size:.85rem;font-weight:700}
 .ggrp i{font-style:normal;color:#FF8A1F;margin-inline-end:5px}
 .grot{width:100%;border-collapse:separate;border-spacing:4px;font-size:.82rem;text-align:center}
+.gsteps{margin:0;padding-inline-start:20px;display:grid;gap:6px;font-size:.88rem;line-height:1.5}.gsteps li::marker{color:#FF8A1F;font-weight:900}.gsteps b{color:#FF8A1F}
+.grot th small{font-weight:600;opacity:.8}.grot td:first-child{white-space:nowrap}
 .grot th{color:var(--muted);font-weight:700}.grot td{background:#0B0B0C;border-radius:8px;padding:7px 4px}.grot td:first-child{color:#FF8A1F;font-weight:900;width:34px}
 .gdays{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 14px}
 .gday{font:inherit;font-weight:800;font-size:1rem;padding:14px 8px;border-radius:16px;border:1.5px solid var(--card-b,var(--line));background:var(--card,var(--surface));color:var(--ink);cursor:pointer}
@@ -876,7 +878,7 @@ body.gdragging{overflow:hidden;touch-action:none}
 <script>
 // the phone (an app added to the home screen) can keep showing an old saved copy of this page. Each time the app opens
 // or comes back to the front it asks the server for the current page; when its BUILD differs, it loads the new one.
-const BUILD="20261126143434";
+const BUILD="20261128125002";
 (function(){let busy=false;
   const check=()=>{if(busy||!navigator.onLine||location.protocol==="file:")return;busy=true;
     fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
@@ -3660,12 +3662,20 @@ function renderSes(){const N=Math.max(1,Math.min(8,SG.n||4)),O=gOrder(),cu=gCust
   B.s=n=>blk(n,"מיומנות: "+esc(sk[1]),12,"כולם ביחד, בתורות: ניסיון אחד איכותי, והבא בתור",
     `<p class="gtip">כל אחד בגרסה שמתאימה לו. בזמן שאחד מנסה, האחרים נחים, וזה הזמן לתקן טכניקה.</p>${gStation(gRef("s:"+sk[0],sk[2][sk[2].length-1]),"★","s:"+sk[0])}${reset("s:"+sk[0])}`,"s");
   B.c=n=>{let org,stations;const slotOf=x=>"c:"+st[0]+":"+ST.indexOf(x);
-    if(G===1){stations=ST;org=`<p class="gorg"><b>${N===1?"מתאמן אחד":"2 מתאמנים"}: כולם יחד בכל תחנה.</b> ${N>1?"אחד עושה סט, השני נח, ומחליפים. ":""}1 ואז 2, 3 סבבים, ואחר כך 3 ו-4.</p>`;}
+    const nm=x=>{const L=LAD(gK(x));return esc(L?lnHe(L.l):"");};
+    if(G===1){stations=ST;org=`<ol class="gsteps"><li>${N===1?"מתאמן אחד, עובר לבד על כל התרגילים.":"שניכם עובדים יחד באותו תרגיל: אחד עושה סט, השני נח, ומחליפים."}</li>
+      <li>מתחילים ב<b>${nm(ST[0])}</b> ו<b>${nm(ST[1])}</b> לסירוגין: סט של זה, סט של זה. 3 פעמים כל אחד.</li>
+      <li>אחר כך אותו דבר עם <b>${nm(ST[2])}</b> ו<b>${nm(ST[3])}</b>.</li></ol>`;}
     else{stations=G===2?ST:ST.slice(0,Math.min(4,G));
-      org=`<p class="gorg"><b>${N} מתאמנים: ${N===3?"כל אחד בתחנה משלו":G+" קבוצות ("+GR.join(" + ")+")"}, ${stations.length} תחנות.</b> ${GR.some(g=>g>1)?"בתוך קבוצה עושים סטים לסירוגין. ":""}אחרי כל סט, כל קבוצה עוברת לתחנה הבאה. 3 סיבובים.</p>
-        ${(G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations]).map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}</p>`:""}
-        <table class="grot"><tr><th>סט</th>${GR.map((g,i)=>`<th>קבוצה ${GNAMES[i]}</th>`).join("")}</tr>
-        ${part.map((_,r)=>`<tr><td>${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x)),sl=slotOf(x);
+      const who=N===3?"מתאמן":"קבוצה",parts=G===2?[[stations[0],stations[1]],[stations[2],stations[3]]]:[stations];
+      org=`<ol class="gsteps"><li><b>תחנה</b> היא מקום באולם עם תרגיל אחד. מסדרים ${parts[0].length} תחנות: ${parts[0].map(x=>"<b>"+nm(x)+"</b>").join(", ")}.</li>
+      <li>${N===3?"כל מתאמן מתחיל בתחנה אחרת.":`מתחלקים ל-${G} קבוצות (${GR.join(" + ")} אנשים), כל קבוצה מתחילה בתחנה אחרת. בקבוצה של 2: אחד עושה סט, השני נח, ומחליפים.`}</li>
+      <li>אחרי סט, כולם עוברים יחד לתחנה הבאה. בטבלה, כל עמודה מראה לאן ה${who} שלה הולכת, מלמעלה למטה.</li>
+      <li>כשגמרתם את הטבלה, חוזרים עליה מההתחלה. 3 פעמים בסך הכל.</li>
+      ${parts.length>1?`<li>אחר כך מחליפים את התחנות ל${parts[1].map(x=>"<b>"+nm(x)+"</b>").join(" ו")}, ועושים את חלק ב׳ באותה צורה.</li>`:""}</ol>
+        ${parts.map((part,pi,all)=>`${all.length>1?`<p class="glbl">חלק ${GNAMES[pi]}</p>`:""}
+        <table class="grot"><tr><th></th>${GR.map((g,i)=>`<th>${who} ${GNAMES[i]}${N>3?` <small>(${g})</small>`:""}</th>`).join("")}</tr>
+        ${part.map((_,r)=>`<tr><td>סט ${r+1}</td>${GR.map((g,i)=>{const x=part[(i+r)%part.length],L=LAD(gK(x)),sl=slotOf(x);
           return `<td>${gEdit===sl?gSel(L,sl):`<button class="gcell" data-slot="${sl}">${esc(L?lnHe(L.l):"")}</button>`}</td>`;}).join("")}</tr>`).join("")}</table>`).join("")}`;}
     return blk(n,"כוח: "+esc(st[1]),25,G===1?"סופרסטים, מנוחה 60–90 שנ׳":"תחנות בסבב",org+stations.map((x,i)=>gStation(x,String(i+1),slotOf(x))).join("")+reset("c:"+st[0]+":"),"c");};
   B.f=n=>blk(n,"ליבה",8,"כולם ביחד במעגל: 30 שנ׳ עבודה, 15 שנ׳ מנוחה, 3 סבבים",GFIN.map((r,i)=>gStation(gRef("f:"+i,r),"C"+(i+1),"f:"+i)).join("")+reset("f:"),"f");
